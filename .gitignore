@@ -1,0 +1,13 @@
+*~
+*.vcxproj
+*.filters
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+Debug
+*.exe
+*.dir
+*.sdf
+*.sln
+*.suo
+Win32

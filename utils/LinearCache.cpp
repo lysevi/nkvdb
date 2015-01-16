@@ -1,22 +1,28 @@
 #include "LinearCache.h"
+#include <cassert>
 
 using namespace utils;
-
-
 
 LinearCache::LinearCache(const common::IdList&ids){
 	m_meases.resize(ids.size());
 }
 
-
 LinearCache::~LinearCache()
-{}
-
-
-void LinearCache::writeValue(common::Meas::PMeas meas) {
-	NOT_IMPLEMENTED;
+{
+	m_meases.clear();
 }
 
-void LinearCache::readValue(const common::Id id) {
-	NOT_IMPLEMENTED;
+size_t LinearCache::size()const {
+	return m_meases.size();
+}
+
+
+void LinearCache::writeValue(const common::Meas &meas) {
+	m_meases[meas.id] = meas;
+}
+
+common::Meas LinearCache::readValue(const common::Id id){
+	assert(id < m_meases.size());
+
+	return m_meases.at(id);
 }

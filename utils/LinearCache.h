@@ -14,9 +14,10 @@ namespace utils
 	public:
 		LinearCache(const common::IdList&ids);
 		~LinearCache();
-		void writeValue(common::Meas::PMeas meas);
-		void readValue(const common::Id id);
+		void writeValue(const common::Meas &meas);
+		common::Meas readValue(const common::Id id);
+		size_t size()const;
 	private:
-		std::vector<common::Meas::PMeas> m_meases;
+		std::vector<common::Meas> m_meases;
 	};
 };

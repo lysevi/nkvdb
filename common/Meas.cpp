@@ -3,14 +3,13 @@
 using namespace common;
 
 Meas::Meas() {
-	id = time = source = flag = size = 0;
-	data = nullptr;
+	id = time = source = flag = data = 0;
 };
 
 Meas::~Meas() {
 };
-
-Meas::PMeas Meas::empty() {
-	Meas::PMeas result = std::make_shared<Meas>();
-	return result;
-}
+//
+//Meas::PMeas Meas::empty() {
+//	Meas::PMeas result = std::make_shared<Meas>();
+//	return result;
+//}

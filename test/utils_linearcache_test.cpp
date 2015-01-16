@@ -12,11 +12,26 @@ common::IdList getIds() {
 BOOST_AUTO_TEST_CASE(ctor) {
 	common::IdList ids=getIds();
 	utils::LinearCache lcache(ids);
+
+	BOOST_CHECK_EQUAL(lcache.size(), ids.size());
 }
 
-BOOST_AUTO_TEST_CASE(write) {
+BOOST_AUTO_TEST_CASE(read_write) {
 	common::IdList ids = getIds();
 	utils::LinearCache lcache(ids);
-	common::Meas::PMeas pm = common::Meas::empty();
-	lcache.writeValue(pm);
+	for (auto id : ids) {
+		common::Meas m;
+		m.id = id;
+		m.time = id*10;
+		m.data = id;
+		lcache.writeValue(m);
+	}
+
+	for (auto id : ids) {
+		common::Meas m=lcache.readValue(id);
+
+		BOOST_CHECK_EQUAL(m.id, id);
+		BOOST_CHECK_EQUAL(m.time, id*10);
+		BOOST_CHECK_EQUAL(m.data, id);
+	}
 }

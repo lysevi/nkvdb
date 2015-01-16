@@ -5,6 +5,7 @@ CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
 Debug
+Release
 *.exe
 *.dir
 *.sdf

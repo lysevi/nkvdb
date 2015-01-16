@@ -1,9 +1,11 @@
 #pragma once
 
-class LinearCache
+namespace utils
 {
-public:
-	LinearCache();
-	~LinearCache();
+	class LinearCache
+	{
+	public:
+		LinearCache();
+		~LinearCache();
+	};
 };
-

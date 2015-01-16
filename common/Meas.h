@@ -1,7 +1,5 @@
 #pragma once
 
-#include <boost\noncopyable.hpp>
-
 #include "common.h"
 
 namespace common

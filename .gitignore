@@ -1,3 +1,8 @@
+*.a
+Makefile
+mdb
+nbproject
+test/*_test
 *~
 *.vcxproj
 *.filters

@@ -1,7 +1,7 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE Main
 #include <boost/test/unit_test.hpp>
-#include <Utils/LinearCache.h>
+#include <utils/LinearCache.h>
 
 common::IdList getIds() {
 	common::IdList result{1,2,3,4,5,6,7,8,9,0};

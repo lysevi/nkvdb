@@ -7,6 +7,9 @@ IF(WIN32)
         MESSAGE(STATUS "+ boost_root: " ${BOOST_ROOT})
 	LINK_DIRECTORIES(${LINK_DIRECTORIES} "d:\\soft\\boost_1_57_0\\build")
         MESSAGE(STATUS "+ boost libs: " ${BOOST_ROOT})
+else(WIN32)
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -Wwrite-strings -g -ftest-coverage -fprofile-arcs -Wsign-compare")
+
 ENDIF(WIN32)
 
 #SET(Boost_USE_STATIC_LIBS OFF)

@@ -1,20 +1,26 @@
 #pragma once
 
-#include <cstdint>
-#include <memory>
 #include <boost\noncopyable.hpp>
+
+#include "common.h"
 
 namespace common
 {
-	class Meas: boost::noncopyable
+	class Meas: public boost::noncopyable
 	{
-		Meas() = delete;
-		~Meas() = delete;
 	public:
-		uint64_t id;
-		uint64_t time;
-		uint64_t flag;
-		uint64_t size;
-		std::shared_ptr<void*> data;
+		typedef std::shared_ptr<Meas> PMeas;
+	public:
+		Meas();
+		~Meas();
+
+		static PMeas empty();
+	public:
+		Id   id;                     // идентификатор
+		Time time;                   // время генерации
+		Flag source;                 // битовые флаги для кодирования источник
+		Flag flag;                   // флаги со всякой мишурой
+		size_t size;                 // размер данных
+		std::shared_ptr<void*> data; // сами данные
 	};
 }

@@ -1,2 +1,2 @@
-FILE(GLOB SRC "*.cpp")
+FILE(GLOB SRC "*.cpp"  "*.h")
 add_library(utils STATIC ${SRC})

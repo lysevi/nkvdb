@@ -10,4 +10,6 @@ namespace mdb_test {
 
     common::IdArray getIds();
     utils::DataStorage* makeDS();
+
+    common::Meas::MeasArray testMeases(const common::IdArray &ids);
 }

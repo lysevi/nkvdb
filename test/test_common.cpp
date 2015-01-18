@@ -14,4 +14,19 @@ namespace mdb_test {
         return result;
     }
 
+    common::Meas::MeasArray testMeases(const common::IdArray &ids) {
+        common::Meas::MeasArray ma;
+        ma.resize(ids.size());
+        int i = 0;
+        for (auto id:ids) {
+            common::Meas m;
+            m.id = id;
+            m.time = id * 10;
+            m.data = id;
+            ma[i] = m;
+            i++;
+        }
+        return ma;
+    }
+
 }

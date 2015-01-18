@@ -11,26 +11,10 @@ BOOST_AUTO_TEST_CASE(ctor) {
 
     BOOST_CHECK_EQUAL(lcache.size(), ids.size());
 }
-
-common::Meas::MeasArray testMeases(const common::IdArray &ids) {
-    common::Meas::MeasArray ma;
-    ma.resize(ids.size());
-    int i = 0;
-    for (auto id:ids) {
-        common::Meas m;
-        m.id = id;
-        m.time = id * 10;
-        m.data = id;
-        ma[i] = m;
-        i++;
-    }
-    return ma;
-}
-
 BOOST_AUTO_TEST_CASE(read_write) {
     common::IdArray ids = mdb_test::getIds();
     utils::LinearCache lcache(ids);
-    auto tm=testMeases(ids);
+    auto tm=mdb_test::testMeases(ids);
     for (auto &m:tm) {
         lcache.writeValue(m);
     }
@@ -57,7 +41,7 @@ BOOST_AUTO_TEST_CASE(read_write) {
 BOOST_AUTO_TEST_CASE(read_write_group) {
     common::IdArray ids = mdb_test::getIds();
     utils::LinearCache lcache(ids);
-    auto tm=testMeases(ids);
+    auto tm=mdb_test::testMeases(ids);
     lcache.writeValues(tm);
 
     auto meases = lcache.readValues(ids);

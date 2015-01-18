@@ -22,7 +22,7 @@ void LinearCache::writeValue(const common::Meas &meas) {
 }
 
 void LinearCache::writeValues(const common::Meas::MeasArray &meases){
-    for(auto m:meases){
+    for(auto &m:meases){
         this->writeValue(m);
     }
 }
@@ -39,6 +39,7 @@ common::Meas::MeasArray LinearCache::readValues(const common::IdArray ids){
     int i=0;
     for(auto id:ids){
         result[i]=(this->readValue(id));
+
         i++;
     }
     return result;

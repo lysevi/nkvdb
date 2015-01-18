@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include <list>
+
 namespace common
 {
 	class Meas

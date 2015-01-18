@@ -6,7 +6,7 @@
 
 namespace utils {
 
-    class IExternalCache {
+    class IExternalCache: common::NonCopy {
     public:
         virtual void writeValues(const common::Meas::MeasArray &meases) = 0;
         virtual common::Meas::MeasArray readValues(const common::IdArray ids) = 0;

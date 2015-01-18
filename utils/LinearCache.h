@@ -7,15 +7,19 @@
 namespace utils
 {
 /*
-Кеш для хранения текущего среза данных
+пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 */
 	class LinearCache
 	{
 	public:
-		LinearCache(const common::IdList&ids);
+		LinearCache(const common::IdArray&ids);
 		~LinearCache();
-		void writeValue(const common::Meas &meas);
+
+                void writeValue(const common::Meas &meas);
+                void writeValues(const common::Meas::MeasArray &meases);
+
 		common::Meas readValue(const common::Id id);
+                common::Meas::MeasArray readValues(const common::IdArray ids);
 		size_t size()const;
 	private:
 		std::vector<common::Meas> m_meases;

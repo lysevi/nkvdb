@@ -1,21 +1,22 @@
 #pragma once
 
 #include "common.h"
-
+#include <list>
 namespace common
 {
 	class Meas
 	{
 	public:
 		/*typedef std::shared_ptr<Meas> PMeas;*/
+            typedef std::vector<Meas> MeasArray;
 	public:
 		Meas();
 		~Meas();
 	public:
-		Id   id;                     // идентификатор
-		Time time;                   // время генерации
-		Flag source;                 // битовые флаги для кодирования источник
-		Flag flag;                   // флаги со всякой мишурой
-		Value data;                  // сами данные
+		Id   id;                     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+		Time time;                   // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+		Flag source;                 // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+		Flag flag;                   // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+		Value data;                  // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 	};
 }

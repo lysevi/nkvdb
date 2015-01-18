@@ -1,14 +1,18 @@
 include_directories(..)
 
-add_executable(empty_test empty.cpp)
-add_executable(common_meas_test common_meas_test.cpp)
-add_executable(utils_linearcache_test utils_linearcache_test.cpp)
+add_library(mdb_test STATIC test_common.cpp test_common.h)
 
-TARGET_LINK_LIBRARIES(empty_test utils ${ALL_LIBRARIES} ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(common_meas_test common ${ALL_LIBRARIES} ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(utils_linearcache_test common utils ${ALL_LIBRARIES} ${Boost_LIBRARIES})
+MESSAGE(STATUS "Test: " ${name})
 
-add_test(empty_test empty_test)
-add_test(common_meas common_meas_test)
-add_test(utils_linearcache utils_linearcache_test)
+macro(TEST_CASE name src)
+MESSAGE(STATUS " +" ${name})
+add_executable(${name} ${src})
+TARGET_LINK_LIBRARIES(${name} mdb_test utils common ${ALL_LIBRARIES} ${Boost_LIBRARIES})
+add_test(${name} ${name})
+endmacro(TEST_CASE)
+
+TEST_CASE(empty_test empty.cpp)
+TEST_CASE(common_meas_test common_meas_test.cpp)
+TEST_CASE(utils_linearcache_test utils_linearcache_test.cpp)
+TEST_CASE(utils_datastorage_test utils_datastorage_test.cpp)
 

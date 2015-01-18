@@ -54,3 +54,16 @@ BOOST_AUTO_TEST_CASE(read_write_group) {
         BOOST_CHECK_EQUAL(meases[i].data, ids[i]);
     }
 }
+
+BOOST_AUTO_TEST_CASE(read_flg) {
+    common::IdArray ids = mdb_test::getIds();
+    utils::LinearCache lcache(ids);
+    auto tm=mdb_test::testMeases(ids);
+    lcache.writeValues(tm);
+
+    auto meases = lcache.readValuesFltr(ids,0,(common::Flag)ids[0]);
+
+    BOOST_CHECK_EQUAL(meases.size(),(size_t)1);
+
+    BOOST_CHECK_EQUAL(meases[0].id,ids[0]);
+}

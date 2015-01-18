@@ -3,13 +3,14 @@
 #include <list>
 #include <vector>
 #include <common/Meas.h>
+#include "IExternalCache.h"
 
 namespace utils
 {
 /*
 ��� ��� �������� �������� ����� ������
 */
-	class LinearCache
+	class LinearCache: public IExternalCache
 	{
 	public:
 		LinearCache(const common::IdArray&ids);
@@ -20,6 +21,12 @@ namespace utils
 
 		common::Meas readValue(const common::Id id);
                 common::Meas::MeasArray readValues(const common::IdArray ids);
+
+
+                common::Meas::MeasArray readValuesInterval(const common::IdArray ids, const common::Time from,const common::Time to);
+                common::Meas::MeasArray readValuesFltr(const common::IdArray ids, const common::Time from,const common::Flag flg);
+                common::Meas::MeasArray readValuesByDate(const common::IdArray ids, const common::Time date);
+                
 		size_t size()const;
 	private:
 		std::vector<common::Meas> m_meases;

@@ -1,5 +1,6 @@
 #include "LinearCache.h"
 #include <cassert>
+#include <list>
 
 using namespace utils;
 
@@ -43,4 +44,30 @@ common::Meas::MeasArray LinearCache::readValues(const common::IdArray ids){
         i++;
     }
     return result;
+}
+
+common::Meas::MeasArray LinearCache::readValuesInterval(const common::IdArray ids, const common::Time from,const common::Time to){
+    NOT_IMPLEMENTED;
+}
+
+common::Meas::MeasArray LinearCache::readValuesFltr(const common::IdArray ids, const common::Time from,const common::Flag flg){
+    std::list<common::Meas> subRes;
+    for(auto id:ids){
+        auto m=(this->readValue(id));
+        if(m.flag==flg)
+            subRes.push_back(m);
+    }
+
+    int i=0;
+    common::Meas::MeasArray res;
+    res.resize(subRes.size());
+    for(auto m:subRes){
+        res[i]=m;
+        i++;
+    }
+    return res;
+}
+
+common::Meas::MeasArray LinearCache::readValuesByDate(const common::IdArray ids, const common::Time date){
+    NOT_IMPLEMENTED;
 }

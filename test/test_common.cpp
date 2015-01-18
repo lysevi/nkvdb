@@ -23,6 +23,7 @@ namespace mdb_test {
             m.id = id;
             m.time = id * 10;
             m.data = id;
+            m.flag = id;
             ma[i] = m;
             i++;
         }

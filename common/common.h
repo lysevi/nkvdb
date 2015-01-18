@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <list>
+#include <vector>
 #include <memory>
 #include <stdexcept>
 
@@ -13,5 +13,5 @@ namespace common
 	typedef uint64_t              Id;
 	typedef uint64_t              Flag;
 	typedef uint64_t              Value;
-	typedef std::list<Id> IdList;
+	typedef std::vector<Id>       IdArray;
 }

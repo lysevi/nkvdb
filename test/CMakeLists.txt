@@ -1,5 +1,3 @@
-enable_testing()
-
 include_directories(..)
 
 add_executable(empty_test empty.cpp)

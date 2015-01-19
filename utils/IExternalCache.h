@@ -7,6 +7,8 @@
 namespace utils {
 
     class IExternalCache: common::NonCopy {
+	public:
+		typedef std::shared_ptr<IExternalCache> PExternalCache;
     public:
         virtual void writeValues(const common::Meas::MeasArray &meases) = 0;
         virtual common::Meas::MeasArray readValues(const common::IdArray& ids) = 0;

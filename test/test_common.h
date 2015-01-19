@@ -7,9 +7,10 @@
 #include <utils/ExternalCacheMemory.h>
 
 namespace mdb_test {
+	const size_t testCacheSz = 1 * 1024 * 1024; //1 mb
 
     common::IdArray getIds();
-    utils::DataStorage* makeDS();
+	utils::IExternalCache::PExternalCache makeDS();
 
     common::Meas::MeasArray testMeases(const common::IdArray &ids);
 }

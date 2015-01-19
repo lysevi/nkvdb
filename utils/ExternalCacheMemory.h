@@ -2,10 +2,12 @@
 #pragma once
 
 #include "IExternalCache.h"
+#include <vector>
 
 namespace utils {
 
     class ExternalCacheMemory:public IExternalCache {
+		typedef std::vector<common::Meas::MeasArray> MeasMatrix;
     public:
 		ExternalCacheMemory(size_t cacheSize,const common::IdArray& ids);
         void writeValues(const common::Meas::MeasArray &meases);
@@ -17,8 +19,9 @@ namespace utils {
 
         virtual ~ExternalCacheMemory();
     private:
-		size_t m_cacheSize;
+		size_t          m_cacheSize;
 		common::IdArray m_ids;
+		MeasMatrix      m_mmatrix;
     };
 
 }

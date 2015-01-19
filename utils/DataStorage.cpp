@@ -2,7 +2,7 @@
 
 using namespace utils;
 
-DataStorage::DataStorage(LinearCache *lcache,IExternalCache*ecache)
+DataStorage::DataStorage(utils::IExternalCache::PExternalCache lcache, utils::IExternalCache::PExternalCache ecache)
 :m_ecache(ecache),m_lcache(lcache) {
 }
 

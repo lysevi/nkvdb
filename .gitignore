@@ -9,6 +9,7 @@ test/*_test
 CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
+*.ctestcase
 Debug
 Release
 *.exe

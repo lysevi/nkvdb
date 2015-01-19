@@ -20,11 +20,11 @@ BOOST_AUTO_TEST_CASE(read_write) {
     }
 
     for (auto id:ids) {
-        common::Meas m = lcache.readValue(id);
+        common::Meas::PMeas m = lcache.readValue(id);
 
-        BOOST_CHECK_EQUAL(m.id, id);
-        BOOST_CHECK_EQUAL(m.time, id * 10);
-        BOOST_CHECK_EQUAL(m.data, id);
+        BOOST_CHECK_EQUAL(m->id, id);
+        BOOST_CHECK_EQUAL(m->time, id * 10);
+        BOOST_CHECK_EQUAL(m->data, id);
     }
 
     auto meases = lcache.readValues(ids);
@@ -32,9 +32,9 @@ BOOST_AUTO_TEST_CASE(read_write) {
     BOOST_CHECK_EQUAL(meases.size(), ids.size());
 
     for (size_t i = 0; i < meases.size(); ++i) {
-        BOOST_CHECK_EQUAL(meases[i].id, ids[i]);
-        BOOST_CHECK_EQUAL(meases[i].time, ids[i]*10);
-        BOOST_CHECK_EQUAL(meases[i].data, ids[i]);
+        BOOST_CHECK_EQUAL(meases[i]->id, ids[i]);
+        BOOST_CHECK_EQUAL(meases[i]->time, ids[i]*10);
+        BOOST_CHECK_EQUAL(meases[i]->data, ids[i]);
     }
 }
 
@@ -49,9 +49,9 @@ BOOST_AUTO_TEST_CASE(read_write_group) {
     BOOST_CHECK_EQUAL(meases.size(), ids.size());
 
     for (size_t i = 0; i < meases.size(); ++i) {
-        BOOST_CHECK_EQUAL(meases[i].id, ids[i]);
-        BOOST_CHECK_EQUAL(meases[i].time, ids[i]*10);
-        BOOST_CHECK_EQUAL(meases[i].data, ids[i]);
+        BOOST_CHECK_EQUAL(meases[i]->id, ids[i]);
+        BOOST_CHECK_EQUAL(meases[i]->time, ids[i]*10);
+        BOOST_CHECK_EQUAL(meases[i]->data, ids[i]);
     }
 }
 
@@ -65,5 +65,5 @@ BOOST_AUTO_TEST_CASE(read_flg) {
 
     BOOST_CHECK_EQUAL(meases.size(),(size_t)1);
 
-    BOOST_CHECK_EQUAL(meases[0].id,ids[0]);
+    BOOST_CHECK_EQUAL(meases[0]->id,ids[0]);
 }

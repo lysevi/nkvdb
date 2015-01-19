@@ -7,19 +7,17 @@
 
 namespace utils
 {
-/*
-��� ��� �������� �������� ����� ������
-*/
+
 	class LinearCache: public IExternalCache
 	{
 	public:
 		LinearCache(const common::IdArray&ids);
 		~LinearCache();
 
-                void writeValue(const common::Meas &meas);
+                void writeValue(const common::Meas::PMeas &meas);
                 void writeValues(const common::Meas::MeasArray &meases);
 
-		common::Meas readValue(const common::Id id);
+				common::Meas::PMeas readValue(const common::Id id);
                 common::Meas::MeasArray readValues(const common::IdArray ids);
 
 
@@ -29,6 +27,6 @@ namespace utils
                 
 		size_t size()const;
 	private:
-		std::vector<common::Meas> m_meases;
+		std::vector<common::Meas::PMeas> m_meases;
 	};
 };

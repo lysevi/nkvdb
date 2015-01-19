@@ -8,8 +8,8 @@ Meas::Meas() {
 
 Meas::~Meas() {
 };
-//
-//Meas::PMeas Meas::empty() {
-//	Meas::PMeas result = std::make_shared<Meas>();
-//	return result;
-//}
+
+Meas::PMeas Meas::empty() {
+	Meas::PMeas result = std::make_shared<Meas>();
+	return result;
+}

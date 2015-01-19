@@ -8,16 +8,18 @@ namespace common
 	class Meas
 	{
 	public:
-		/*typedef std::shared_ptr<Meas> PMeas;*/
-            typedef std::vector<Meas> MeasArray;
+		typedef std::shared_ptr<Meas> PMeas;
+        typedef std::vector<PMeas> MeasArray;
 	public:
 		Meas();
 		~Meas();
+
+		static Meas::PMeas empty();
 	public:
-		Id   id;                     // �������������
-		Time time;                   // ����� ���������
-		Flag source;                 // ������� ����� ��� ����������� ��������
-		Flag flag;                   // ����� �� ������ �������
-		Value data;                  // ���� ������
+		Id   id;
+		Time time;
+		Flag source;
+		Flag flag;  
+		Value data; 
 	};
 }

@@ -19,11 +19,11 @@ namespace mdb_test {
         ma.resize(ids.size());
         int i = 0;
         for (auto id:ids) {
-            common::Meas m;
-            m.id = id;
-            m.time = id * 10;
-            m.data = id;
-            m.flag = id;
+			auto m = std::make_shared<common::Meas>();
+            m->id = id;
+            m->time = id * 10;
+            m->data = id;
+            m->flag = id;
             ma[i] = m;
             i++;
         }

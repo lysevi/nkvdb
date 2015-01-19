@@ -18,8 +18,8 @@ size_t LinearCache::size()const {
 }
 
 
-void LinearCache::writeValue(const common::Meas &meas) {
-	m_meases[meas.id] = meas;
+void LinearCache::writeValue(const common::Meas::PMeas &meas) {
+	m_meases[meas->id] = meas;
 }
 
 void LinearCache::writeValues(const common::Meas::MeasArray &meases){
@@ -28,7 +28,7 @@ void LinearCache::writeValues(const common::Meas::MeasArray &meases){
     }
 }
 
-common::Meas LinearCache::readValue(const common::Id id){
+common::Meas::PMeas LinearCache::readValue(const common::Id id){
 	assert(id < m_meases.size());
 
 	return m_meases.at(id);
@@ -51,10 +51,10 @@ common::Meas::MeasArray LinearCache::readValuesInterval(const common::IdArray id
 }
 
 common::Meas::MeasArray LinearCache::readValuesFltr(const common::IdArray ids, const common::Time from,const common::Flag flg){
-    std::list<common::Meas> subRes;
+    std::list<common::Meas::PMeas> subRes;
     for(auto id:ids){
         auto m=(this->readValue(id));
-        if(m.flag==flg)
+        if(m->flag==flg)
             subRes.push_back(m);
     }
 

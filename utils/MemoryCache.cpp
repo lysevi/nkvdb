@@ -10,9 +10,9 @@ MemoryCache::MemoryCache(size_t cacheSize, const common::IdArray& ids) :m_cacheS
 	size_t sz = cacheSize / pmeasSize;
 	sz=sz / ids.size();
 	//std::cout << "cacheSize:" << cacheSize << " ids.size:" << ids.size() << "sz: " << sz << std::endl;
-	for (int i = 0; i < ids.size(); ++i) {
+	for (size_t i = 0; i < ids.size(); ++i) {
 		m_mmatrix[i].resize(sz);
-		for (int j = 0; j < sz; ++j) {
+		for (size_t j = 0; j < sz; ++j) {
 			m_mmatrix[i][j] = common::Meas::empty();
 		}
 		//std::cout << "i:" << i << " sz:" << sz << std::endl;

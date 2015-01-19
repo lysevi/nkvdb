@@ -7,11 +7,11 @@ namespace mdb_test {
         return result;
     }
 
-	utils::IExternalCache::PExternalCache makeDS() {
+	utils::ICache::PCache makeDS() {
 		auto ids = mdb_test::getIds();
-		utils::IExternalCache::PExternalCache lcache(new utils::LinearCache(ids));
-		utils::IExternalCache::PExternalCache excache(new utils::ExternalCacheMemory(testCacheSz,ids));
-		utils::IExternalCache::PExternalCache result(new utils::DataStorage(lcache, excache));
+		utils::ICache::PCache lcache(new utils::LinearCache(ids));
+		utils::ICache::PCache excache(new utils::MemoryCache(testCacheSz,ids));
+		utils::ICache::PCache result(new utils::DataStorage(lcache, excache));
         return result;
     }
 

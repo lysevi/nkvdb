@@ -3,12 +3,12 @@
 #include <list>
 #include <vector>
 #include <common/Meas.h>
-#include "IExternalCache.h"
+#include "ICache.h"
 
 namespace utils
 {
 
-	class LinearCache: public IExternalCache
+	class LinearCache: public ICache
 	{
 	public:
 		LinearCache(const common::IdArray&ids);

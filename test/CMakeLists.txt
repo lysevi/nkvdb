@@ -14,7 +14,7 @@ endmacro(TEST_CASE)
 TEST_CASE(empty_test empty.cpp)
 TEST_CASE(common_meas_test common_meas_test.cpp)
 TEST_CASE(utils_linearcache_test utils_linearcache_test.cpp)
-TEST_CASE(utils_externalcachememory_test utils_externalcachememory_test.cpp)
+TEST_CASE(utils_memorycache_test utils_memorycache_test.cpp)
 TEST_CASE(utils_datastorage_test utils_datastorage_test.cpp)
 
 

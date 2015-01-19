@@ -1,14 +1,14 @@
 
 #pragma once
 #include "LinearCache.h"
-#include "IExternalCache.h"
+#include "ICache.h"
 #include <boost/noncopyable.hpp>
 
 namespace utils {
 
-    class DataStorage:public IExternalCache {
+    class DataStorage:public ICache {
     public:
-		DataStorage(utils::IExternalCache::PExternalCache lcache, utils::IExternalCache::PExternalCache ecache);
+		DataStorage(utils::ICache::PCache lcache, utils::ICache::PCache ecache);
         virtual ~DataStorage();
 
         void writeValues(const common::Meas::MeasArray &meases);
@@ -17,8 +17,8 @@ namespace utils {
         common::Meas::MeasArray readValuesFltr(const common::IdArray& ids, const common::Time from,const common::Flag flg);
         common::Meas::MeasArray readValuesByDate(const common::IdArray& ids, const common::Time date);
     private:
-		utils::IExternalCache::PExternalCache m_lcache;
-		utils::IExternalCache::PExternalCache m_ecache;
+		utils::ICache::PCache m_lcache;
+		utils::ICache::PCache m_ecache;
     };
 
 }

@@ -34,7 +34,7 @@ common::Meas::PMeas LinearCache::readValue(const common::Id id){
 	return m_meases.at(id);
 }
 
-common::Meas::MeasArray LinearCache::readValues(const common::IdArray ids){
+common::Meas::MeasArray LinearCache::readValues(const common::IdArray& ids){
     common::Meas::MeasArray result;
     result.resize(ids.size());
     int i=0;
@@ -46,11 +46,11 @@ common::Meas::MeasArray LinearCache::readValues(const common::IdArray ids){
     return result;
 }
 
-common::Meas::MeasArray LinearCache::readValuesInterval(const common::IdArray ids, const common::Time from,const common::Time to){
+common::Meas::MeasArray LinearCache::readValuesInterval(const common::IdArray& ids, const common::Time from,const common::Time to){
     NOT_IMPLEMENTED;
 }
 
-common::Meas::MeasArray LinearCache::readValuesFltr(const common::IdArray ids, const common::Time from,const common::Flag flg){
+common::Meas::MeasArray LinearCache::readValuesFltr(const common::IdArray& ids, const common::Time from,const common::Flag flg){
     std::list<common::Meas::PMeas> subRes;
     for(auto id:ids){
         auto m=(this->readValue(id));
@@ -68,6 +68,6 @@ common::Meas::MeasArray LinearCache::readValuesFltr(const common::IdArray ids, c
     return res;
 }
 
-common::Meas::MeasArray LinearCache::readValuesByDate(const common::IdArray ids, const common::Time date){
+common::Meas::MeasArray LinearCache::readValuesByDate(const common::IdArray& ids, const common::Time date){
     NOT_IMPLEMENTED;
 }

@@ -8,8 +8,9 @@ namespace mdb_test {
     }
 
     utils::DataStorage* makeDS() {
-        utils::LinearCache* lcache = new utils::LinearCache(mdb_test::getIds());
-        utils::ExternalCacheMemory*excache = new utils::ExternalCacheMemory();
+		auto ids = mdb_test::getIds();
+        utils::LinearCache* lcache = new utils::LinearCache(ids);
+        utils::ExternalCacheMemory*excache = new utils::ExternalCacheMemory(100*1024*1024,ids);
         utils::DataStorage* result = new utils::DataStorage(lcache, excache);
         return result;
     }

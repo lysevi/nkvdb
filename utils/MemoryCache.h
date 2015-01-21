@@ -2,11 +2,13 @@
 #pragma once
 
 #include "ICache.h"
+#include <boost/circular_buffer.hpp>
 #include <vector>
 
 namespace utils {
 
     class MemoryCache:public ICache {
+		typedef boost::circular_buffer<common::Meas::PMeas> MeasBffer;
 		typedef std::vector<common::Meas::MeasArray> MeasMatrix;
     public:
 		MemoryCache(size_t cacheSize,const common::IdArray& ids);

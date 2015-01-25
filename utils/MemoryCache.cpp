@@ -20,7 +20,9 @@ MemoryCache::MemoryCache(size_t cacheSize, const common::IdArray& ids) :m_cacheS
 }
 
 void MemoryCache::writeValues(const common::Meas::MeasArray &meases){
-    NOT_IMPLEMENTED;
+    for(auto&m:meases){
+        m_mmatrix[m->id].push_back(m);
+    }
 }
 
 common::Meas::MeasArray MemoryCache::readValues(const common::IdArray& ids){

@@ -7,11 +7,11 @@ namespace mdb_test {
         return result;
     }
 
-	utils::ICache::PCache makeDS() {
-		auto ids = mdb_test::getIds();
-		utils::ICache::PCache lcache(new utils::LinearCache(ids));
-		utils::ICache::PCache excache(new utils::MemoryCache(testCacheSz,ids));
-		utils::ICache::PCache result(new utils::DataStorage(lcache, excache));
+    utils::ICache::PCache makeDS() {
+        auto ids = mdb_test::getIds();
+        utils::ICache::PCache lcache(new utils::LinearCache(ids));
+        utils::ICache::PCache excache(new utils::MemoryCache(testCacheSz, ids));
+        utils::ICache::PCache result(new utils::DataStorage(lcache, excache));
         return result;
     }
 
@@ -20,7 +20,7 @@ namespace mdb_test {
         ma.resize(ids.size());
         int i = 0;
         for (auto id:ids) {
-			auto m = std::make_shared<common::Meas>();
+            auto m = std::make_shared<common::Meas>();
             m->id = id;
             m->time = id * 10;
             m->data = id;

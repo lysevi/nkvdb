@@ -1,4 +1,7 @@
 #include "MemoryCache.h"
+#include <common/Exception.h>
+#include <sstream>
+
 //#include <iostream>
 using namespace utils;
 
@@ -21,6 +24,11 @@ MemoryCache::MemoryCache(size_t cacheSize, const common::IdArray& ids) :m_cacheS
 
 void MemoryCache::writeValues(const common::Meas::MeasArray &meases){
     for(auto&m:meases){
+		if (m->id >= m_mmatrix.size()) {
+			std::stringstream ss;
+			ss << "meas id[" << m->id << "]>=" << m_mmatrix.size();
+			throw common::Exception::CreateAndLog(POSITION, ss.str());
+		}
         m_mmatrix[m->id].push_back(m);
     }
 }

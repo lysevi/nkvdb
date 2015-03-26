@@ -1,6 +1,6 @@
 #include "Meas.h"
 
-using namespace common;
+using namespace storage;
 
 Meas::Meas() {
 	id = time = source = flag = data = 0;

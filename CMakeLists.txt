@@ -29,8 +29,8 @@ ENDIF(Boost_FOUND)
 
 enable_testing()
 
-add_subdirectory (common)
 add_subdirectory (utils)
+add_subdirectory (storage)
 add_subdirectory (test)
 add_executable (mdb main.cpp)
-TARGET_LINK_LIBRARIES(mdb common)
+TARGET_LINK_LIBRARIES(mdb utils storage)

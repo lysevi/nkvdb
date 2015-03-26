@@ -1,10 +1,20 @@
 #pragma once
 
-#include "common.h"
-#include <list>
+#include <memory>
+#include <vector>
 
-namespace common
+#include <utils/utils.h>
+
+using namespace utils;
+
+namespace storage
 {
+	typedef uint64_t Time;
+	typedef uint64_t Id;
+	typedef uint64_t Flag;
+	typedef uint64_t Value;
+	typedef std::vector<Id> IdArray;
+
 	class Meas
 	{
 	public:

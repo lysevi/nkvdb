@@ -17,6 +17,7 @@ namespace common
 		const char* Function;
 		std::string toString()const;
 	};
+
 	class Exception : public std::exception
 	{
 	public:

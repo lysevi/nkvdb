@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <utils/utils.h>
-#include "storage_export.h"
 
 using namespace utils;
 
@@ -16,7 +15,7 @@ namespace storage
 	typedef uint64_t Value;
 	typedef std::vector<Id> IdArray;
 
-	class _EXPORT Meas
+	class Meas
 	{
 	public:
 		typedef std::shared_ptr<Meas> PMeas;

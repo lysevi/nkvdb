@@ -26,17 +26,17 @@ struct Node
 
 std::string Node::toString() {
 	std::stringstream ss;
-	ss << "v: " << this->value << "{";
+	ss << (this->clr == Colour::BLACK ? 'B' : 'R') << ": " << this->value;
 	if (this->left != nullptr)
-		ss << this->left->toString() << "}";
+		ss << "{" << this->left->toString() << "}";
 	else
-		ss << "}";
+		ss << "{}";
 
-	ss << " {";
+
 	if (this->right != nullptr)
-		ss << this->right->toString() << "}";
+		ss << " {" << this->right->toString() << "}";
 	else
-		ss << "}";
+		ss << "{}";
 
 	return ss.str();
 }
@@ -64,30 +64,28 @@ public:
 			root = newNode;
 			root->clr = Colour::BLACK;
 			return;
-		}
-		rec_push(newNode, root);
-	}
-
-	void rec_push(Node*newValue, Node*cur_pos) {
-		Node *nextPos = nullptr;
-		if (newValue->value > cur_pos->value) {
-			if (cur_pos->right == nullptr) {
-				cur_pos->right = newValue;
-				newValue->parent = cur_pos;
-			} else {
-				nextPos = cur_pos->right;
-			}
 		} else {
-			if (cur_pos->left == nullptr) {
-				cur_pos->left = newValue;
-				newValue->parent = cur_pos;
-			} else {
-				nextPos = cur_pos->left;
+			Node *y = nullptr;
+			Node *x = root;
+
+			// Follow standard BST insert steps to first insert the node
+			while (x != NULL) {
+				y = x;
+				if (newNode->value < x->value)
+					x = x->left;
+				else
+					x = x->right;
 			}
+			newNode->parent = y;
+			if (newNode->value > y->value)
+				y->right = newNode;
+			else
+				y->left = newNode;
+			newNode->clr = Colour::RED;
 		}
-		if (nextPos != nullptr){
-			rec_push(newValue, nextPos);
-		}
+
+		if (newNode->parent == nullptr)// is a root
+			return;
 	}
 };
 

@@ -1,3 +1,4 @@
+*_export.h
 *.a
 Makefile
 mdb

@@ -2,10 +2,11 @@
 #include <string>
 #include "ProcessLogger.h"
 #include <stdexcept>
+#include <sstream>
 
-#define POSITION (common::CodePosition(__FILE__, __LINE__, __FUNCTION__))
+#define POSITION (utils::CodePosition(__FILE__, __LINE__, __FUNCTION__))
 
-namespace common
+namespace utils
 {
 	struct CodePosition
 	{
@@ -15,7 +16,11 @@ namespace common
 		const char* File;
 		const int Line;
 		const char* Function;
-		std::string toString()const;
+		std::string toString()const{
+			std::stringstream ss;
+			ss << File << " line" << Line << " function: " << Function << std::endl;
+			return ss.str();
+		}
 	};
 
 	class Exception : public std::exception

@@ -32,6 +32,7 @@ find_package(Boost 1.57.0
     REQUIRED
     unit_test_framework
     system
+    iostreams
 )
 
 IF(Boost_FOUND)

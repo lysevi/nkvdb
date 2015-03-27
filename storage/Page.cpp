@@ -26,7 +26,7 @@ size_t Page::sizeMb() {
 }
 
 Page::PPage Page::Open(std::string filename) {
-	logger << "openning new file: " + filename;
+  logger << "openning new file: " + filename<<endl;
 	PPage result(new Page(filename));
 
 	try {
@@ -41,13 +41,13 @@ Page::PPage Page::Open(std::string filename) {
 	if (!result->m_file->is_open())
 		throw utils::Exception::CreateAndLog(POSITION, "can`t create file ");
 
-	logger << "size: " << result->m_file->size();
+	logger << "size: " << result->m_file->size()<<endl;
 
 	return result;
 }
 
 Page::PPage Page::Create(std::string filename, size_t sizeInMbytes) {
-	logger << "creating new file: " + filename;
+	logger << "creating new file: " + filename<<endl;
 	PPage result(new Page(filename));
 
 	try {
@@ -65,10 +65,10 @@ Page::PPage Page::Create(std::string filename, size_t sizeInMbytes) {
 	if (!result->m_file->is_open())
 		throw utils::Exception::CreateAndLog(POSITION, "can`t create file ");
 
-	logger << "file size: " << result->m_file->size();
+	logger << "file size: " << result->m_file->size()<<endl;
 	
 	char * data = (char *)result->m_file->data();
-	for (int i = 0; i < result->m_file->size(); i++) {
+	for (size_t i = 0; i < result->m_file->size(); i++) {
 		data[i] = '*';
 	}
 

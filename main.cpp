@@ -1,6 +1,7 @@
 
 #include <iostream>
+#include "utils/ProcessLogger.h"
 
 int main(int argc,char**argv){
-    std::cout<<"Hello world!"<<std::endl;
+	logger << "Start!";
 }

@@ -12,6 +12,7 @@ m_file(new boost::iostreams::mapped_file) {
 
 
 Page::~Page() {
+	m_file->close();
 	delete m_file;
 	delete m_filename;
 }
@@ -68,10 +69,8 @@ Page::PPage Page::Create(std::string filename, size_t sizeInMbytes) {
 	
 	char * data = (char *)result->m_file->data();
 	for (int i = 0; i < result->m_file->size(); i++) {
-		data[i] = '!';
+		data[i] = '*';
 	}
-
-	result->m_file->close();
 
 	return result;
 }

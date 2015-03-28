@@ -19,17 +19,18 @@ namespace storage
 	{
 	public:
 		typedef std::shared_ptr<Meas> PMeas;
-        typedef std::vector<PMeas> MeasArray;
+                typedef std::vector<PMeas>    MeasArray;
 	public:
 		Meas();
 		~Meas();
 
+                void readFrom(const Meas*m);
 		static Meas::PMeas empty();
 	public:
 		Id   id;
 		Time time;
 		Flag source;
 		Flag flag;  
-		Value data; 
+		Value value;
 	};
 }

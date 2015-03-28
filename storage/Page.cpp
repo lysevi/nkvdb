@@ -32,11 +32,11 @@ std::string Page::fileName()const {
     return std::string(*m_filename);
 }
 
-Time Page::minTime()const{
+Time Page::minTime()const {
     return m_header->minTime;
 }
 
-Time Page::maxTime()const{
+Time Page::maxTime()const {
     return m_header->maxTime;
 }
 
@@ -96,17 +96,23 @@ void Page::initHeader(char * data) {
     m_header->version = page_version;
 }
 
-bool Page::append(const Meas::PMeas value) {
-    std::lock_guard<std::mutex> guard(m_writeMutex);
+void Page::updateMinMax(Meas::PMeas value) {
     if (m_header->minTime == 0) {
         m_header->minTime = value->time;
     }
-
+    m_header->minTime = std::min(value->time, m_header->minTime);
     m_header->maxTime = std::max(value->time, m_header->maxTime);
+}
+
+bool Page::append(const Meas::PMeas value) {
+    std::lock_guard<std::mutex> guard(m_writeMutex);
 
     if ((m_header->write_pos)>this->size()) {
         return false;
     }
+
+    updateMinMax(value);
+
     memcpy(&m_data_begin[m_header->write_pos], value.get(), sizeof (Meas));
     m_header->write_pos++;
     return true;

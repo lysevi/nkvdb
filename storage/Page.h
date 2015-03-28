@@ -38,6 +38,7 @@ namespace storage {
     private:
         Page(std::string fname);
         void initHeader(char * data);
+        void updateMinMax(Meas::PMeas value);
     protected:
         std::string *m_filename;
 

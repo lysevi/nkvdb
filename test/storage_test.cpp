@@ -32,7 +32,6 @@ BOOST_AUTO_TEST_CASE(CreateOpenStoragePage) {
 BOOST_AUTO_TEST_CASE(IOTest) {
     const int TestableMeasCount=100000;
     {
-        logger<<"measCount="<<TestableMeasCount<<endl;
 	Page::PPage storage = Page::Create("test_page.db", mdb_test::sizeInMb10);
 
         const int flagValue=1;

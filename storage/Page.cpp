@@ -11,7 +11,7 @@ using namespace storage;
 const size_t oneMb = sizeof (char) * 1024 * 1024;
 
 Page::Page(std::string fname):m_filename(new std::string(fname)),
-m_file(new boost::iostreams::mapped_file) {
+    m_file(new boost::iostreams::mapped_file) {
 }
 
 Page::~Page() {

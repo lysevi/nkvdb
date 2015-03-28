@@ -1,10 +1,9 @@
 #pragma once
 
-#include <cstdint>
-#include <vector>
-#include <memory>
 #include <string>
-#include <stdexcept>
+#include <list>
+
+#include <boost/filesystem.hpp>
 
 #define NOT_IMPLEMENTED throw std::logic_error("Not implemented");
 
@@ -18,4 +17,5 @@ namespace utils {
         NonCopy() = default;
     };
 
+    std::list<boost::filesystem::path> ls(const std::string& path);
 }

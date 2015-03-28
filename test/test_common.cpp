@@ -2,6 +2,4 @@
 
 namespace mdb_test {
 
-    
-
 }

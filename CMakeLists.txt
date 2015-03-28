@@ -18,14 +18,6 @@ IF(WIN32)
 	SET_TARGET_PROPERTIES (${libname} PROPERTIES DEFINE_SYMBOL  "COMPILING_DLL" )
   endmacro(DEFINE_EXPORT)
 
-  find_package(Boost 1.57.0
-	REQUIRED
-	unit_test_framework
-	system
-	thread
-	iostreams
-	)
-
 else(WIN32)
 
   macro(DEFINE_EXPORT libname)
@@ -39,9 +31,10 @@ else(WIN32)
   MESSAGE(STATUS "+ boost root: " ${BOOST_ROOT})
   LINK_DIRECTORIES(${LINK_DIRECTORIES} "/mnt/data/soft/cpp/boost_1_57_0/stage/lib")
   set(BoostUSESTATIC_LIBS OFF)
-  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams log)
-  
+
 ENDIF(WIN32)
+
+find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams log)
 
 IF(Boost_FOUND)
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
@@ -53,5 +46,6 @@ enable_testing()
 add_subdirectory (utils)
 add_subdirectory (storage)
 add_subdirectory (test)
+add_subdirectory (proto)
 add_executable (mdb main.cpp)
 TARGET_LINK_LIBRARIES(mdb utils storage)

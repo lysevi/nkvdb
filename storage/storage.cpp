@@ -15,8 +15,8 @@ DataStorage::~DataStorage(){
 
 }
 
-DataStorage* DataStorage::Create(const std::string& ds_path){
-    DataStorage*result=new DataStorage;
+DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path){
+    DataStorage::PDataStorage result(new DataStorage);
 
     if(fs::exists(ds_path)){
         fs::path path_to_remove(ds_path);
@@ -33,13 +33,30 @@ DataStorage* DataStorage::Create(const std::string& ds_path){
     return result;
 }
 
-DataStorage* DataStorage::Open(const std::string& ds_path){
-    DataStorage*result=new DataStorage;
+DataStorage::PDataStorage DataStorage::Open(const std::string& ds_path){
+    DataStorage::PDataStorage result(new DataStorage);
 
     if(!fs::exists(ds_path)){
         throw utils::Exception::CreateAndLog(POSITION, ds_path+" not exists.");
     }
 
+    auto pages=utils::ls(ds_path);
+    Time maxTime=0;
+    fs::path maxTimePage;
+    for(auto p:pages){
+        storage::Page::PPage page=storage::Page::Open(p.string());
+        Time cur_time=page->maxTime();
+        if(maxTime<cur_time || cur_time==0){
+            maxTime=cur_time;
+            maxTimePage=p;
+        }
+    }
+
+    if(maxTimePage.string().size()==0){
+        throw utils::Exception::CreateAndLog(POSITION, "open error. page not found.");
+    }
+
+    result->m_curpage=storage::Page::Open(maxTimePage.string());
     result->m_path=std::string(ds_path);
     return result;
 }

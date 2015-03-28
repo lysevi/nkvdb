@@ -87,18 +87,20 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 BOOST_AUTO_TEST_CASE(StorageCreateOpen){
     const std::string path="dstorage";
     {
-        storage::DataStorage* ds=storage::DataStorage::Create(path);
+        storage::DataStorage::PDataStorage ds=storage::DataStorage::Create(path);
         BOOST_CHECK(boost::filesystem::exists(path));
         BOOST_CHECK(boost::filesystem::is_directory(path));
 
         std::list<boost::filesystem::path> pages=utils::ls(path);
         BOOST_CHECK_EQUAL(pages.size(),1);
 
-        delete ds;
         ds=storage::DataStorage::Create(path);
         BOOST_CHECK(boost::filesystem::exists(path));
         BOOST_CHECK(boost::filesystem::is_directory(path));
         pages=utils::ls(path);
         BOOST_CHECK_EQUAL(pages.size(),1);
+    }
+    {
+        storage::DataStorage::PDataStorage ds=storage::DataStorage::Open(path);
     }
 }

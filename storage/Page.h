@@ -23,7 +23,7 @@ namespace storage {
         size_t sizeMb()const;
         std::string fileName()const;
         
-        void write(const Meas::PMeas value);
+        void append(const Meas::PMeas value);
         bool read(Meas::PMeas result, uint64_t position);
         
     private:

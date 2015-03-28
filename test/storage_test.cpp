@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(IOTest) {
             newMeas->flag=flagValue;
             newMeas->source=srcValue;
             newMeas->time=timeValue;
-            storage->write(newMeas);
+            storage->append(newMeas);
         }
 
         for(int i=0;i<TestableMeasCount;++i){

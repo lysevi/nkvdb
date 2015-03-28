@@ -81,7 +81,7 @@ Page::PPage Page::Create(std::string filename, size_t sizeInMbytes) {
     return result;
 }
 
-void Page::write(const Meas::PMeas value) {
+void Page::append(const Meas::PMeas value) {
     std::lock_guard<std::mutex> guard(m_writeMutex);
     
     memcpy(&m_data_begin[m_write_pos],value.get(),sizeof(Meas));

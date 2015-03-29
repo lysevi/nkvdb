@@ -36,6 +36,7 @@ public:
     bool append(const Meas::PMeas value);
     bool read(Meas::PMeas result, uint64_t position);
     bool isFull()const;
+    void close();
     Header getHeader()const;
 private:
     Page(std::string fname);

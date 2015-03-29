@@ -16,7 +16,9 @@ Page::Page(std::string fname):m_filename(new std::string(fname)),
 }
 
 Page::~Page() {
-    m_file->close();
+    if(this->m_file->is_open()){
+        m_file->close();
+    }
     delete m_file;
     delete m_filename;
 }
@@ -60,6 +62,7 @@ Page::PPage Page::Open(std::string filename) {
 }
 
 Page::PPage Page::Create(std::string filename, size_t fsize) {
+
     PPage result(new Page(filename));
 
     try {
@@ -150,4 +153,8 @@ bool Page::isFull()const{
 
 Page::Header Page::getHeader()const{
     return *m_header;
+}
+
+void Page::close(){
+    this->m_file->close();
 }

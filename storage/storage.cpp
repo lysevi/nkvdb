@@ -7,6 +7,45 @@
 using namespace storage;
 namespace fs=boost::filesystem;
 
+fs::path getOldesPage(const std::list<fs::path> &pages){
+    if(pages.size()==1)
+        return pages.front();
+    fs::path maxTimePage;
+    Time maxTime=0;
+    for(auto p:pages){
+        storage::Page::Header hdr=storage::Page::ReadHeader(p.string());
+        Time cur_time=hdr.maxTime;
+        if(maxTime<cur_time || cur_time==0){
+            maxTime=cur_time;
+            maxTimePage=p;
+        }
+    }
+    if(maxTimePage.string().size()==0){
+        throw utils::Exception::CreateAndLog(POSITION, "open error. page not found.");
+    }
+    return maxTimePage;
+}
+
+std::string getNewPageUniqueName(const std::string &ds_path){
+    fs::path page_path;
+    u_int32_t suffix=0;
+
+    while(true){
+        if(page_path.string().length()!=0 && !fs::exists(page_path))
+            break;
+
+        page_path.clear();
+
+        std::stringstream ss;
+        ss<<std::time(nullptr)<<'_'<<suffix;
+        ++suffix;
+        page_path.append(ds_path);
+        page_path.append(ss.str()+".page");
+    }
+
+    return page_path.string();
+}
+
 DataStorage::DataStorage(){
 
 }
@@ -31,25 +70,6 @@ DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path, u_int6
     return result;
 }
 
-fs::path getOldesPage(const std::list<fs::path> &pages){
-    if(pages.size()==1)
-        return pages.front();
-    fs::path maxTimePage;
-    Time maxTime=0;
-    for(auto p:pages){
-        storage::Page::Header hdr=storage::Page::ReadHeader(p.string());
-        Time cur_time=hdr.maxTime;
-        if(maxTime<cur_time || cur_time==0){
-            maxTime=cur_time;
-            maxTimePage=p;
-        }
-    }
-    if(maxTimePage.string().size()==0){
-        throw utils::Exception::CreateAndLog(POSITION, "open error. page not found.");
-    }
-    return maxTimePage;
-}
-
 DataStorage::PDataStorage DataStorage::Open(const std::string& ds_path){
     DataStorage::PDataStorage result(new DataStorage);
 
@@ -72,21 +92,9 @@ void DataStorage::createNewPage(){
         m_curpage=nullptr;
     }
 
-    fs::path page_path;
-    u_int32_t suffix=0;
-    while(true){
-        if(page_path.string().length()!=0 && !fs::exists(page_path))
-            break;
+    std::string page_path=getNewPageUniqueName(m_path);
 
-        page_path.clear();
-
-        std::stringstream ss;
-        ss<<std::time(nullptr)<<'_'<<suffix;
-        ++suffix;
-        page_path.append(m_path);
-        page_path.append(ss.str()+".page");
-    }
-    m_curpage=Page::Create(page_path.string(), this->m_default_page_size);
+    m_curpage=Page::Create(page_path, this->m_default_page_size);
 }
 
 bool DataStorage::havePage2Write()const{

@@ -34,8 +34,8 @@ DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path){
 }
 
 fs::path getOldesPage(const std::list<fs::path> &pages){
-    //if(pages.size()==1)
-    //    return pages.front();
+    if(pages.size()==1)
+        return pages.front();
     fs::path maxTimePage;
     Time maxTime=0;
     for(auto p:pages){

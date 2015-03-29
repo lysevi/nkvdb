@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
             if (i == 0) {
                 newMeas->time = zeroTimeValue;
             } else {
-                newMeas->time = timeValue;
+                newMeas->time = i;
             }
             storage->append(newMeas);
             delete newMeas;
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
         Page::PPage storage = Page::Open("test_page.db");
 
         BOOST_CHECK_EQUAL(storage->minTime(), zeroTimeValue);
-        BOOST_CHECK_EQUAL(storage->maxTime(), timeValue);
+        BOOST_CHECK_EQUAL(storage->maxTime(), TestableMeasCount-1);
 
         auto newMeas = storage::Meas::empty();
         for (int i = 0; i < TestableMeasCount; ++i) {
@@ -82,11 +82,16 @@ BOOST_AUTO_TEST_CASE(PageIO) {
             if(i==0){
                 BOOST_CHECK_EQUAL(newMeas->time, zeroTimeValue);
             }else{
-                BOOST_CHECK_EQUAL(newMeas->time, timeValue);
+                BOOST_CHECK_EQUAL(newMeas->time, i);
             }
         }
         BOOST_CHECK(!storage->isFull());
         delete newMeas;
+
+        auto hdr=storage->getHeader();
+        BOOST_CHECK_EQUAL(hdr.maxTime,TestableMeasCount-1);
+        BOOST_CHECK_EQUAL(hdr.minTime,zeroTimeValue);
+        BOOST_CHECK_EQUAL(hdr.size,storage->size());
     }
 }
 

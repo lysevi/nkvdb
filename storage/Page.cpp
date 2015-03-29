@@ -150,3 +150,7 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
 bool Page::isFull()const{
     return (sizeof(storage::Meas)*m_header->write_pos)==m_header->size;
 }
+
+Page::Header Page::getHeader()const{
+    return *m_header;
+}

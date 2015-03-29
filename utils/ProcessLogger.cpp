@@ -11,5 +11,5 @@ ProcessLogger* ProcessLogger::get() {
 }
 
 std::ostream& ProcessLogger::GetStream() {
-    return std::cout;
+    return std::cerr;
 }

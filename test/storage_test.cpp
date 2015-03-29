@@ -131,7 +131,6 @@ BOOST_AUTO_TEST_CASE(StorageIO){
         meas->id=i%meas2write;
         meas->source=meas->flag=i%meas2write;
         ds->append(meas);
-        //std::cerr<<"page count="<<utils::ls(storage_path).size()<<std::endl;
     }
     delete meas;
     auto pages=utils::ls(storage_path);

@@ -13,18 +13,20 @@
 namespace storage {
 
 class Page : public utils::NonCopy {
-
+public:
     struct Header {
         u_char version;
         Time   minTime;
         Time   maxTime;
         uint64_t write_pos;
+        uint64_t size; //in bytes
     };
-public:
+
     typedef std::shared_ptr<Page> PPage;
 public:
     static PPage Open(std::string filename);
     static PPage Create(std::string filename, size_t sizeInMbytes);
+    static Page::Header ReadHeader(std::string filename);
     ~Page();
 
     size_t size()const;
@@ -34,7 +36,7 @@ public:
     Time maxTime()const;
     bool append(const Meas::PMeas value);
     bool read(Meas::PMeas result, uint64_t position);
-
+    bool isFull()const;
 private:
     Page(std::string fname);
     void initHeader(char * data);

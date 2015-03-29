@@ -21,16 +21,19 @@ BOOST_AUTO_TEST_CASE(MeasEmpty) {
     BOOST_CHECK_EQUAL(pm->id, storage::Id(0));
     BOOST_CHECK_EQUAL(pm->source, storage::Flag(0));
     BOOST_CHECK_EQUAL(pm->time, storage::Time(0));
+    delete pm;
 }
 
 BOOST_AUTO_TEST_CASE(PageCreateOpen) {
     {
         Page::PPage created = Page::Create("test_page.db", mdb_test::sizeInMb10);
+        BOOST_CHECK(!created->isFull());
     }
     {
         Page::PPage openned = Page::Open("test_page.db");
 
         BOOST_CHECK_EQUAL(openned->sizeMb(), mdb_test::sizeInMb10);
+        BOOST_CHECK(!openned->isFull());
     }
 }
 
@@ -58,6 +61,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
                 newMeas->time = timeValue;
             }
             storage->append(newMeas);
+            delete newMeas;
         }
 
         Page::PPage storage = Page::Open("test_page.db");
@@ -65,9 +69,8 @@ BOOST_AUTO_TEST_CASE(PageIO) {
         BOOST_CHECK_EQUAL(storage->minTime(), zeroTimeValue);
         BOOST_CHECK_EQUAL(storage->maxTime(), timeValue);
 
+        auto newMeas = storage::Meas::empty();
         for (int i = 0; i < TestableMeasCount; ++i) {
-            auto newMeas = storage::Meas::empty();
-
             bool readState = storage->read(newMeas, i);
 
             BOOST_CHECK_EQUAL(readState, true);
@@ -75,12 +78,15 @@ BOOST_AUTO_TEST_CASE(PageIO) {
             BOOST_CHECK_EQUAL(newMeas->id, i);
             BOOST_CHECK_EQUAL(newMeas->flag, flagValue);
             BOOST_CHECK_EQUAL(newMeas->source, srcValue);
+
             if(i==0){
                 BOOST_CHECK_EQUAL(newMeas->time, zeroTimeValue);
             }else{
                 BOOST_CHECK_EQUAL(newMeas->time, timeValue);
             }
         }
+        BOOST_CHECK(!storage->isFull());
+        delete newMeas;
     }
 }
 

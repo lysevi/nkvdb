@@ -1,6 +1,7 @@
 #include "Page.h"
 #include <utils/Exception.h>
 #include <algorithm>
+#include <fstream>
 
 const u_char page_version = 1;
 
@@ -64,9 +65,10 @@ Page::PPage Page::Open(std::string filename) {
 Page::PPage Page::Create(std::string filename, size_t sizeInMbytes) {
     PPage result(new Page(filename));
 
+    u_int64_t fsize=sizeInMbytes*oneMb;
     try {
         boost::iostreams::mapped_file_params params;
-        params.new_file_size = sizeInMbytes*oneMb;
+        params.new_file_size = fsize;
         params.path = filename;
         params.flags = result->m_file->readwrite;
         result->m_file->open(params);
@@ -84,9 +86,21 @@ Page::PPage Page::Create(std::string filename, size_t sizeInMbytes) {
     }
 
     result->initHeader(data);
-
+    result->m_header->size=fsize;
     result->m_data_begin = (Meas*) (data + sizeof (Page::Header));
 
+    return result;
+}
+
+Page::Header Page::ReadHeader(std::string filename){
+    std::ifstream istream;
+    istream.open(filename,std::fstream::in);
+    if(!istream.is_open())
+        throw Exception::CreateAndLog(POSITION,"can open file.");
+
+    Header result;
+    istream.read((char*)&result,sizeof(Page::Header));
+    istream.close();
     return result;
 }
 
@@ -113,7 +127,7 @@ bool Page::append(const Meas::PMeas value) {
 
     updateMinMax(value);
 
-    memcpy(&m_data_begin[m_header->write_pos], value.get(), sizeof (Meas));
+    memcpy(&m_data_begin[m_header->write_pos], value, sizeof (Meas));
     m_header->write_pos++;
     return true;
 }
@@ -131,4 +145,8 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
     Meas* m = &m_data_begin[position];
     result->readFrom(m);
     return true;
+}
+
+bool Page::isFull()const{
+    return (sizeof(storage::Meas)*m_header->write_pos)==m_header->size;
 }

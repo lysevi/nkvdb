@@ -33,6 +33,24 @@ DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path){
     return result;
 }
 
+fs::path getOldesPage(const std::list<fs::path> &pages){
+    //if(pages.size()==1)
+    //    return pages.front();
+    fs::path maxTimePage;
+    Time maxTime=0;
+    for(auto p:pages){
+        storage::Page::Header hdr=storage::Page::ReadHeader(p.string());
+        Time cur_time=hdr.maxTime;
+        if(maxTime<cur_time || cur_time==0){
+            maxTime=cur_time;
+            maxTimePage=p;
+        }
+    }
+    if(maxTimePage.string().size()==0){
+        throw utils::Exception::CreateAndLog(POSITION, "open error. page not found.");
+    }
+}
+
 DataStorage::PDataStorage DataStorage::Open(const std::string& ds_path){
     DataStorage::PDataStorage result(new DataStorage);
 
@@ -41,20 +59,8 @@ DataStorage::PDataStorage DataStorage::Open(const std::string& ds_path){
     }
 
     auto pages=utils::ls(ds_path);
-    Time maxTime=0;
-    fs::path maxTimePage;
-    for(auto p:pages){
-        storage::Page::PPage page=storage::Page::Open(p.string());
-        Time cur_time=page->maxTime();
-        if(maxTime<cur_time || cur_time==0){
-            maxTime=cur_time;
-            maxTimePage=p;
-        }
-    }
+    fs::path maxTimePage=getOldesPage(pages);
 
-    if(maxTimePage.string().size()==0){
-        throw utils::Exception::CreateAndLog(POSITION, "open error. page not found.");
-    }
 
     result->m_curpage=storage::Page::Open(maxTimePage.string());
     result->m_path=std::string(ds_path);
@@ -74,4 +80,8 @@ void DataStorage::createNewPage(){
     page_path.append(ss.str()+".page");
 
     m_curpage=Page::Create(page_path.string(),DataStorage::pageSizeMb);
+}
+
+bool DataStorage::havePage2Write()const{
+    return this->m_curpage!=nullptr && !this->m_curpage->isFull();
 }

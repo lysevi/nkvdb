@@ -25,12 +25,11 @@ public:
     typedef std::shared_ptr<Page> PPage;
 public:
     static PPage Open(std::string filename);
-    static PPage Create(std::string filename, size_t sizeInMbytes);
+    static PPage Create(std::string filename, size_t fsize);
     static Page::Header ReadHeader(std::string filename);
     ~Page();
 
     size_t size()const;
-    size_t sizeMb()const;
     std::string fileName()const;
     Time minTime()const;
     Time maxTime()const;
@@ -45,7 +44,7 @@ private:
 protected:
     std::string *m_filename;
 
-    std::mutex m_writeMutex;
+    mutable std::mutex m_writeMutex;
 
     boost::iostreams::mapped_file *m_file;
 

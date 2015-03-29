@@ -15,15 +15,13 @@ DataStorage::~DataStorage(){
 
 }
 
-DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path){
+DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path, u_int64_t page_size){
     DataStorage::PDataStorage result(new DataStorage);
+    result->m_default_page_size=page_size;
 
     if(fs::exists(ds_path)){
-        fs::path path_to_remove(ds_path);
-        for (fs::directory_iterator end_dir_it, it(path_to_remove); it!=end_dir_it; ++it) {
-            if(!remove_all(it->path())){
-                throw utils::Exception::CreateAndLog(POSITION, "can`t create. remove error: "+it->path().string());
-            }
+        if(!utils::rm(ds_path)){
+            throw utils::Exception::CreateAndLog(POSITION, "can`t create. remove error: "+ds_path);
         }
     }
 
@@ -80,9 +78,17 @@ void DataStorage::createNewPage(){
     page_path.append(m_path);
     page_path.append(ss.str()+".page");
 
-    m_curpage=Page::Create(page_path.string(),DataStorage::pageSizeMb);
+    m_curpage=Page::Create(page_path.string(), this->m_default_page_size);
 }
 
 bool DataStorage::havePage2Write()const{
     return this->m_curpage!=nullptr && !this->m_curpage->isFull();
+}
+
+bool DataStorage::append(const Meas::PMeas m){
+    if(this->m_curpage->isFull()){
+        m_curpage=nullptr;
+        this->createNewPage();
+    }
+    return this->m_curpage->append(m);
 }

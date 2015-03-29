@@ -26,13 +26,13 @@ BOOST_AUTO_TEST_CASE(MeasEmpty) {
 
 BOOST_AUTO_TEST_CASE(PageCreateOpen) {
     {
-        Page::PPage created = Page::Create("test_page.db", mdb_test::sizeInMb10);
+        Page::PPage created = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
         BOOST_CHECK(!created->isFull());
     }
     {
-        Page::PPage openned = Page::Open("test_page.db");
+        Page::PPage openned = Page::Open(mdb_test::test_page_name);
 
-        BOOST_CHECK_EQUAL(openned->sizeMb(), mdb_test::sizeInMb10);
+        BOOST_CHECK_EQUAL(openned->size(), mdb_test::sizeInMb10);
         BOOST_CHECK(!openned->isFull());
     }
 }
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
     const int TestableMeasCount = 10000;
     {
         {
-            Page::PPage storage = Page::Create("test_page.db", mdb_test::sizeInMb10);
+            Page::PPage storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
         }
         const int flagValue = 1;
         const int srcValue = 2;
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
         const int zeroTimeValue = 1;
 
         for (int i = 0; i < TestableMeasCount; ++i) {
-            Page::PPage storage = Page::Open("test_page.db");
+            Page::PPage storage = Page::Open(mdb_test::test_page_name);
             auto newMeas = storage::Meas::empty();
             newMeas->value = i;
             newMeas->id = i;
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
             delete newMeas;
         }
 
-        Page::PPage storage = Page::Open("test_page.db");
+        Page::PPage storage = Page::Open(mdb_test::test_page_name);
 
         BOOST_CHECK_EQUAL(storage->minTime(), zeroTimeValue);
         BOOST_CHECK_EQUAL(storage->maxTime(), TestableMeasCount-1);
@@ -96,22 +96,23 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 }
 
 BOOST_AUTO_TEST_CASE(StorageCreateOpen){
-    const std::string path="dstorage";
-    {
-        storage::DataStorage::PDataStorage ds=storage::DataStorage::Create(path);
-        BOOST_CHECK(boost::filesystem::exists(path));
-        BOOST_CHECK(boost::filesystem::is_directory(path));
 
-        std::list<boost::filesystem::path> pages=utils::ls(path);
+    {
+        storage::DataStorage::PDataStorage ds=storage::DataStorage::Create(mdb_test::storage_path);
+        BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
+        BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
+
+        std::list<boost::filesystem::path> pages=utils::ls(mdb_test::storage_path);
         BOOST_CHECK_EQUAL(pages.size(),1);
 
-        ds=storage::DataStorage::Create(path);
-        BOOST_CHECK(boost::filesystem::exists(path));
-        BOOST_CHECK(boost::filesystem::is_directory(path));
-        pages=utils::ls(path);
+        ds=storage::DataStorage::Create(mdb_test::storage_path);
+        BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
+        BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
+        pages=utils::ls(mdb_test::storage_path);
         BOOST_CHECK_EQUAL(pages.size(),1);
     }
     {
-        storage::DataStorage::PDataStorage ds=storage::DataStorage::Open(path);
+        storage::DataStorage::PDataStorage ds=storage::DataStorage::Open(mdb_test::storage_path);
     }
 }
+

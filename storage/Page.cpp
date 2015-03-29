@@ -25,9 +25,6 @@ size_t Page::size() const {
     return m_file->size();
 }
 
-size_t Page::sizeMb() const {
-    return (size_t) (this->size() / oneMb);
-}
 
 std::string Page::fileName()const {
     return std::string(*m_filename);
@@ -62,10 +59,9 @@ Page::PPage Page::Open(std::string filename) {
     return result;
 }
 
-Page::PPage Page::Create(std::string filename, size_t sizeInMbytes) {
+Page::PPage Page::Create(std::string filename, size_t fsize) {
     PPage result(new Page(filename));
 
-    u_int64_t fsize=sizeInMbytes*oneMb;
     try {
         boost::iostreams::mapped_file_params params;
         params.new_file_size = fsize;
@@ -86,7 +82,6 @@ Page::PPage Page::Create(std::string filename, size_t sizeInMbytes) {
     }
 
     result->initHeader(data);
-    result->m_header->size=fsize;
     result->m_data_begin = (Meas*) (data + sizeof (Page::Header));
 
     return result;
@@ -108,6 +103,7 @@ void Page::initHeader(char * data) {
     m_header = (Page::Header*)data;
     memset(m_header, 0, sizeof (Page::Header));
     m_header->version = page_version;
+    m_header->size=this->m_file->size();
 }
 
 void Page::updateMinMax(Meas::PMeas value) {
@@ -121,7 +117,8 @@ void Page::updateMinMax(Meas::PMeas value) {
 bool Page::append(const Meas::PMeas value) {
     std::lock_guard<std::mutex> guard(m_writeMutex);
 
-    if ((m_header->write_pos)>this->size()) {
+
+    if (this->isFull()) {
         return false;
     }
 
@@ -148,7 +145,7 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
 }
 
 bool Page::isFull()const{
-    return (sizeof(storage::Meas)*m_header->write_pos)==m_header->size;
+    return (sizeof(storage::Meas)*m_header->write_pos)>=m_header->size;
 }
 
 Page::Header Page::getHeader()const{

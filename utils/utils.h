@@ -18,4 +18,5 @@ namespace utils {
     };
 
     std::list<boost::filesystem::path> ls(const std::string& path);
+    bool rm(const std::string&rm_path);
 }

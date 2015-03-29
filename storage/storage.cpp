@@ -102,6 +102,7 @@ bool DataStorage::havePage2Write()const{
 }
 
 bool DataStorage::append(const Meas::PMeas m){
+    std::lock_guard<std::mutex> guard(m_write_mutex);
     if(this->m_curpage->isFull()){
         this->createNewPage();
     }

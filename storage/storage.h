@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <thread>
 #include "Page.h"
 
 namespace storage{
@@ -27,6 +28,7 @@ namespace storage{
         std::string m_path;
         Page::PPage m_curpage;
         u_int64_t   m_default_page_size;
+        std::mutex  m_write_mutex;
     };
 
 };

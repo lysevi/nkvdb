@@ -49,6 +49,7 @@ fs::path getOldesPage(const std::list<fs::path> &pages){
     if(maxTimePage.string().size()==0){
         throw utils::Exception::CreateAndLog(POSITION, "open error. page not found.");
     }
+    return maxTimePage;
 }
 
 DataStorage::PDataStorage DataStorage::Open(const std::string& ds_path){

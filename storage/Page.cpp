@@ -61,7 +61,7 @@ Page::PPage Page::Open(std::string filename) {
     return result;
 }
 
-Page::PPage Page::Create(std::string filename, size_t fsize) {
+Page::PPage Page::Create(std::string filename, uint64_t fsize) {
 
     PPage result(new Page(filename));
 
@@ -115,6 +115,15 @@ void Page::updateMinMax(Meas::PMeas value) {
     }
     m_header->minTime = std::min(value->time, m_header->minTime);
     m_header->maxTime = std::max(value->time, m_header->maxTime);
+
+	m_header->minId = std::min(value->id, m_header->minId);
+	m_header->maxId = std::max(value->id, m_header->maxId);
+	
+	m_header->minSource = std::min(value->source, m_header->minSource);
+	m_header->maxSource = std::max(value->source, m_header->maxSource);
+
+	m_header->minFlag = std::min(value->flag, m_header->minFlag);
+	m_header->maxFlag = std::max(value->flag, m_header->maxFlag);
 }
 
 bool Page::append(const Meas::PMeas value) {

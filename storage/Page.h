@@ -18,6 +18,12 @@ public:
 		uint8_t version;
         Time   minTime;
         Time   maxTime;
+		Id     minId;
+		Id     maxId;
+		Flag   minSource;
+		Flag   maxSource;
+		Flag   minFlag;
+		Flag   maxFlag;
         uint64_t write_pos;
         uint64_t size; //in bytes
     };
@@ -25,7 +31,7 @@ public:
     typedef std::shared_ptr<Page> PPage;
 public:
     static PPage Open(std::string filename);
-    static PPage Create(std::string filename, size_t fsize);
+	static PPage Create(std::string filename, uint64_t fsize);
     static Page::Header ReadHeader(std::string filename);
     ~Page();
 

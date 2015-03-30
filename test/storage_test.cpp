@@ -98,12 +98,14 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 BOOST_AUTO_TEST_CASE(StorageCreateOpen){
 	{
 		{
+			
 			storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(mdb_test::storage_path);
 			BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
 			BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
 
 			std::list<boost::filesystem::path> pages = utils::ls(mdb_test::storage_path);
 			BOOST_CHECK_EQUAL(pages.size(), 1);
+			ds = nullptr;
 
 			ds = storage::DataStorage::Create(mdb_test::storage_path);
 			BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
@@ -119,9 +121,9 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen){
 }
 
 BOOST_AUTO_TEST_CASE(StorageIO){
-    const int meas2write=10;
+    const int meas2write=100;
     const int write_iteration=10;
-    const uint64_t storage_size=sizeof(storage::Page::Header)+sizeof(storage::Meas)*meas2write;
+    const uint64_t storage_size=sizeof(storage::Page::Header)+(sizeof(storage::Meas)*meas2write);
 	const std::string storage_path = mdb_test::storage_path + "storageIO";
 	{
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
@@ -134,6 +136,7 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 			ds->append(meas);
 		}
 		delete meas;
+		ds = nullptr;
 		auto pages = utils::ls(storage_path);
 		BOOST_CHECK_EQUAL(pages.size(), write_iteration);
 	}

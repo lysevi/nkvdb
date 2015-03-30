@@ -120,12 +120,20 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
 
 		storage::Meas::PMeas meas = storage::Meas::empty();
-		for (int i = 0; i < (meas2write*write_iteration); ++i) {
+		auto end_it = (meas2write*write_iteration);
+		for (int i = 0; i < end_it; ++i) {
+			if (end_it - i != 0) {
+				auto meases = ds->readInterval(i, end_it - i);
+				BOOST_CHECK(meases.size() == 0);
+			}
+
 			meas->value = i;
 			meas->id = i%meas2write;
 			meas->source = meas->flag = i%meas2write;
 			meas->time = i;
 			ds->append(meas);
+
+			
 
 			for (int j = 1; j < meas2write; ++j) {
 				auto meases = ds->readInterval(0, j);

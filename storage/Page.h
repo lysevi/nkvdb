@@ -15,7 +15,7 @@ namespace storage {
 class Page : public utils::NonCopy {
 public:
     struct Header {
-        u_char version;
+		uint8_t version;
         Time   minTime;
         Time   maxTime;
         uint64_t write_pos;

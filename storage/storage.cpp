@@ -28,7 +28,7 @@ fs::path getOldesPage(const std::list<fs::path> &pages){
 
 std::string getNewPageUniqueName(const std::string &ds_path){
     fs::path page_path;
-    u_int32_t suffix=0;
+    uint32_t suffix=0;
 
     while(true){
         if(page_path.string().length()!=0 && !fs::exists(page_path))
@@ -51,10 +51,10 @@ DataStorage::DataStorage(){
 }
 
 DataStorage::~DataStorage(){
-
+	this->m_curpage = nullptr;
 }
 
-DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path, u_int64_t page_size){
+DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path, uint64_t page_size){
     DataStorage::PDataStorage result(new DataStorage);
     result->m_default_page_size=page_size;
 

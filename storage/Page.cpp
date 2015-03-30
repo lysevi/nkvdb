@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <fstream>
 
-const u_char page_version = 1;
+const uint8_t page_version = 1;
 
 namespace ios = boost::iostreams;
 

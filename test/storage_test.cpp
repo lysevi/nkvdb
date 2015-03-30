@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen){
 }
 
 BOOST_AUTO_TEST_CASE(StorageIO){
-    const int meas2write=100;
+    const int meas2write=10;
     const int write_iteration=10;
     const uint64_t storage_size=sizeof(storage::Page::Header)+(sizeof(storage::Meas)*meas2write);
 	const std::string storage_path = mdb_test::storage_path + "storageIO";
@@ -126,6 +126,15 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 			meas->source = meas->flag = i%meas2write;
 			meas->time = i;
 			ds->append(meas);
+
+			for (int j = 1; j < meas2write; ++j) {
+				auto meases = ds->readInterval(0, j);
+				for (storage::Meas m : meases) {
+					BOOST_CHECK(utils::inInterval<storage::Time>(0, j, m.time));
+					BOOST_CHECK(m.time <= j);
+					BOOST_CHECK(m.time <= i);
+				}
+			}
 		}
 		delete meas;
 		ds = nullptr;

@@ -9,6 +9,7 @@ namespace po = boost::program_options;
 int meas2write = 10;
 int write_iteration = 50;
 bool write_only = false;
+bool verbose = false;
 
 int main(int argc, char*argv[]) {
 	po::options_description desc("Allowed options");
@@ -17,6 +18,7 @@ int main(int argc, char*argv[]) {
 		("mc", po::value<int>(), "measurment count")
 		("ic", po::value<int>(), "iteration count")
 		("write-only",  "don`t run readInterval")
+		("verbose", "verbose ouput")
 		;
 
 	po::variables_map vm;
@@ -30,6 +32,10 @@ int main(int argc, char*argv[]) {
 	
 	if (vm.count("write-only")) {
 		write_only = true;
+	}
+
+	if (vm.count("verbose")) {
+		verbose = true;
 	}
 
 	if (vm.count("mc"))
@@ -48,11 +54,18 @@ int main(int argc, char*argv[]) {
 		clock_t write_t0=clock();
 		storage::Meas::PMeas meas = storage::Meas::empty();
 		for (int i = 0; i < (meas2write*write_iteration); ++i) {
+			clock_t verb_t0 = clock();
+			
 			meas->value = i;
 			meas->id = i%meas2write;
 			meas->source = meas->flag = i%meas2write;
 			meas->time = i;
+			
 			ds->append(meas);
+			clock_t verb_t1 = clock();
+			if (verbose) {
+				logger << "write[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC << endl;
+			}
 			
 		}
 		clock_t write_t1 = clock();
@@ -65,7 +78,14 @@ int main(int argc, char*argv[]) {
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
 		clock_t read_t0 = clock();
 		for (int i = 1; i < meas2write*write_iteration; ++i) {
+			clock_t verb_t0 = clock();
+			
 			auto meases = ds->readInterval(0, i);
+
+			clock_t verb_t1 = clock();
+			if (verbose) {
+				logger << "read[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC << endl;
+			}
 		}
 		clock_t read_t1 = clock();
 		logger << "read time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << endl;

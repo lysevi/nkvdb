@@ -34,7 +34,7 @@ else(WIN32)
 
 ENDIF(WIN32)
 
-find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem)
+find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem program_options)
 
 IF(Boost_FOUND)
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})

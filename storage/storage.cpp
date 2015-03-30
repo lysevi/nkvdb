@@ -3,6 +3,7 @@
 #include <utils/Exception.h>
 #include <ctime>
 #include <sstream>
+#include <iterator>
 
 using namespace storage;
 namespace fs=boost::filesystem;
@@ -107,4 +108,45 @@ bool DataStorage::append(const Meas::PMeas m){
         this->createNewPage();
     }
     return this->m_curpage->append(m);
+}
+
+bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
+	if (hdr.minTime <= from || hdr.maxTime >= to){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
+	
+	Meas::MeasList  list_result;
+	auto page_list = utils::ls(m_path);
+	for (auto page : page_list) {
+		storage::Page::PPage page2read;
+		if (page.string() == m_curpage->fileName()) {
+			if (HeaderIntervalCheck(from, to, m_curpage->getHeader())) {
+				page2read = m_curpage;
+			}
+		} else {
+			storage::Page::Header hdr = storage::Page::ReadHeader(page.string());
+			if (HeaderIntervalCheck(from,to,hdr)){
+				page2read = storage::Page::Open(page.string());
+			} else {
+				continue;
+			}
+		}
+		if (page2read == nullptr) {
+			continue;
+		}
+		
+		Meas::MeasList subResult=page2read->readInterval(from, to);
+		std::copy(subResult.begin(), subResult.end(), std::back_inserter(list_result));
+	}
+
+	if (list_result.size() == 0) {
+		return Meas::MeasArray{};
+	}
+	Meas::MeasArray result{ list_result.begin(), list_result.end() };
+	return result;
 }

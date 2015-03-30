@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <list>
 
 #include <utils/utils.h>
 
@@ -18,7 +19,8 @@ namespace storage
     struct Meas
     {
         typedef Meas* PMeas;
-        typedef std::vector<PMeas>    MeasArray;
+        typedef std::vector<Meas>    MeasArray;
+		typedef std::list<Meas>      MeasList;
 
         Meas();
         void readFrom(const Meas::PMeas m);

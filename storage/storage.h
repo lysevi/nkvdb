@@ -11,8 +11,6 @@ namespace storage{
 
     class DataStorage{
     public:
-
-
         typedef std::shared_ptr<DataStorage> PDataStorage;
     public:
         static PDataStorage Create(const std::string& ds_path, uint64_t page_size=defaultPageSize);
@@ -21,6 +19,7 @@ namespace storage{
         bool havePage2Write()const;
 
         bool append(const Meas::PMeas m);
+		Meas::MeasArray readInterval(Time from, Time to);
     private:
         DataStorage();
         void createNewPage();

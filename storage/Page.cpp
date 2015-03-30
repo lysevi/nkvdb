@@ -1,6 +1,7 @@
 #include "Page.h"
 #include <utils/Exception.h>
 #include <algorithm>
+#include <sstream>
 #include <fstream>
 
 const uint8_t page_version = 1;
@@ -110,9 +111,6 @@ void Page::initHeader(char * data) {
 }
 
 void Page::updateMinMax(Meas::PMeas value) {
-    if (m_header->minTime == 0) {
-        m_header->minTime = value->time;
-    }
     m_header->minTime = std::min(value->time, m_header->minTime);
     m_header->maxTime = std::max(value->time, m_header->maxTime);
 
@@ -154,6 +152,31 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
     Meas* m = &m_data_begin[position];
     result->readFrom(m);
     return true;
+}
+
+storage::Meas::MeasList Page::readInterval(Time from, Time to) {
+	storage::Meas::MeasList result;
+	storage::Meas readedValue;
+	
+	m_writeMutex.lock();
+	auto max_pos = m_header->write_pos;
+	m_writeMutex.unlock();
+
+	for (int i = 0; i < max_pos; ++i) {
+		if (!read(&readedValue, i)) {
+			std::stringstream ss;
+			ss << "ReadIntervalError: "
+				<< " file name: " << m_filename
+				<< " writePos: " << m_header->write_pos
+				<< " size: " << m_header->size;
+
+			throw Exception::CreateAndLog(POSITION, ss.str());
+		}
+		if (utils::inInterval(from, to, readedValue.time)) {
+			result.push_back(readedValue);
+		}
+	}
+	return result;
 }
 
 bool Page::isFull()const{

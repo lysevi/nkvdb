@@ -46,7 +46,6 @@ BOOST_AUTO_TEST_CASE(PageIO) {
         const int flagValue = 1;
         const int srcValue = 2;
         const int timeValue = 3;
-        const int zeroTimeValue = 1;
 
         for (int i = 0; i < TestableMeasCount; ++i) {
             Page::PPage storage = Page::Open(mdb_test::test_page_name);
@@ -55,18 +54,14 @@ BOOST_AUTO_TEST_CASE(PageIO) {
             newMeas->id = i;
             newMeas->flag = flagValue;
             newMeas->source = srcValue;
-            if (i == 0) {
-                newMeas->time = zeroTimeValue;
-            } else {
-                newMeas->time = i;
-            }
+            newMeas->time = i;
             storage->append(newMeas);
             delete newMeas;
         }
 
         Page::PPage storage = Page::Open(mdb_test::test_page_name);
 
-        BOOST_CHECK_EQUAL(storage->minTime(), zeroTimeValue);
+        BOOST_CHECK_EQUAL(storage->minTime(), 0);
         BOOST_CHECK_EQUAL(storage->maxTime(), TestableMeasCount-1);
 
         auto newMeas = storage::Meas::empty();
@@ -79,18 +74,14 @@ BOOST_AUTO_TEST_CASE(PageIO) {
             BOOST_CHECK_EQUAL(newMeas->flag, flagValue);
             BOOST_CHECK_EQUAL(newMeas->source, srcValue);
 
-            if(i==0){
-                BOOST_CHECK_EQUAL(newMeas->time, zeroTimeValue);
-            }else{
-                BOOST_CHECK_EQUAL(newMeas->time, i);
-            }
+            BOOST_CHECK_EQUAL(newMeas->time, i);
         }
         BOOST_CHECK(!storage->isFull());
         delete newMeas;
 
         auto hdr=storage->getHeader();
         BOOST_CHECK_EQUAL(hdr.maxTime,TestableMeasCount-1);
-        BOOST_CHECK_EQUAL(hdr.minTime,zeroTimeValue);
+        BOOST_CHECK_EQUAL(hdr.minTime,0);
         BOOST_CHECK_EQUAL(hdr.size,storage->size());
     }
 }
@@ -133,12 +124,27 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 			meas->value = i;
 			meas->id = i%meas2write;
 			meas->source = meas->flag = i%meas2write;
+			meas->time = i;
 			ds->append(meas);
 		}
 		delete meas;
 		ds = nullptr;
 		auto pages = utils::ls(storage_path);
 		BOOST_CHECK_EQUAL(pages.size(), write_iteration);
+	}
+	{
+		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
+		
+		for (int i = 1; i < meas2write; ++i) {
+			auto meases=ds->readInterval(0, i);
+			BOOST_CHECK_EQUAL(meases.size(), i + 1);
+
+			for (storage::Meas m : meases) {
+				BOOST_CHECK(utils::inInterval<storage::Time>(0, i, m.time));
+
+				BOOST_CHECK(m.time<=i);
+			}
+		}
 	}
     utils::rm(storage_path);
 }

@@ -21,6 +21,7 @@ bool utils::rm(const std::string&rm_path){
 				return false;
 			}
 		}
+		boost::filesystem::remove_all(rm_path);
 		return true;
 	} catch (boost::filesystem::filesystem_error& ex) {
 		std::string msg = ex.what();

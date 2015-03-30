@@ -6,5 +6,9 @@
 
 
 BOOST_AUTO_TEST_CASE(UtilsEmpty) {
-	BOOST_CHECK_EQUAL(true, true);
+	BOOST_CHECK(utils::inInterval(1,5,1));
+	BOOST_CHECK(utils::inInterval(1, 5, 2));
+	BOOST_CHECK(utils::inInterval(1, 5, 5));
+	BOOST_CHECK(!utils::inInterval(1, 5, 0));
+	BOOST_CHECK(!utils::inInterval(0, 1, 2));
 }

@@ -34,10 +34,9 @@ int main(int argc, char*argv[]) {
 		clock_t read_t0 = clock();
 		for (int i = 1; i < meas2write*write_iteration; ++i) {
 			auto meases = ds->readInterval(0, i);
-			clock_t read_t1 = clock();
-			logger <<"[0:"<<i<< "] => time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << endl;
 		}
-		
+		clock_t read_t1 = clock();
+		logger << "read time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << endl;
 	}
 	utils::rm(storage_path);
 }

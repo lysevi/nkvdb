@@ -16,19 +16,21 @@ bool read_all = false;
 bool verbose = false;
 bool random_read=false;
 int  random_read_step= 10;
+bool dont_remove = false;
 
 int main(int argc, char*argv[]) {
 
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "produce help message")
-		("mc", po::value<int>(), "measurment count")
-		("ic", po::value<int>(), "iteration count")
+		("mc", po::value<int>(&meas2write)->default_value(meas2write), "measurment count")
+		("ic", po::value<int>(&write_iteration)->default_value(write_iteration), "iteration count")
 		("write-only",  "don`t run readInterval")
 		("read-all", "bench with read from 0 to mc*ic")
 		("verbose", "verbose ouput")
 		("rand-read", "read random intervals")
-		("rand-read-step", po::value<int>(), "step count of random reads")
+		("rand-read-step", po::value<int>(&random_read_step)->default_value(random_read_step), "step count of random reads")
+		("dont-remove", "dont remove created storage")
 		;
 
 	po::variables_map vm;
@@ -56,12 +58,9 @@ int main(int argc, char*argv[]) {
 		verbose = true;
 	}
 
-	if (vm.count("mc"))
-		meas2write = vm["mc"].as<int>();
-	if (vm.count("ic"))
-		write_iteration = vm["ic"].as<int>();
-	if (vm.count("rand-read-step"))
-		random_read_step = vm["rand-read-step"].as<int>();
+	if (vm.count("dont-remove")) {
+		dont_remove = true;
+	}
 
 	const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas)*meas2write);
 	
@@ -133,5 +132,6 @@ int main(int argc, char*argv[]) {
 		clock_t read_t1 = clock();
 		logger << "read time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << endl;
 	}
-	utils::rm(storage_path);
+	if (!dont_remove)
+		utils::rm(storage_path);
 }

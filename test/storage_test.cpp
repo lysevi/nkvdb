@@ -91,14 +91,17 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 	{
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
 		
-        for (storage::Time i = 1; i < meas2write*write_iteration; ++i) {
-			auto meases=ds->readInterval(0, i);
-			BOOST_CHECK_EQUAL(meases.size(), i + 1);
+		for (int i = 1; i < meas2write*write_iteration; i += (meas2write*write_iteration) / 100) {
+			clock_t verb_t0 = clock();
+			storage::Time to = i*((meas2write*write_iteration) / 100);
+			auto meases = ds->readInterval(0, to);
+
+			BOOST_CHECK_EQUAL(meases.size(), to + 1);
 
 			for (storage::Meas m : meases) {
-				BOOST_CHECK(utils::inInterval<storage::Time>(0, i, m.time));
+				BOOST_CHECK(utils::inInterval<storage::Time>(0, to, m.time));
 
-				BOOST_CHECK(m.time<=i);
+				BOOST_CHECK(m.time<=to);
 			}
 		}
 	}

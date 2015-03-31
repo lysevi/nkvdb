@@ -92,14 +92,14 @@ int main(int argc, char*argv[]) {
 	if (!write_only){
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
 		clock_t read_t0 = clock();
-		for (int i = 1; i < meas2write*write_iteration; ++i) {
+		for (int i = 1; i < meas2write*write_iteration; i += (meas2write*write_iteration)/100) {
 			clock_t verb_t0 = clock();
-			
-			auto meases = ds->readInterval(0, i);
+			storage::Time to = i*((meas2write*write_iteration)/100);
+			auto meases = ds->readInterval(0, to);
 
 			clock_t verb_t1 = clock();
 			if (verbose) {
-				logger << "read[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC <<" cnt:"<<meases.size()<< endl;
+				logger << "read["<<0<<":"<< to << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC <<" cnt:"<<meases.size()<< endl;
 			}
 		}
 		clock_t read_t1 = clock();

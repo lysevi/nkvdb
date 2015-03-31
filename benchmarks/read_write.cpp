@@ -1,18 +1,24 @@
 #include <ctime>
 #include <iostream>
+#include <cstdlib>
 #include <storage/storage.h>
 #include <utils/ProcessLogger.h>
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
+const std::string storage_path = "benchmarkStorage";
+
 int meas2write = 10;
 int write_iteration = 50;
 bool write_only = false;
 bool read_all = false;
 bool verbose = false;
+bool random_read=false;
+int  random_read_step= 10;
 
 int main(int argc, char*argv[]) {
+
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "produce help message")
@@ -21,6 +27,8 @@ int main(int argc, char*argv[]) {
 		("write-only",  "don`t run readInterval")
 		("read-all", "bench with read from 0 to mc*ic")
 		("verbose", "verbose ouput")
+		("rand-read", "read random intervals")
+		("rand-read-step", po::value<int>(), "step count of random reads")
 		;
 
 	po::variables_map vm;
@@ -40,6 +48,10 @@ int main(int argc, char*argv[]) {
 		read_all = true;
 	}
 
+	if (vm.count("rand-read")) {
+		random_read= true;
+	}
+
 	if (vm.count("verbose")) {
 		verbose = true;
 	}
@@ -48,9 +60,11 @@ int main(int argc, char*argv[]) {
 		meas2write = vm["mc"].as<int>();
 	if (vm.count("ic"))
 		write_iteration = vm["ic"].as<int>();
-	
+	if (vm.count("rand-read-step"))
+		random_read_step = vm["rand-read-step"].as<int>();
+
 	const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas)*meas2write);
-	const std::string storage_path = "benchmarkStorage";
+	
 	logger << "storage page size: " << storage_size << endl
 		<< "meas count: " << meas2write << endl
 		<< "write iterations: " << write_iteration << endl;
@@ -87,6 +101,20 @@ int main(int argc, char*argv[]) {
 		auto meases = ds->readInterval(0, meas2write*write_iteration);
 		clock_t read_t1 = clock();
 		logger << "read all[" << 0 << ":" << meas2write*write_iteration << "]: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << " cnt:" << meases.size() << endl;
+		
+	}
+	if (random_read)
+	{
+		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
+		auto step_size = (write_iteration*meas2write) / random_read_step;
+		storage::Time from = 0;
+		for (int st = 0; st < random_read_step; ++st) {
+			storage::Time to = step_size*st; +step_size;
+			clock_t read_t0 = clock();
+			auto meases = ds->readInterval(from, to);
+			clock_t read_t1 = clock();
+			logger << "random read [" << from << ":" << to << "]: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << " cnt:" << meases.size() << endl;
+		}
 		
 	}
 	if (!write_only){

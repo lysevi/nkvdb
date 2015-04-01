@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <sstream>
 #include <fstream>
+#include <cmath>
 
 const uint8_t page_version = 1;
 
@@ -139,6 +140,23 @@ bool Page::append(const Meas::PMeas value) {
     return true;
 }
 
+size_t Page::append(const Meas::PMeas begin, const size_t size) {
+	std::lock_guard<std::mutex> guard(m_writeMutex);
+
+	size_t cap = this->capacity();
+	size_t to_write = 0;
+	if (cap > size) {
+		to_write = cap - size;
+	} else if (cap == size) {
+		to_write = size;
+	} else if(cap<size){
+		to_write = cap;
+	}
+	memcpy(m_data_begin, begin, to_write*sizeof(Meas));
+	m_header->write_pos += to_write;
+	return to_write;
+}
+
 bool Page::read(Meas::PMeas result, uint64_t position) {
     if (result == nullptr)
         return false;
@@ -181,6 +199,11 @@ storage::Meas::MeasList Page::readInterval(Time from, Time to) {
 
 bool Page::isFull()const{
     return (sizeof(Page::Header)+sizeof(storage::Meas)*m_header->write_pos)>=m_header->size;
+}
+
+size_t Page::capacity()const {
+	size_t bytes_left = m_header->size - (sizeof(Page::Header) + sizeof(storage::Meas)*m_header->write_pos);
+	return  bytes_left / sizeof(Meas);
 }
 
 Page::Header Page::getHeader()const{

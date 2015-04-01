@@ -19,6 +19,7 @@ namespace storage{
         bool havePage2Write()const;
 
         bool append(const Meas::PMeas m);
+		void append(const Meas::PMeas begin, const size_t meas_count);
 		Meas::MeasArray readInterval(Time from, Time to);
     private:
         DataStorage();

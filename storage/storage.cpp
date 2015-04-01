@@ -110,6 +110,22 @@ bool DataStorage::append(const Meas::PMeas m){
     return this->m_curpage->append(m);
 }
 
+void DataStorage::append(const Meas::PMeas begin, const size_t meas_count) {
+	std::lock_guard<std::mutex> guard(m_write_mutex);
+	if (m_curpage->isFull()) {
+		this->createNewPage();
+	}
+	
+	size_t to_write = meas_count;
+	while (to_write > 0) {
+		size_t writed = m_curpage->append(begin, to_write);
+		if (writed != to_write) {
+			this->createNewPage();
+		}
+		to_write -= writed;
+	}
+}
+
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
 	if (hdr.minTime <= from || hdr.maxTime >= to){
 		return true;

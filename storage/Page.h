@@ -40,10 +40,12 @@ public:
     Time minTime()const;
     Time maxTime()const;
     bool isFull()const;
-    void close();
+	size_t capacity()const;
+	void close();
     Header getHeader()const;
 
 	bool append(const Meas::PMeas value);
+	size_t append(const Meas::PMeas begin, const size_t size);
 	bool read(Meas::PMeas result, uint64_t position);
 	storage::Meas::MeasList readInterval(Time from, Time to);
 private:

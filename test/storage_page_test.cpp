@@ -74,3 +74,38 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 		BOOST_CHECK_EQUAL(hdr.size, storage->size());
 	}
 }
+
+BOOST_AUTO_TEST_CASE(Capacity) {
+	const size_t pageSize = sizeof(storage::Page::Header) + sizeof(storage::Meas) * 10;
+	Page::PPage page = Page::Create(mdb_test::test_page_name, pageSize);
+	BOOST_CHECK_EQUAL(page->capacity(), 10);
+	
+	auto newMeas = storage::Meas::empty();
+	page->append(newMeas);
+	
+	BOOST_CHECK_EQUAL(page->capacity(), 9);
+	page->append(newMeas);
+	delete newMeas;
+	BOOST_CHECK_EQUAL(page->capacity(), 8);
+}
+
+
+BOOST_AUTO_TEST_CASE(AppendMany) {
+	const size_t pageSize = sizeof(storage::Page::Header) + sizeof(storage::Meas) * 10;
+	Page::PPage page = Page::Create(mdb_test::test_page_name, pageSize);
+	
+	size_t arr_size = 15;
+	storage::Meas::PMeas array = new storage::Meas[arr_size];
+	for (int i = 0; i < arr_size; ++i) {
+		array[i].id = i;
+	}
+	size_t writed = page->append(array, arr_size);
+	delete[] array;
+	BOOST_CHECK_EQUAL(writed, 10);
+
+	for (int i = 0; i < writed; ++i) {
+		storage::Meas readed;
+		page->read(&readed, i);
+		BOOST_CHECK_EQUAL(readed.id, i);
+	}
+}

@@ -33,7 +33,7 @@ else(WIN32)
   LINK_DIRECTORIES(${LINK_DIRECTORIES} "/mnt/data/soft/cpp/boost_1_57_0/stage/lib")
   set(BoostUSESTATIC_LIBS OFF)
 
-  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem program program_options)
+  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem program_options)
 ENDIF(WIN32)
 
 

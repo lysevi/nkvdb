@@ -11,6 +11,19 @@ std::list<boost::filesystem::path> utils::ls(const std::string& path){
     return result;
 }
 
+std::list<boost::filesystem::path> utils::ls(const std::string& path, const std::string& ext) {
+	std::list<boost::filesystem::path> result;
+
+	std::copy(boost::filesystem::directory_iterator(path),
+			  boost::filesystem::directory_iterator(),
+			  std::back_inserter(result));
+
+	// ext filter
+	result.remove_if([&ext](boost::filesystem::path p){return p.extension().string() != ext;});
+
+	return result;
+}
+
 bool utils::rm(const std::string&rm_path){
     if(!boost::filesystem::exists(rm_path))
         return true;
@@ -28,4 +41,17 @@ bool utils::rm(const std::string&rm_path){
 		logger << "utils::rm exception: " << msg;
 		throw;
 	}
+}
+
+//without ex
+std::string utils::filename(std::string fname) {
+	boost::filesystem::path p(fname);
+	return p.stem().string();
+}
+
+
+std::string utils::parent_path(std::string fname) {
+	boost::filesystem::path p(fname);
+	
+	return p.parent_path().string();
 }

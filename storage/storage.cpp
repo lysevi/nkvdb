@@ -52,7 +52,14 @@ DataStorage::DataStorage(){
 }
 
 DataStorage::~DataStorage(){
-	this->m_curpage = nullptr;
+	this->Close();
+}
+
+void DataStorage::Close() {
+	if (this->m_curpage != nullptr) {
+		this->m_curpage->close();
+		this->m_curpage = nullptr;
+	}
 }
 
 DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path, uint64_t page_size){
@@ -78,7 +85,7 @@ DataStorage::PDataStorage DataStorage::Open(const std::string& ds_path){
         throw utils::Exception::CreateAndLog(POSITION, ds_path+" not exists.");
     }
 
-    auto pages=utils::ls(ds_path);
+    auto pages=utils::ls(ds_path,".page");
     fs::path maxTimePage=getOldesPage(pages);
 
 
@@ -137,17 +144,17 @@ bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
 Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
 	
 	Meas::MeasList  list_result;
-	auto page_list = utils::ls(m_path);
+	auto page_list = pageList();
 	for (auto page : page_list) {
 		storage::Page::PPage page2read;
-		if (page.string() == m_curpage->fileName()) {
+		if (page == m_curpage->fileName()) {
 			if (HeaderIntervalCheck(from, to, m_curpage->getHeader())) {
 				page2read = m_curpage;
 			}
 		} else {
-			storage::Page::Header hdr = storage::Page::ReadHeader(page.string());
+			storage::Page::Header hdr = storage::Page::ReadHeader(page);
 			if (HeaderIntervalCheck(from,to,hdr)){
-				page2read = storage::Page::Open(page.string());
+				page2read = storage::Page::Open(page);
 			} else {
 				continue;
 			}
@@ -164,5 +171,16 @@ Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
 		return Meas::MeasArray{};
 	}
 	Meas::MeasArray result{ list_result.begin(), list_result.end() };
+	return result;
+}
+
+std::list<std::string> DataStorage::pageList()const {
+	auto page_list = utils::ls(m_path, ".page");
+	
+	std::list<std::string> result;
+	for (auto it = page_list.begin(); it != page_list.end(); ++it) {
+		result.push_back(it->string());
+	}
+	
 	return result;
 }

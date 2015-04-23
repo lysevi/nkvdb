@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include <cmath>
+#include <boost/filesystem.hpp>
 
 const uint8_t page_version = 1;
 
@@ -136,6 +137,7 @@ bool Page::append(const Meas::PMeas value) {
     updateMinMax(value);
 
     memcpy(&m_data_begin[m_header->write_pos], value, sizeof (Meas));
+	m_time2index[value->time] = m_header->write_pos;
     m_header->write_pos++;
     return true;
 }
@@ -153,6 +155,12 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
 		to_write = cap;
 	}
 	memcpy(m_data_begin, begin, to_write*sizeof(Meas));
+	size_t index = 0;
+	for (auto i = m_header->write_pos; i < to_write; ++i) {
+		assert(index < size);
+		m_time2index[begin[index].time] = i;
+		index++;
+	}
 	m_header->write_pos += to_write;
 	return to_write;
 }
@@ -210,6 +218,31 @@ Page::Header Page::getHeader()const{
     return *m_header;
 }
 
+void Page::writeIndexFile()const {
+	boost::filesystem::path p;
+	p.append(utils::parent_path(this->fileName()));
+	p.append(utils::filename(this->fileName()) + ".idx");
+
+	std::ofstream of;
+	std::string index_filename = p.string();
+	of.open(index_filename);
+
+	if (!of.is_open()) {
+		std::stringstream ss;
+		ss << "Page::close(): WriteIndexError: "
+			<< " file name: " << index_filename
+			<< " size: " << m_header->size;
+
+		throw Exception::CreateAndLog(POSITION, ss.str());
+	}
+
+	for (auto it = m_time2index.cbegin(); it != m_time2index.cend(); ++it) {
+		of.write((char*)&it->second, sizeof(it->second));
+	}
+	of.close();
+}
+
 void Page::close(){
+	writeIndexFile();
     this->m_file->close();
 }

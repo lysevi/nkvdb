@@ -12,3 +12,10 @@ BOOST_AUTO_TEST_CASE(UtilsEmpty) {
 	BOOST_CHECK(!utils::inInterval(1, 5, 0));
 	BOOST_CHECK(!utils::inInterval(0, 1, 2));
 }
+
+
+BOOST_AUTO_TEST_CASE(FileUtils) {
+	std::string filename = "foo/bar/test.txt";
+	BOOST_CHECK_EQUAL(utils::filename(filename), "test");
+	BOOST_CHECK_EQUAL(utils::parent_path(filename), "foo/bar");
+}

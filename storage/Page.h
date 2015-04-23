@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <mutex>
+#include <map>
 #include <boost/iostreams/device/mapped_file.hpp>
 
 #include "Meas.h"
@@ -29,6 +30,7 @@ public:
     };
 
     typedef std::shared_ptr<Page> PPage;
+	typedef std::map<Time, uint64_t> Time2Index;
 public:
     static PPage Open(std::string filename);
 	static PPage Create(std::string filename, uint64_t fsize);
@@ -52,6 +54,7 @@ private:
     Page(std::string fname);
     void initHeader(char * data);
     void updateMinMax(Meas::PMeas value);
+	void writeIndexFile()const;
 protected:
     std::string *m_filename;
 
@@ -62,5 +65,6 @@ protected:
     Meas* m_data_begin;
 
     Header *m_header;
+	Time2Index m_time2index;
 };
 }

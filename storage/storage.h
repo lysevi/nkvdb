@@ -16,6 +16,7 @@ namespace storage{
         static PDataStorage Create(const std::string& ds_path, uint64_t page_size=defaultPageSize);
         static PDataStorage Open(const std::string& ds_path);
         ~DataStorage();
+		void Close();
         bool havePage2Write()const;
 
         bool append(const Meas::PMeas m);
@@ -24,6 +25,8 @@ namespace storage{
     private:
         DataStorage();
         void createNewPage();
+		std::list<std::string> pageList()const;
+
     protected:
         std::string m_path;
         Page::PPage m_curpage;

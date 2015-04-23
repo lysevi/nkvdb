@@ -1,3 +1,4 @@
+*.idx
 *_export.h
 *.db
 *.a

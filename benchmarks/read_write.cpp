@@ -108,7 +108,7 @@ int main(int argc, char*argv[]) {
 		auto step_size = (write_iteration*meas2write) / random_read_step;
 		storage::Time from = 0;
 		for (int st = 0; st < random_read_step; ++st) {
-			storage::Time to = step_size*st; +step_size;
+			storage::Time to = step_size*st +step_size;
 			clock_t read_t0 = clock();
 			auto meases = ds->readInterval(from, to);
 			clock_t read_t1 = clock();

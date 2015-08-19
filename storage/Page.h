@@ -54,7 +54,6 @@ private:
     Page(std::string fname);
     void initHeader(char * data);
     void updateMinMax(Meas::PMeas value);
-	void writeIndexFile()const;
 protected:
     std::string *m_filename;
 
@@ -65,6 +64,5 @@ protected:
     Meas* m_data_begin;
 
     Header *m_header;
-	Time2Index m_time2index;
 };
 }

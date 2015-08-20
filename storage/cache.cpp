@@ -17,14 +17,13 @@ bool Cache::isFull()const {
 }
 
 void Cache::clear() {
-	std::lock_guard<std::mutex> lock(this->m_rw_lock);
 //	m_data.clear();
 	m_size=0;
 	m_index = 0;
 }
 
 bool Cache::append(const Meas value) {
-	std::lock_guard<std::mutex> lock(this->m_rw_lock);
+	//std::lock_guard<std::mutex> lock(this->m_rw_lock);
 	if (!isFull()) {
 		m_meases[m_index] = value;
 		//this->m_data[value.time].push_back(m_index);

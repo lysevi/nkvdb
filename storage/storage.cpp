@@ -111,7 +111,7 @@ bool DataStorage::havePage2Write()const{
     return this->m_curpage!=nullptr && !this->m_curpage->isFull();
 }
 
-bool DataStorage::append(const Meas::PMeas m){
+void DataStorage::append(const Meas::PMeas m){
     std::lock_guard<std::mutex> guard(m_write_mutex);
 	bool isAppend = false;
 	while (!isAppend) {
@@ -121,7 +121,6 @@ bool DataStorage::append(const Meas::PMeas m){
 			m_cache.clear();
 		}
 	}
-	return true;
 }
 
 void DataStorage::append(const Meas::PMeas begin, const size_t meas_count) {

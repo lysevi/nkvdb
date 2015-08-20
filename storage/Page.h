@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <mutex>
 #include <map>
 #include <boost/iostreams/device/mapped_file.hpp>
 
@@ -57,8 +56,6 @@ private:
     void updateMinMax(Meas::PMeas value);
 protected:
     std::string *m_filename;
-
-    mutable std::mutex m_writeMutex;
 
     boost::iostreams::mapped_file *m_file;
 

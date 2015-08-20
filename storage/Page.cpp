@@ -82,10 +82,7 @@ Page::PPage Page::Create(std::string filename, uint64_t fsize) {
         throw utils::Exception::CreateAndLog(POSITION, "can`t create file ");
 
     char * data = result->m_file->data();
-    for (size_t i = 0; i < result->m_file->size(); i++) {
-        data[i] = '*';
-    }
-
+    
     result->initHeader(data);
     result->m_data_begin = (Meas*) (data + sizeof (Page::Header));
 
@@ -141,9 +138,6 @@ void Page::updateMinMax(Meas::PMeas value) {
 }
 
 bool Page::append(const Meas::PMeas value) {
-    std::lock_guard<std::mutex> guard(m_writeMutex);
-
-
     if (this->isFull()) {
         return false;
     }
@@ -156,8 +150,6 @@ bool Page::append(const Meas::PMeas value) {
 }
 
 size_t Page::append(const Meas::PMeas begin, const size_t size) {
-	std::lock_guard<std::mutex> guard(m_writeMutex);
-
 	size_t cap = this->capacity();
 	size_t to_write = 0;
 	if (cap > size) {
@@ -189,7 +181,6 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
     if (result == nullptr)
         return false;
     {
-        std::lock_guard<std::mutex> guard(m_writeMutex);
         if (m_header->write_pos <= position) {
             return false;
         }
@@ -204,9 +195,7 @@ storage::Meas::MeasList Page::readInterval(Time from, Time to) {
 	storage::Meas::MeasList result;
 	storage::Meas readedValue;
 	
-	m_writeMutex.lock();
 	auto max_pos = m_header->write_pos;
-	m_writeMutex.unlock();
 
 	for (int i = 0; i < max_pos; ++i) {
 		if (!read(&readedValue, i)) {

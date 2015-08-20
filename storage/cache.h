@@ -1,7 +1,6 @@
 #pragma once
 
 #include <map>
-#include <mutex>
 #include "Meas.h"
 
 namespace storage
@@ -21,7 +20,6 @@ namespace storage
 	private:
 		//typedef std::map<storage::Time, std::list<size_t>> time2meas;
 		
-		mutable std::mutex m_rw_lock;
 		size_t m_max_size;
 		Meas  *m_meases;
 		//time2meas m_data;

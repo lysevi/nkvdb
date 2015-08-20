@@ -156,7 +156,6 @@ bool Page::append(const Meas::PMeas value) {
 }
 
 size_t Page::append(const Meas::PMeas begin, const size_t size) {
-//	logger << "Page::append: " << size << endl;
 	std::lock_guard<std::mutex> guard(m_writeMutex);
 
 	size_t cap = this->capacity();

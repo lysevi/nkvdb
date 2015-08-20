@@ -19,12 +19,14 @@ namespace storage
 		size_t size()const { return m_size; }
 		void clear();
 	private:
-		typedef std::map<storage::Time, std::list<Meas>> time2meas;
-
+		//typedef std::map<storage::Time, std::list<size_t>> time2meas;
+		
 		mutable std::mutex m_rw_lock;
 		size_t m_max_size;
-		time2meas m_data;
+		Meas  *m_meases;
+		//time2meas m_data;
 		size_t  m_size;
+		size_t  m_index;
 	};
 
 }

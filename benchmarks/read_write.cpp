@@ -57,7 +57,12 @@ int main(int argc, char*argv[]) {
 		;
 
 	po::variables_map vm;
-	po::store(po::parse_command_line(argc, argv, desc), vm);
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+	} catch (std::exception&ex) {
+		logger << "Error: " << ex.what()<<endl;
+		exit(1);
+	}
 	po::notify(vm);
 
 	if (vm.count("help")) {
@@ -85,7 +90,6 @@ int main(int argc, char*argv[]) {
 		<< "write iterations: " << write_iteration << endl;
 
 	makeAndWrite(meas2write, 1000000);
-
 	makeAndWrite(meas2write, 2000000);
 	makeAndWrite(meas2write, 3000000);
 	if (!write_only) {

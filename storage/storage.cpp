@@ -56,6 +56,7 @@ DataStorage::~DataStorage(){
 }
 
 void DataStorage::Close() {
+	this->writeCache();
 	if (this->m_curpage != nullptr) {
 		this->m_curpage->close();
 		this->m_curpage = nullptr;
@@ -141,7 +142,7 @@ void DataStorage::append(const Meas::PMeas begin, const size_t meas_count) {
 }
 
 void DataStorage::writeCache() {
-//	logger << "Write cache: " << m_cache.size() << endl;
+	//logger << "Write cache: " << m_cache.size() << endl;
 	if (m_cache.size() == 0) {
 		return;
 	}

@@ -9,7 +9,7 @@
 namespace storage{
 
     const uint64_t defaultPageSize=1*1024*1024; // 1Mb
-	const size_t defaultcacheSize = 500000;
+	const size_t defaultcacheSize = 100000;
     class DataStorage{
     public:
         typedef std::shared_ptr<DataStorage> PDataStorage;

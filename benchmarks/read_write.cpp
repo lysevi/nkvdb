@@ -11,12 +11,36 @@ const std::string storage_path = "benchmarkStorage";
 
 int meas2write = 10;
 int write_iteration = 50;
+int read_step = 100;
+int pagesize = 1000000;
 bool write_only = false;
-bool read_all = false;
 bool verbose = false;
-bool random_read=false;
-int  random_read_step= 10;
 bool dont_remove = false;
+
+void makeAndWrite(int mc, int ic) {
+	logger << "makeAndWrite mc:" << mc << " ic:" << ic << endl;
+
+	const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas)*pagesize);
+
+	storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
+	clock_t write_t0 = clock();
+	storage::Meas::PMeas meas = storage::Meas::empty();
+
+	for (int i = 0; i < ic; ++i) {
+		meas->value = i%mc;
+		meas->id = i%mc;
+		meas->source = meas->flag = i%mc;
+		meas->time = i;
+
+		ds->append(meas);
+	}
+
+	clock_t write_t1 = clock();
+	logger << "write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC << endl;
+	delete meas;
+	ds = nullptr;
+	utils::rm(storage_path);
+}
 
 int main(int argc, char*argv[]) {
 
@@ -25,11 +49,10 @@ int main(int argc, char*argv[]) {
 		("help", "produce help message")
 		("mc", po::value<int>(&meas2write)->default_value(meas2write), "measurment count")
 		("ic", po::value<int>(&write_iteration)->default_value(write_iteration), "iteration count")
-		("write-only",  "don`t run readInterval")
-		("read-all", "bench with read from 0 to mc*ic")
+		("read-step", po::value<int>(&read_step)->default_value(read_step), "read step on read benchmark")
+		("pSize", po::value<int>(&pagesize)->default_value(pagesize), "meas count in page")
+		("write-only", "don`t run readInterval")
 		("verbose", "verbose ouput")
-		("rand-read", "read random intervals")
-		("rand-read-step", po::value<int>(&random_read_step)->default_value(random_read_step), "step count of random reads")
 		("dont-remove", "dont remove created storage")
 		;
 
@@ -41,18 +64,11 @@ int main(int argc, char*argv[]) {
 		std::cout << desc << std::endl;
 		return 1;
 	}
-	
+
 	if (vm.count("write-only")) {
 		write_only = true;
 	}
 
-	if (vm.count("read-all")) {
-		read_all = true;
-	}
-
-	if (vm.count("rand-read")) {
-		random_read= true;
-	}
 
 	if (vm.count("verbose")) {
 		verbose = true;
@@ -63,75 +79,59 @@ int main(int argc, char*argv[]) {
 	}
 
 	const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas)*meas2write);
-	
+
 	logger << "storage page size: " << storage_size << endl
 		<< "meas count: " << meas2write << endl
 		<< "write iterations: " << write_iteration << endl;
 
-	{
-		storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
-		clock_t write_t0=clock();
-		storage::Meas::PMeas meas = storage::Meas::empty();
-		for (int i = 0; i < (meas2write*write_iteration); ++i) {
-			clock_t verb_t0 = clock();
-			
-			meas->value = i;
-			meas->id = i%meas2write;
-			meas->source = meas->flag = i%meas2write;
-			meas->time = i;
-			
-			ds->append(meas);
-			clock_t verb_t1 = clock();
-			if (verbose) {
-				logger << "write[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC << endl;
-			}
-			
-		}
-		clock_t write_t1 = clock();
-		logger << "write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC << endl;
-		delete meas;
-		ds = nullptr;
-		auto pages = utils::ls(storage_path);
-	}
-	if (read_all)
-	{
-		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
-		clock_t read_t0 = clock();
-		auto meases = ds->readInterval(0, meas2write*write_iteration);
-		clock_t read_t1 = clock();
-		logger << "read all[" << 0 << ":" << meas2write*write_iteration << "]: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << " cnt:" << meases.size() << endl;
-		
-	}
-	if (random_read)
-	{
-		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
-		auto step_size = (write_iteration*meas2write) / random_read_step;
-		storage::Time from = 0;
-		for (int st = 0; st < random_read_step; ++st) {
-			storage::Time to = step_size*st +step_size;
-			clock_t read_t0 = clock();
-			auto meases = ds->readInterval(from, to);
-			clock_t read_t1 = clock();
-			logger << "random read [" << from << ":" << to << "]: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << " cnt:" << meases.size() << endl;
-		}
-		
-	}
-	if (!write_only){
-		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
-		clock_t read_t0 = clock();
-		for (int i = 1; i < meas2write*write_iteration; i += (meas2write*write_iteration)/100) {
-			clock_t verb_t0 = clock();
-			storage::Time to = i*((meas2write*write_iteration)/100);
-			auto meases = ds->readInterval(0, to);
+	makeAndWrite(meas2write, 1000000);
 
-			clock_t verb_t1 = clock();
-			if (verbose) {
-				logger << "read["<<0<<":"<< to << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC <<" cnt:"<<meases.size()<< endl;
+	makeAndWrite(meas2write, 2000000);
+	makeAndWrite(meas2write, 3000000);
+	if (!write_only) {
+		{
+			storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
+			storage::Meas::PMeas meas = storage::Meas::empty();
+
+			for (int i = 0; i < (meas2write*write_iteration); ++i) {
+				clock_t verb_t0 = clock();
+
+				meas->value = i;
+				meas->id = i%meas2write;
+				meas->source = meas->flag = i%meas2write;
+				meas->time = i;
+
+				ds->append(meas);
+				clock_t verb_t1 = clock();
+				if (verbose) {
+					logger << "write[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC << endl;
+				}
+
 			}
+			delete meas;
+			ds = nullptr;
+			auto pages = utils::ls(storage_path);
 		}
-		clock_t read_t1 = clock();
-		logger << "read time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << endl;
+
+
+		{
+			storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
+			clock_t read_t0 = clock();
+			for (int i = 0; i < meas2write*write_iteration; i += read_step) {
+				clock_t verb_t0 = clock();
+				storage::Time from = i;
+				storage::Time to = i + read_step;
+				auto meases = ds->readInterval(from, to);
+
+				clock_t verb_t1 = clock();
+				if (verbose) {
+					logger << "read[" << from << ":" << to << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC << " cnt:" << meases.size() << endl;
+				}
+			}
+			clock_t read_t1 = clock();
+			logger << "read time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << endl;
+		}
+		if (!dont_remove)
+			utils::rm(storage_path);
 	}
-	if (!dont_remove)
-		utils::rm(storage_path);
 }

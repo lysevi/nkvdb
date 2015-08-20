@@ -96,14 +96,14 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
 	
 	size_t arr_size = 15;
 	storage::Meas::PMeas array = new storage::Meas[arr_size];
-	for (int i = 0; i < arr_size; ++i) {
+	for (size_t i = 0; i < arr_size; ++i) {
 		array[i].id = i;
 	}
 	size_t writed = page->append(array, arr_size);
 	delete[] array;
 	BOOST_CHECK_EQUAL(writed, 10);
 
-	for (int i = 0; i < writed; ++i) {
+	for (size_t i = 0; i < writed; ++i) {
 		storage::Meas readed;
 		page->read(&readed, i);
 		BOOST_CHECK_EQUAL(readed.id, i);

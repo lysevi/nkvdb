@@ -37,7 +37,7 @@ bool Cache::append(const Meas value) {
 }
 
 size_t Cache::append(const Meas::PMeas begin, const size_t size) {
-	std::lock_guard<std::mutex> lock(this->m_rw_lock);
+	//std::lock_guard<std::mutex> lock(this->m_rw_lock);
 	size_t cap = this->m_max_size;
 	size_t to_write = 0;
 	if (cap > size) {
@@ -59,7 +59,7 @@ size_t Cache::append(const Meas::PMeas begin, const size_t size) {
 }
 
 storage::Meas::MeasList Cache::readInterval(Time from, Time to) const {
-	std::lock_guard<std::mutex> lock(this->m_rw_lock);
+	//std::lock_guard<std::mutex> lock(this->m_rw_lock);
 	Meas::MeasList result;
 	for (auto i = 0; i<m_index; ++i) {
 		if (utils::inInterval(from, to, m_meases[i].time)) {
@@ -69,10 +69,9 @@ storage::Meas::MeasList Cache::readInterval(Time from, Time to) const {
 	return result;
 }
 
-storage::Meas::PMeas Cache::asArray()const {
-	std::lock_guard<std::mutex> lock(this->m_rw_lock);
-	Meas::PMeas result = new Meas[m_size];
-	int i = 0;
+void Cache::asArray(Meas::PMeas output)const {
+	//std::lock_guard<std::mutex> lock(this->m_rw_lock);
+	//int i = 0;
 	/*for (auto it = m_data.begin(); it != m_data.end(); ++it) {
 		for (auto m : it->second) {
 			result[i]=m_meases[m];
@@ -81,7 +80,6 @@ storage::Meas::PMeas Cache::asArray()const {
 	}*/
 
 	for (auto i = 0; i<m_index; ++i) {
-		result[i] = m_meases[i];
+		output[i] = m_meases[i];
 	}
-	return result;
 }

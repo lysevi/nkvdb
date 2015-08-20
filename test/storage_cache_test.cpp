@@ -54,7 +54,8 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 			BOOST_CHECK(isExists);
 		}
 
-		auto array_dump = c.asArray();
+		Meas::PMeas array_dump = new Meas[c.size()];
+		c.asArray(array_dump);
 		for (int i = 0; i < TestableMeasCount - 1; ++i) {
 			bool isExists = false;
 			for (int j = 0; j < c.size() ; ++j) {

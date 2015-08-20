@@ -48,11 +48,12 @@ std::string getNewPageUniqueName(const std::string &ds_path){
 }
 
 DataStorage::DataStorage() :m_cache(defaultcacheSize) {
-
+	m_cache_output = new Meas[defaultcacheSize];
 }
 
 DataStorage::~DataStorage(){
 	this->Close();
+	delete[] m_cache_output; 
 }
 
 void DataStorage::Close() {
@@ -146,18 +147,19 @@ void DataStorage::writeCache() {
 	if (m_cache.size() == 0) {
 		return;
 	}
-	auto begin = m_cache.asArray();
+	
+	m_cache.asArray(m_cache_output);
 	size_t meas_count = m_cache.size();
 	size_t to_write = m_cache.size();
 
 	while (to_write > 0) {
-		size_t writed = m_curpage->append(begin + (meas_count - to_write), to_write);
+		size_t writed = m_curpage->append(m_cache_output + (meas_count - to_write), to_write);
 		if (writed != to_write) {
 			this->createNewPage();
 		}
 		to_write -= writed;
 	}
-	delete[] begin;
+	
 }
 
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {

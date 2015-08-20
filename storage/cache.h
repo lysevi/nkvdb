@@ -15,7 +15,7 @@ namespace storage
 		bool append(const Meas value);
 		size_t append(const Meas::PMeas begin, const size_t size);
 		storage::Meas::MeasList readInterval(Time from, Time to)const;
-		storage::Meas::PMeas asArray()const;
+		void asArray(Meas::PMeas output)const;
 		size_t size()const { return m_size; }
 		void clear();
 	private:

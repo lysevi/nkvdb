@@ -36,6 +36,7 @@ namespace storage{
         std::mutex  m_write_mutex;
 
 		storage::Cache m_cache;
+		Meas::PMeas  m_cache_output;//for cahce_dump
     };
 
 };

@@ -17,6 +17,7 @@ class Page : public utils::NonCopy {
 public:
     struct Header {
 		uint8_t version;
+		bool   minMaxInit;
         Time   minTime;
         Time   maxTime;
 		Id     minId;

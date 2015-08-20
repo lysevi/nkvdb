@@ -4,11 +4,12 @@
 #include <memory>
 #include <thread>
 #include "Page.h"
+#include "cache.h"
 
 namespace storage{
 
     const uint64_t defaultPageSize=1*1024*1024; // 1Mb
-
+	const size_t defaultcacheSize = 500000;
     class DataStorage{
     public:
         typedef std::shared_ptr<DataStorage> PDataStorage;
@@ -21,17 +22,20 @@ namespace storage{
 
         bool append(const Meas::PMeas m);
 		void append(const Meas::PMeas begin, const size_t meas_count);
+		
 		Meas::MeasArray readInterval(Time from, Time to);
     private:
         DataStorage();
         void createNewPage();
 		std::list<std::string> pageList()const;
-
+		void writeCache();
     protected:
         std::string m_path;
         Page::PPage m_curpage;
-        uint64_t   m_default_page_size;
+        uint64_t    m_default_page_size;
         std::mutex  m_write_mutex;
+
+		storage::Cache m_cache;
     };
 
 };

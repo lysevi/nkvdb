@@ -67,20 +67,27 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 			}
 
 			meas->value = i;
-			meas->id = i%meas2write;
+			meas->id = i;
 			meas->source = meas->flag = i%meas2write;
 			meas->time = i;
 			ds->append(meas);
 
 			
+			auto meases = ds->readInterval(0, end_it);
 
-            for (storage::Time j = 1; j < meas2write; ++j) {
-				auto meases = ds->readInterval(0, j);
+			for (storage::Time j = 0; j < i; ++j) {
+				bool isExists = false;
 				for (storage::Meas m : meases) {
-					BOOST_CHECK(utils::inInterval<storage::Time>(0, j, m.time));
-					BOOST_CHECK(m.time <= j);
-					BOOST_CHECK(m.time <= i);
+					if (m.id == j) {
+						isExists = true;
+						break;
+					}
 				}
+				if (!isExists) {
+					int a = 3;
+				}
+				BOOST_CHECK(isExists);
+				
 			}
 		}
 		delete meas;
@@ -117,17 +124,35 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 	{
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
 
-		size_t arr_size = 15;
+		size_t arr_size = meas2write * write_iteration;
 		storage::Meas::PMeas array = new storage::Meas[arr_size];
 		for (int i = 0; i < arr_size; ++i) {
 			array[i].id = i;
+			array[i].time = i;
 		}
 		ds->append(array, arr_size);
 		delete[] array;
+		
+		auto interval = ds->readInterval(0, arr_size);
+		BOOST_CHECK_EQUAL(interval.size(), arr_size);
+		for (auto m : interval) {
+			BOOST_CHECK(utils::inInterval<storage::Time>(0, arr_size, m.time));
+		}
+
+		for (int i = 0; i < arr_size; ++i) {
+			bool isExists = false;
+			for (auto m : interval) {
+				if (m.id == i) {
+					isExists = true;
+					break;
+				}
+			}
+			BOOST_CHECK(isExists);
+		}
 		ds->Close();
 
 		auto pages = utils::ls(storage_path);
-		BOOST_CHECK_EQUAL(pages.size(), 2);
+		BOOST_CHECK_EQUAL(pages.size(), write_iteration);
 	}
 	utils::rm(storage_path);
 }

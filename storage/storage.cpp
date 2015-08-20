@@ -47,7 +47,7 @@ std::string getNewPageUniqueName(const std::string &ds_path){
     return page_path.string();
 }
 
-DataStorage::DataStorage(){
+DataStorage::DataStorage() :m_cache(defaultcacheSize) {
 
 }
 
@@ -111,30 +111,56 @@ bool DataStorage::havePage2Write()const{
 
 bool DataStorage::append(const Meas::PMeas m){
     std::lock_guard<std::mutex> guard(m_write_mutex);
-    if(this->m_curpage->isFull()){
-        this->createNewPage();
-    }
-    return this->m_curpage->append(m);
+	bool isAppend = false;
+	while (!isAppend) {
+		isAppend = m_cache.append(*m);
+		if (!isAppend) {
+			this->writeCache();
+			m_cache.clear();
+		}
+	}
+	return true;
 }
 
 void DataStorage::append(const Meas::PMeas begin, const size_t meas_count) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
-	if (m_curpage->isFull()) {
-		this->createNewPage();
+	if (m_cache.isFull()) {
+		this->writeCache();
+		m_cache.clear();
 	}
 	
 	size_t to_write = meas_count;
 	while (to_write > 0) {
-		size_t writed = m_curpage->append(begin, to_write);
+		size_t writed = m_cache.append(begin+(meas_count - to_write), to_write);
 		if (writed != to_write) {
-			this->createNewPage();
+			this->writeCache();
+			m_cache.clear();
 		}
 		to_write -= writed;
 	}
 }
 
+void DataStorage::writeCache() {
+//	logger << "Write cache: " << m_cache.size() << endl;
+	if (m_cache.size() == 0) {
+		return;
+	}
+	auto begin = m_cache.asArray();
+	size_t meas_count = m_cache.size();
+	size_t to_write = m_cache.size();
+
+	while (to_write > 0) {
+		size_t writed = m_curpage->append(begin + (meas_count - to_write), to_write);
+		if (writed != to_write) {
+			this->createNewPage();
+		}
+		to_write -= writed;
+	}
+	delete[] begin;
+}
+
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
-	if (hdr.minTime <= from || hdr.maxTime >= to){
+	if (hdr.minTime >= from || hdr.maxTime <= to){
 		return true;
 	} else {
 		return false;
@@ -142,7 +168,9 @@ bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
 }
 
 Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
-	
+	this->writeCache();
+	m_cache.clear();
+
 	Meas::MeasList  list_result;
 	auto page_list = pageList();
 	for (auto page : page_list) {

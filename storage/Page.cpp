@@ -65,7 +65,6 @@ Page::PPage Page::Open(std::string filename) {
 }
 
 Page::PPage Page::Create(std::string filename, uint64_t fsize) {
-
     PPage result(new Page(filename));
 
     try {
@@ -110,20 +109,35 @@ void Page::initHeader(char * data) {
     memset(m_header, 0, sizeof (Page::Header));
     m_header->version = page_version;
     m_header->size=this->m_file->size();
+	m_header->minMaxInit = false;
 }
 
 void Page::updateMinMax(Meas::PMeas value) {
-    m_header->minTime = std::min(value->time, m_header->minTime);
-    m_header->maxTime = std::max(value->time, m_header->maxTime);
+	if (m_header->minMaxInit) {
+		m_header->minTime = std::min(value->time, m_header->minTime);
+		m_header->maxTime = std::max(value->time, m_header->maxTime);
+		
+		m_header->minId = std::min(value->id, m_header->minId);
+		m_header->maxId = std::max(value->id, m_header->maxId);
+			
+		m_header->minSource = std::min(value->source, m_header->minSource);
+		m_header->maxSource = std::max(value->source, m_header->maxSource);
+		m_header->minFlag = std::min(value->flag, m_header->minFlag);
+		m_header->maxFlag = std::max(value->flag, m_header->maxFlag);
+	} else {
+		m_header->minMaxInit = true;
+		m_header->minTime = value->time;
+		m_header->maxTime = value->time;
 
-	m_header->minId = std::min(value->id, m_header->minId);
-	m_header->maxId = std::max(value->id, m_header->maxId);
-	
-	m_header->minSource = std::min(value->source, m_header->minSource);
-	m_header->maxSource = std::max(value->source, m_header->maxSource);
+		m_header->minId = value->id;
+		m_header->maxId = value->id;
 
-	m_header->minFlag = std::min(value->flag, m_header->minFlag);
-	m_header->maxFlag = std::max(value->flag, m_header->maxFlag);
+		m_header->minSource = value->source;
+		m_header->maxSource = value->source;
+
+		m_header->minFlag = value->flag;
+		m_header->maxFlag = value->flag;
+	}
 }
 
 bool Page::append(const Meas::PMeas value) {
@@ -142,21 +156,30 @@ bool Page::append(const Meas::PMeas value) {
 }
 
 size_t Page::append(const Meas::PMeas begin, const size_t size) {
+//	logger << "Page::append: " << size << endl;
 	std::lock_guard<std::mutex> guard(m_writeMutex);
 
 	size_t cap = this->capacity();
 	size_t to_write = 0;
 	if (cap > size) {
-		to_write = cap - size;
+		to_write = size;
 	} else if (cap == size) {
 		to_write = size;
 	} else if(cap<size){
 		to_write = cap;
 	}
-	memcpy(m_data_begin, begin, to_write*sizeof(Meas));
+	memcpy(m_data_begin + m_header->write_pos, begin, to_write*sizeof(Meas));
+	
+	for (int i = 0; i < to_write;i++) {
+		updateMinMax(&begin[i]);
+	}
+
 	size_t index = 0;
 	for (auto i = m_header->write_pos; i < to_write; ++i) {
-		assert(index < size);
+		if (!(index < size)) {
+			int a = 3;
+			assert(index < size);
+		}
 		index++;
 	}
 	m_header->write_pos += to_write;

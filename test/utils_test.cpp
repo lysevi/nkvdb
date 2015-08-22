@@ -34,14 +34,24 @@ public:
 };
 
 BOOST_AUTO_TEST_CASE(Worker) {
+
     TestWorker worker;
 
     worker.start();
+
+    BOOST_CHECK(!worker.isBusy());
+
+    worker.pause_work();
 
     worker.add(1);
     worker.add(2);
     worker.add(3);
     worker.add(4);
+
+    BOOST_CHECK(worker.isBusy());
+    BOOST_CHECK_EQUAL(worker.value,(int)0);
+
+    worker.continue_work();
 
     while(true){
         if (!worker.isBusy()){

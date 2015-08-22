@@ -9,6 +9,7 @@
 
 namespace utils{
 
+    // look usage example in utils_test.cpp
     template<class T>
     class AsyncWorker
     {
@@ -40,6 +41,18 @@ namespace utils{
 
         bool isBusy()const{
             return !m_data.empty();
+        }
+
+        void pause_work(){
+            m_thread_lock.lock();
+        }
+
+        void continue_work(){
+            m_thread_lock.unlock();
+        }
+
+        bool stoped()const{
+            return m_stop_flag;
         }
     protected:
         void _thread_func(){

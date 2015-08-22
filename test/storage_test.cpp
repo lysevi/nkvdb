@@ -11,6 +11,8 @@
 
 #include <iterator>
 #include <list>
+#include <iostream>
+
 using namespace storage;
 
 BOOST_AUTO_TEST_CASE(MeasEmpty) {
@@ -28,7 +30,6 @@ BOOST_AUTO_TEST_CASE(MeasEmpty) {
 BOOST_AUTO_TEST_CASE(StorageCreateOpen){
 	{
 		{
-			
 			storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(mdb_test::storage_path);
 			BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
 			BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));

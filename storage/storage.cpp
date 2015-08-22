@@ -47,21 +47,38 @@ std::string getNewPageUniqueName(const std::string &ds_path){
     return page_path.string();
 }
 
-DataStorage::DataStorage() :m_cache(defaultcacheSize) {
-	m_cache_output = new Meas[defaultcacheSize];
+DataStorage::DataStorage() :m_cache_pool(defaultcachePoolSize,defaultcacheSize) {
+    m_cache=m_cache_pool.getCache();
+    m_cache_writer.setStorage(this);
+    m_cache_writer.start();
 }
 
 DataStorage::~DataStorage(){
 	this->Close();
-	delete[] m_cache_output; 
 }
 
 void DataStorage::Close() {
-	this->writeCache();
-	if (this->m_curpage != nullptr) {
-		this->m_curpage->close();
-		this->m_curpage = nullptr;
+
+    if (!m_cache_writer.stoped()){
+        this->writeCache();
+
+        while(true){
+            if (!m_cache_writer.isBusy()){
+                break;
+            }
+        }
+
+        m_cache_writer.stop_and_whait();
+    }
+    if (m_curpage != nullptr) {
+        m_curpage->close();
+        m_curpage = nullptr;
 	}
+
+}
+
+Page::PPage DataStorage::getCurPage(){
+    return m_curpage;
 }
 
 DataStorage::PDataStorage DataStorage::Create(const std::string& ds_path, uint64_t page_size){
@@ -115,41 +132,48 @@ void DataStorage::append(const Meas::PMeas m){
     std::lock_guard<std::mutex> guard(m_write_mutex);
 	bool isAppend = false;
 	while (!isAppend) {
-		isAppend = m_cache.append(*m);
+        isAppend = m_cache->append(*m);
 		if (!isAppend) {
 			this->writeCache();
-			m_cache.clear();
 		}
 	}
 }
 
 void DataStorage::append(const Meas::PMeas begin, const size_t meas_count) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
-	if (m_cache.isFull()) {
+    if (m_cache->isFull()) {
 		this->writeCache();
-		m_cache.clear();
 	}
 	
 	size_t to_write = meas_count;
 	while (to_write > 0) {
-		size_t writed = m_cache.append(begin+(meas_count - to_write), to_write);
+        size_t writed = m_cache->append(begin+(meas_count - to_write), to_write);
 		if (writed != to_write) {
 			this->writeCache();
-			m_cache.clear();
 		}
 		to_write -= writed;
 	}
 }
 
 void DataStorage::writeCache() {
-	//logger << "Write cache: " << m_cache.size() << endl;
-	if (m_cache.size() == 0) {
+    if (m_cache->size() == 0) {
 		return;
 	}
-	
-	m_cache.asArray(m_cache_output);
-	size_t meas_count = m_cache.size();
-	size_t to_write = m_cache.size();
+    m_cache->on_sync();
+
+    m_cache_writer.add(m_cache);
+
+    // FIX must use more smart method.
+    m_cache=nullptr;
+    while(true){
+        m_cache=m_cache_pool.getCache();
+        if(m_cache!=nullptr){
+            break;
+        }
+    }
+    /*m_cache->asArray(m_cache_output);
+    size_t meas_count = m_cache->size();
+    size_t to_write = m_cache->size();
 
 	while (to_write > 0) {
 		size_t writed = m_curpage->append(m_cache_output + (meas_count - to_write), to_write);
@@ -158,7 +182,7 @@ void DataStorage::writeCache() {
 		}
 		to_write -= writed;
 	}
-	
+    m_cache->clear();*/
 }
 
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
@@ -171,7 +195,13 @@ bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
 
 Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
 	this->writeCache();
-	m_cache.clear();
+    while(true){
+        if (!m_cache_writer.isBusy()){
+            break;
+        }
+    }
+
+    this->m_cache_writer.pause_work();
 
 	Meas::MeasList  list_result;
 	auto page_list = pageList();
@@ -197,10 +227,14 @@ Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
 		std::copy(subResult.begin(), subResult.end(), std::back_inserter(list_result));
 	}
 
+    this->m_cache_writer.continue_work();
+
 	if (list_result.size() == 0) {
 		return Meas::MeasArray{};
 	}
 	Meas::MeasArray result{ list_result.begin(), list_result.end() };
+
+
 	return result;
 }
 

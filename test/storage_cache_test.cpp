@@ -53,18 +53,34 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 			BOOST_CHECK(isExists);
 		}
 
-		Meas::PMeas array_dump = new Meas[c.size()];
-		c.asArray(array_dump);
+
+        auto output_array = c.asArray();
 		for (int i = 0; i < TestableMeasCount - 1; ++i) {
 			bool isExists = false;
             for (uint64_t j = 0; j < c.size() ; ++j) {
-                if (array_dump[j].id == (uint64_t)i) {
+                if (output_array[j].id == (uint64_t)i) {
 					isExists = true;
 					break;
 				}
 			}
 			BOOST_CHECK(isExists);
 		}
-		delete[] array_dump;
+
 	}
+}
+
+BOOST_AUTO_TEST_CASE(CachePoolChecks){
+    storage::CachePool pool(2,100);
+
+    BOOST_CHECK(pool.haveCache());
+
+    auto c1 = pool.getCache();
+    c1->on_sync();
+    auto c2 = pool.getCache();
+    c2->on_sync();
+
+    BOOST_CHECK(!pool.haveCache());
+    c1->sync_complete();
+
+    BOOST_CHECK(pool.haveCache());
 }

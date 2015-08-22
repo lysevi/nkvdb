@@ -21,10 +21,6 @@ public:
         Time   maxTime;
 		Id     minId;
 		Id     maxId;
-		Flag   minSource;
-		Flag   maxSource;
-		Flag   minFlag;
-		Flag   maxFlag;
         uint64_t write_pos;
         uint64_t size; //in bytes
     };

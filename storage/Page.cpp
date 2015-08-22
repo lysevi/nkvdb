@@ -116,11 +116,6 @@ void Page::updateMinMax(Meas::PMeas value) {
 		
 		m_header->minId = std::min(value->id, m_header->minId);
 		m_header->maxId = std::max(value->id, m_header->maxId);
-			
-		m_header->minSource = std::min(value->source, m_header->minSource);
-		m_header->maxSource = std::max(value->source, m_header->maxSource);
-		m_header->minFlag = std::min(value->flag, m_header->minFlag);
-		m_header->maxFlag = std::max(value->flag, m_header->maxFlag);
 	} else {
 		m_header->minMaxInit = true;
 		m_header->minTime = value->time;
@@ -128,12 +123,6 @@ void Page::updateMinMax(Meas::PMeas value) {
 
 		m_header->minId = value->id;
 		m_header->maxId = value->id;
-
-		m_header->minSource = value->source;
-		m_header->maxSource = value->source;
-
-		m_header->minFlag = value->flag;
-		m_header->maxFlag = value->flag;
 	}
 }
 

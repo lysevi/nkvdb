@@ -24,7 +24,7 @@ else(WIN32)
   macro(DEFINE_EXPORT libname)
   endmacro(DEFINE_EXPORT)
 
-  set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -Wwrite-strings -g -ftest-coverage -fprofile-arcs -Wsign-compare")
+  set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -Wwrite-strings -Wdeprecated-declarations -g -ftest-coverage -fprofile-arcs -Wsign-compare -fpermissive -Wall -pthread")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -Wall -Werror")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Werror")
 

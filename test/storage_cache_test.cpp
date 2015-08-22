@@ -18,7 +18,6 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 	{
 		const int flagValue = 1;
 		const int srcValue = 2;
-		const int timeValue = 3;
 		storage::Cache c(TestableMeasCount - 1);
 		
 		for (int i = 0; i < TestableMeasCount-1; ++i) {
@@ -46,7 +45,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 		for (int i = 0; i < TestableMeasCount - 1; ++i) {
 			bool isExists = false;
 			for (auto m : interval) {
-				if (m.id == i) {
+                if (m.id == (uint64_t)i) {
 					isExists = true;
 					break;
 				}
@@ -58,8 +57,8 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 		c.asArray(array_dump);
 		for (int i = 0; i < TestableMeasCount - 1; ++i) {
 			bool isExists = false;
-			for (int j = 0; j < c.size() ; ++j) {
-				if (array_dump[j].id == i) {
+            for (uint64_t j = 0; j < c.size() ; ++j) {
+                if (array_dump[j].id == (uint64_t)i) {
 					isExists = true;
 					break;
 				}

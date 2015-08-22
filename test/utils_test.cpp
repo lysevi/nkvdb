@@ -3,6 +3,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <utils/utils.h>
+#include <utils/asyncworker.h>
 
 
 BOOST_AUTO_TEST_CASE(UtilsEmpty) {
@@ -18,4 +19,35 @@ BOOST_AUTO_TEST_CASE(FileUtils) {
 	std::string filename = "foo/bar/test.txt";
 	BOOST_CHECK_EQUAL(utils::filename(filename), "test");
 	BOOST_CHECK_EQUAL(utils::parent_path(filename), "foo/bar");
+}
+
+
+class TestWorker: public utils::AsyncWorker<int>{
+public:
+    int value;
+    TestWorker():value(0)
+    {}
+
+    void call(const int data) override  {
+        value+=data;
+    }
+};
+
+BOOST_AUTO_TEST_CASE(Worker) {
+    TestWorker worker;
+
+    worker.start();
+
+    worker.add(1);
+    worker.add(2);
+    worker.add(3);
+    worker.add(4);
+
+    while(true){
+        if (!worker.isBusy()){
+            break;
+        }
+    }
+    worker.stop_and_whait();
+    BOOST_CHECK_EQUAL(worker.value,(int)1+2+3+4);
 }

@@ -34,7 +34,7 @@ void makeAndWrite(int mc, int ic) {
 
 		ds->append(meas);
 	}
-	
+
 	clock_t write_t1 = clock();
 	logger << "write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC << endl;
 	delete meas;

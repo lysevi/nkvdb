@@ -58,6 +58,7 @@ BOOST_AUTO_TEST_CASE(Worker) {
             break;
         }
     }
-    worker.stop_and_whait();
+    worker.stop();
+    BOOST_CHECK(worker.stoped());
     BOOST_CHECK_EQUAL(worker.value,(int)1+2+3+4);
 }

@@ -75,9 +75,9 @@ BOOST_AUTO_TEST_CASE(CachePoolChecks){
     BOOST_CHECK(pool.haveCache());
 
     auto c1 = pool.getCache();
-    c1->on_sync();
+    c1->sync_begin();
     auto c2 = pool.getCache();
-    c2->on_sync();
+    c2->sync_begin();
 
     BOOST_CHECK(!pool.haveCache());
     c1->sync_complete();

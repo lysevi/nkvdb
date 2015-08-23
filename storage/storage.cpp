@@ -64,15 +64,9 @@ void DataStorage::Close() {
 
     if (!m_cache_writer.stoped()){
         this->writeCache();
-
-        while(true){
-            if (!m_cache_writer.isBusy()){
-                break;
-            }
-        }
-
-        m_cache_writer.stop_and_whait();
+        m_cache_writer.stop();
     }
+
     if (m_curpage != nullptr) {
         m_curpage->close();
         m_curpage = nullptr;
@@ -162,7 +156,7 @@ void DataStorage::writeCache() {
     if (m_cache->size() == 0) {
 		return;
 	}
-    m_cache->on_sync();
+    m_cache->sync_begin();
 
     m_cache_writer.add(m_cache);
 

@@ -30,13 +30,25 @@ namespace utils{
             assert(m_thread.joinable());
         }
 
-        void stop_and_whait(){
+        void kill(){
             m_stop_flag=true;
             while(m_thread_work){
                 m_have_data.notify_one();
             }
 
             m_thread.join();
+        }
+
+        // whait, while all works done and stop thread.
+        void stop(){
+            if (!stoped()){
+                while(true){
+                    if (!isBusy()){
+                        break;
+                    }
+                }
+                kill();
+            }
         }
 
         bool isBusy()const{

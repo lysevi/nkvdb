@@ -26,7 +26,7 @@ bool Cache::is_sync() const{
     return m_sync;
 }
 
-void Cache::on_sync() {
+void Cache::sync_begin() {
     m_sync=true;
 }
 
@@ -60,7 +60,6 @@ size_t Cache::append(const Meas::PMeas begin, const size_t size) {
     }
 
     for (size_t i = 0; i < to_write; ++i) {
-        //m_data[begin[i].time].push_back(m_index);
         m_meases[m_index] = Meas{ begin[i] };
         m_size++;
         m_index++;
@@ -108,23 +107,18 @@ CachePool::CachePool(const size_t pool_size, const size_t cache_size):
     }
 }
 
-// FIX refact
+
 bool CachePool::haveCache()const{
+    auto c=this->getCache();
+    return c!=nullptr;
+}
+
+Cache::PCache CachePool::getCache()const{
     for(size_t i=0;i<this->size();i++){
         if (!this->at(i)->is_sync()){
-            return true;
+            return this->at(i);
         }
     }
-    return false;
-}
-// FIX refact ^^
-Cache::PCache CachePool::getCache(){
-    if (haveCache()){
-        for(size_t i=0;i<this->size();i++){
-            if (!this->at(i)->is_sync()){
-                return this->at(i);
-            }
-        }
-    }
+
     return nullptr;
 }

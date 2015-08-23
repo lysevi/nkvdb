@@ -185,7 +185,7 @@ storage::Meas::MeasList Page::readInterval(Time from, Time to) {
 	
 	auto max_pos = m_header->write_pos;
 
-	for (int i = 0; i < max_pos; ++i) {
+    for (size_t i = 0; i < max_pos; ++i) {
 		if (!read(&readedValue, i)) {
 			std::stringstream ss;
 			ss << "ReadIntervalError: "

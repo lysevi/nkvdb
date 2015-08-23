@@ -28,9 +28,9 @@ else(WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -Wall -Werror")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Werror  -pthread")
 
-  set(BOOST_ROOT "/home/lsv/soft/cpp/boost_1_57_0")
-  MESSAGE(STATUS "+ boost root: " ${BOOST_ROOT})
-  LINK_DIRECTORIES(${LINK_DIRECTORIES} "/mnt/data/soft/cpp/boost_1_57_0/stage/lib")
+  #set(BOOST_ROOT "/home/lsv/soft/cpp/boost_1_57_0")
+
+  #LINK_DIRECTORIES(${LINK_DIRECTORIES} "/mnt/data/soft/cpp/boost_1_57_0/stage/lib")
   set(BoostUSESTATIC_LIBS OFF)
 
   find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem program_options)
@@ -41,6 +41,9 @@ ENDIF(WIN32)
 IF(Boost_FOUND)
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
   LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+else(Boost_FOUND)
+  MESSAGE(FATAL_ERROR "boost not found")
+  EXIT()
 ENDIF(Boost_FOUND)
 
 enable_testing()

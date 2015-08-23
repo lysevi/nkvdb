@@ -12,7 +12,7 @@ AsyncWriter::AsyncWriter()
 
 }
 
-void AsyncWriter::setStorage(const DataStorage* storage){
+void AsyncWriter::setStorage(DataStorage* storage){
     m_storage=storage;
 }
 

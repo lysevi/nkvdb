@@ -84,9 +84,6 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 						break;
 					}
 				}
-				if (!isExists) {
-					int a = 3;
-				}
 				BOOST_CHECK(isExists);
 				
 			}
@@ -100,7 +97,6 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
 		
 		for (int i = 1; i < meas2write*write_iteration; i += (meas2write*write_iteration) / 100) {
-			clock_t verb_t0 = clock();
 			storage::Time to = i*((meas2write*write_iteration) / 100);
 			auto meases = ds->readInterval(0, to);
 
@@ -127,7 +123,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 
 		size_t arr_size = meas2write * write_iteration;
 		storage::Meas::PMeas array = new storage::Meas[arr_size];
-		for (int i = 0; i < arr_size; ++i) {
+        for (size_t i = 0; i < arr_size; ++i) {
 			array[i].id = i;
 			array[i].time = i;
 		}
@@ -140,7 +136,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 			BOOST_CHECK(utils::inInterval<storage::Time>(0, arr_size, m.time));
 		}
 
-		for (int i = 0; i < arr_size; ++i) {
+        for (size_t i = 0; i < arr_size; ++i) {
 			bool isExists = false;
 			for (auto m : interval) {
 				if (m.id == i) {

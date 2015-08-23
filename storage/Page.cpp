@@ -150,18 +150,17 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
 	}
 	memcpy(m_data_begin + m_header->write_pos, begin, to_write*sizeof(Meas));
 	
-	for (int i = 0; i < to_write;i++) {
+    for (size_t i = 0; i < to_write;i++) {
 		updateMinMax(&begin[i]);
 	}
 
-	size_t index = 0;
-	for (auto i = m_header->write_pos; i < to_write; ++i) {
-		if (!(index < size)) {
-			int a = 3;
-			assert(index < size);
-		}
-		index++;
-	}
+//	size_t index = 0;
+//	for (auto i = m_header->write_pos; i < to_write; ++i) {
+//		if (!(index < size)) {
+//			assert(index < size);
+//		}
+//		index++;
+//	}
 	m_header->write_pos += to_write;
 	return to_write;
 }

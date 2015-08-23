@@ -59,7 +59,7 @@ size_t Cache::append(const Meas::PMeas begin, const size_t size) {
         to_write = cap;
     }
 
-    for (auto i = 0; i < to_write; ++i) {
+    for (size_t i = 0; i < to_write; ++i) {
         //m_data[begin[i].time].push_back(m_index);
         m_meases[m_index] = Meas{ begin[i] };
         m_size++;
@@ -72,7 +72,7 @@ size_t Cache::append(const Meas::PMeas begin, const size_t size) {
 storage::Meas::MeasList Cache::readInterval(Time from, Time to) const {
     //std::lock_guard<std::mutex> lock(this->m_rw_lock);
     Meas::MeasList result;
-    for (auto i = 0; i<m_index; ++i) {
+    for (size_t i = 0; i<m_index; ++i) {
         if (utils::inInterval(from, to, m_meases[i].time)) {
             result.push_back(m_meases[i]);
         }

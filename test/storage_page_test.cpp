@@ -34,7 +34,6 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 		}
 		const int flagValue = 1;
 		const int srcValue = 2;
-		const int timeValue = 3;
 
 		for (int i = 0; i < TestableMeasCount; ++i) {
 			Page::PPage storage = Page::Open(mdb_test::test_page_name);

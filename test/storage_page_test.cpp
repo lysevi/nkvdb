@@ -97,6 +97,7 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
 	storage::Meas::PMeas array = new storage::Meas[arr_size];
 	for (size_t i = 0; i < arr_size; ++i) {
 		array[i].id = i;
+        array[i].time = i;
 	}
 	size_t writed = page->append(array, arr_size);
 	delete[] array;
@@ -107,4 +108,7 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
 		page->read(&readed, i);
 		BOOST_CHECK_EQUAL(readed.id, i);
 	}
+
+    BOOST_CHECK_EQUAL(page->minTime(), 0);
+    BOOST_CHECK_EQUAL(page->maxTime(), arr_size - 1);
 }

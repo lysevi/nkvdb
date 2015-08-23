@@ -11,8 +11,7 @@
 namespace storage{
 
     const uint64_t defaultPageSize=1*1024*1024; // 1Mb
-	const size_t defaultcacheSize = 100000;
-    const size_t defaultcachePoolSize=4;
+
 
     class DataStorage {
     public:

@@ -8,6 +8,9 @@
 using namespace storage;
 namespace fs=boost::filesystem;
 
+const size_t defaultcacheSize = 10000;
+const size_t defaultcachePoolSize=100;
+
 fs::path getOldesPage(const std::list<fs::path> &pages){
     if(pages.size()==1)
         return pages.front();

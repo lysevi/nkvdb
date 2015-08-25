@@ -1,0 +1,16 @@
+*.hpp text
+*.h text
+*.cpp text
+*.txt text
+*.html text
+*.md text
+*.yml text
+*.xml text
+*.in text
+.gitattributes text
+.gitignore text
+
+*.cmd -text
+*.sln -text
+*.vcxproj -text
+*.vcxproj.filters -text

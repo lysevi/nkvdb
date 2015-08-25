@@ -8,6 +8,11 @@ IF(WIN32)
   LINK_DIRECTORIES(${LINK_DIRECTORIES} "d:\\soft\\boost_1_57_0\\build")
   include (GenerateExportHeader)
 
+  if (MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /EHa")
+  endif(MSVC)
+  
+
   macro(DEFINE_EXPORT libname)
 	GENERATE_EXPORT_HEADER(${libname}
       BASE_NAME ${libname}

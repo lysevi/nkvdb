@@ -5,13 +5,12 @@ IF(WIN32)
   MESSAGE(STATUS "WIN32:")
   set(BOOST_ROOT "d:\\soft\\boost_1_57_0\\boost_1_57_0")
   MESSAGE(STATUS "+ boost root: " ${BOOST_ROOT})
-  LINK_DIRECTORIES(${LINK_DIRECTORIES} "d:\\soft\\boost_1_57_0\\build")
-  include (GenerateExportHeader)
 
   if (MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /EHa")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /EHsc")
   endif(MSVC)
-  
+
+  include (GenerateExportHeader)
 
   macro(DEFINE_EXPORT libname)
 	GENERATE_EXPORT_HEADER(${libname}
@@ -46,6 +45,11 @@ ENDIF(WIN32)
 IF(Boost_FOUND)
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
   LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+
+  set(Boost_USE_STATIC_LIBS        OFF)
+  set(Boost_USE_MULTITHREADED      ON)
+  set(Boost_USE_STATIC_RUNTIME     OFF)
+  set(BOOST_ALL_DYN_LINK           ON) 
 else(Boost_FOUND)
   MESSAGE(FATAL_ERROR "boost not found")
   EXIT()

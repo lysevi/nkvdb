@@ -1,15 +1,16 @@
 #include "ProcessLogger.h"
 #include <iostream>
 
-ProcessLogger* ProcessLogger::m_instance;
 
-ProcessLogger* ProcessLogger::get() {
-    if (ProcessLogger::m_instance == nullptr) {
-        ProcessLogger::m_instance = new ProcessLogger();
-    }
-    return m_instance;
+namespace logging = boost::log;
+
+bool init_logger() {
+	logging::core::get()->set_filter
+		(
+		logging::trivial::severity >= logging::trivial::info
+		);
+
+	return true;
 }
 
-std::ostream& ProcessLogger::GetStream() {
-    return std::cout;
-}
+static bool isLogInit = init_logger();

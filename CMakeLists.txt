@@ -21,10 +21,7 @@ IF(WIN32)
 	  )
 	SET_TARGET_PROPERTIES (${libname} PROPERTIES DEFINE_SYMBOL  "COMPILING_DLL" )
   endmacro(DEFINE_EXPORT)
-  
-  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem)
 else(WIN32)
-
   macro(DEFINE_EXPORT libname)
   endmacro(DEFINE_EXPORT)
 
@@ -36,11 +33,9 @@ else(WIN32)
 
   #LINK_DIRECTORIES(${LINK_DIRECTORIES} "/mnt/data/soft/cpp/boost_1_57_0/stage/lib")
   set(BoostUSESTATIC_LIBS OFF)
-
-  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem program_options)
 ENDIF(WIN32)
 
-
+find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log)
 
 IF(Boost_FOUND)
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})

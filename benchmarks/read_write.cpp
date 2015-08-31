@@ -16,7 +16,7 @@ bool verbose = false;
 bool dont_remove = false;
 
 void makeAndWrite(int mc, int ic) {
-    logger << "makeAndWrite mc:" << mc << " ic:" << ic << endl;
+    logger << "makeAndWrite mc:" << mc << " ic:" << ic;
 
     const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas)*pagesize);
 
@@ -34,20 +34,20 @@ void makeAndWrite(int mc, int ic) {
     }
 
     clock_t write_t1 = clock();
-    logger << "write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC << endl;
+    logger << "write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC;
     delete meas;
     ds = nullptr;
     utils::rm(storage_path);
 }
 
 void readIntervalBench(storage::DataStorage::PDataStorage ds, storage::Time from, storage::Time to,std::string message){
-    logger<<"readInterval "<<message<<std::endl;
+    logger<<"readInterval "<<message;
 
     clock_t read_t0 = clock();
     auto meases = ds->readInterval(from, to);
     clock_t read_t1 = clock();
 
-    logger << "time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC << endl;
+    logger << "time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC;
 }
 
 int main(int argc, char*argv[]) {
@@ -65,7 +65,7 @@ int main(int argc, char*argv[]) {
     try {
         po::store(po::parse_command_line(argc, argv, desc), vm);
     } catch (std::exception&ex) {
-        logger << "Error: " << ex.what()<<endl;
+        logger << "Error: " << ex.what();
         exit(1);
     }
     po::notify(vm);
@@ -95,13 +95,11 @@ int main(int argc, char*argv[]) {
     makeAndWrite(meas2write, 3000000);
 
     if (!write_only) {
-        logger<<"\n";
-
         storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
         storage::Meas::PMeas meas = storage::Meas::empty();
 
-        logger<<"creating storage..."<<std::endl;
-        logger<<"pages_size:"<<pagesize<<std::endl;
+        logger<<"creating storage...";
+        logger<<"pages_size:"<<pagesize;
 
         for (int i = 0; i < pagesize*10 ; ++i) {
             clock_t verb_t0 = clock();
@@ -114,18 +112,18 @@ int main(int argc, char*argv[]) {
             ds->append(meas);
             clock_t verb_t1 = clock();
             if (verbose) {
-                logger << "write[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC << endl;
+                logger << "write[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC;
             }
 
         }
         delete meas;
 
-        logger<<"big readers"<<std::endl;
+        logger<<"big readers";
         readIntervalBench(ds,0,pagesize/2, "0-0.5");
         readIntervalBench(ds,3*pagesize+pagesize/2,3*pagesize*2, "3.5-6");
         readIntervalBench(ds,7*pagesize,8*pagesize+pagesize*1.5,"7-9.5");
 
-        logger<<"\nsmall readers"<<std::endl;
+        logger<<"small readers";
         readIntervalBench(ds,5*pagesize+pagesize/3,6*pagesize,"5.3-6");
         readIntervalBench(ds,2*pagesize,2*pagesize+pagesize*1.5, "2-3.5");
         readIntervalBench(ds,6*pagesize*0.3,7*pagesize*0.7, "6.3-7.7");

@@ -28,16 +28,14 @@ namespace utils
 	public:
 		inline static Exception CreateAndLog(const CodePosition& pos) {
 			logger << "FATAL ERROR. The Exception will be thrown! "
-				<< pos.toString()
-				<< endl;
+				<< pos.toString();
 			return Exception();
 		}
 		inline static Exception CreateAndLog(const CodePosition& pos, const std::string& message) {
 			logger << "FATAL ERROR. The Exception will be thrown! "
 				<< pos.toString()
 				<< " Message: "
-				<< message
-				<< endl;
+				<< message;
 			return Exception(message);
 		}
 	public:

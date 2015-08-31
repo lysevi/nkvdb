@@ -129,6 +129,7 @@ int main(int argc, char*argv[]) {
         readIntervalBench(ds,5*pagesize+pagesize/3,6*pagesize,"5.3-6");
         readIntervalBench(ds,2*pagesize,2*pagesize+pagesize*1.5, "2-3.5");
         readIntervalBench(ds,6*pagesize*0.3,7*pagesize*0.7, "6.3-7.7");
+		ds->Close();
 
         if (!dont_remove)
             utils::rm(storage_path);

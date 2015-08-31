@@ -27,6 +27,7 @@ namespace storage{
 		void append(const Meas::PMeas begin, const size_t meas_count);
 		
 		Meas::MeasArray readInterval(Time from, Time to);
+		Meas::MeasArray readInterval(const IdArray& ids, storage::Flag source, storage::Flag flag, Time from, Time to);
 
         Page::PPage getCurPage();
         void createNewPage();

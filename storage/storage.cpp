@@ -191,14 +191,18 @@ bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
 }
 
 Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
-	this->writeCache();
-    while(true){
-        if (!m_cache_writer.isBusy()){
-            break;
-        }
-    }
+	return this->readInterval(IdArray{},0,0,from,to);
+}
 
-    this->m_cache_writer.pause_work();
+Meas::MeasArray DataStorage::readInterval(const IdArray& ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
+	this->writeCache();
+	while (true) {
+		if (!m_cache_writer.isBusy()) {
+			break;
+		}
+	}
+
+	this->m_cache_writer.pause_work();
 
 	Meas::MeasList  list_result;
 	auto page_list = pageList();
@@ -210,7 +214,7 @@ Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
 			}
 		} else {
 			storage::Page::Header hdr = storage::Page::ReadHeader(page);
-			if (HeaderIntervalCheck(from,to,hdr)){
+			if (HeaderIntervalCheck(from, to, hdr)) {
 				page2read = storage::Page::Open(page);
 			} else {
 				continue;
@@ -219,12 +223,12 @@ Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
 		if (page2read == nullptr) {
 			continue;
 		}
-		
-		Meas::MeasList subResult=page2read->readInterval(from, to);
+
+		Meas::MeasList subResult = page2read->readInterval(ids,source,flag,from, to);
 		std::copy(subResult.begin(), subResult.end(), std::back_inserter(list_result));
 	}
 
-    this->m_cache_writer.continue_work();
+	this->m_cache_writer.continue_work();
 
 	if (list_result.size() == 0) {
 		return Meas::MeasArray{};
@@ -234,7 +238,6 @@ Meas::MeasArray DataStorage::readInterval(Time from, Time to) {
 
 	return result;
 }
-
 std::list<std::string> DataStorage::pageList()const {
 	auto page_list = utils::ls(m_path, ".page");
 	

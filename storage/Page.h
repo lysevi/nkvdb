@@ -46,6 +46,7 @@ public:
 	size_t append(const Meas::PMeas begin, const size_t size);
 	bool read(Meas::PMeas result, uint64_t position);
 	storage::Meas::MeasList readInterval(Time from, Time to);
+	storage::Meas::MeasList readInterval(const IdArray& ids, storage::Flag source, storage::Flag flag, Time from, Time to);
 private:
     Page(std::string fname);
     void initHeader(char * data);

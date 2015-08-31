@@ -180,12 +180,16 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
 }
 
 storage::Meas::MeasList Page::readInterval(Time from, Time to) {
+	return this->readInterval(IdArray{}, 0, 0, from, to);
+}
+
+storage::Meas::MeasList Page::readInterval(const IdArray& ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
 	storage::Meas::MeasList result;
 	storage::Meas readedValue;
-	
+
 	auto max_pos = m_header->write_pos;
 
-    for (size_t i = 0; i < max_pos; ++i) {
+	for (size_t i = 0; i < max_pos; ++i) {
 		if (!read(&readedValue, i)) {
 			std::stringstream ss;
 			ss << "ReadIntervalError: "
@@ -196,6 +200,21 @@ storage::Meas::MeasList Page::readInterval(Time from, Time to) {
 			throw Exception::CreateAndLog(POSITION, ss.str());
 		}
 		if (utils::inInterval(from, to, readedValue.time)) {
+			if (flag != 0) {
+				if (readedValue.flag != flag) {
+					continue;
+				}
+			}
+			if (source != 0) {
+				if (readedValue.source != source) {
+					continue;
+				}
+			}
+			if (ids.size() != 0) {
+				if (std::find(ids.cbegin(), ids.cend(), readedValue.id) == ids.end()) {
+					continue;
+				}
+			}
 			result.push_back(readedValue);
 		}
 	}

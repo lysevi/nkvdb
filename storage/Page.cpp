@@ -143,6 +143,8 @@ bool Page::append(const Meas::PMeas value) {
 	IndexRecord rec;
 	rec.minTime = value->time;
 	rec.maxTime = value->time;
+	rec.minId = value->id;
+	rec.maxId = value->id;
 	rec.count = 1;
 	rec.pos = m_header->write_pos;
 
@@ -171,6 +173,8 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
 	IndexRecord rec;
 	rec.minTime = begin[0].time;
 	rec.maxTime = begin[size - 1].time;
+	rec.minId = begin[0].id;
+	rec.maxId = begin[size - 1].id;
 	rec.count = to_write;
 	rec.pos = m_header->write_pos;
 	
@@ -207,7 +211,7 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
     return true;
 }
 
-std::list<Page::IndexRecord> Page::findInIndex(Time from, Time to)const {
+std::list<Page::IndexRecord> Page::findInIndex(const IdArray& ids,Time from, Time to)const {
 	std::list<Page::IndexRecord> result;
 
 	FILE * pFile = std::fopen(this->index_fileName().c_str(), "rb");
@@ -215,6 +219,8 @@ std::list<Page::IndexRecord> Page::findInIndex(Time from, Time to)const {
 		return result;
 	}
 	try {
+		Id minId = *std::min_element(ids.cbegin(), ids.cend());
+		Id maxId = *std::max_element(ids.cbegin(), ids.cend());
 		while (true) {
 			IndexRecord rec;
 			
@@ -224,7 +230,13 @@ std::list<Page::IndexRecord> Page::findInIndex(Time from, Time to)const {
 			}
 
 			if (utils::inInterval(from, to, rec.minTime) || utils::inInterval(from, to, rec.maxTime)) {
-				result.push_back(rec);
+				if (ids.size() == 0) {
+					result.push_back(rec);
+				} else {
+					if (utils::inInterval(rec.minId, rec.maxId, minId) || utils::inInterval(rec.minId, rec.maxId, maxId)) {
+						result.push_back(rec);
+					}
+				}
 			}
 		}
 	} catch (std::exception&ex) {
@@ -245,7 +257,7 @@ storage::Meas::MeasList Page::readInterval(const IdArray& ids, storage::Flag sou
 	storage::Meas::MeasList result;
 	storage::Meas readedValue;
 
-	auto irecords = findInIndex(from, to);
+	auto irecords = findInIndex(ids, from, to);
 	for (IndexRecord&rec : irecords) {
 		auto max_pos = rec.pos+rec.count;
 

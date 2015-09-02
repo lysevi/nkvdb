@@ -31,6 +31,8 @@ public:
 		uint64_t count;
 		Time     minTime;
 		Time     maxTime;
+		Id       minId;
+		Id       maxId;
 	};
 
     typedef std::shared_ptr<Page> PPage;
@@ -61,7 +63,7 @@ private:
     void initHeader(char * data);
     void updateMinMax(Meas::PMeas value);
 	void writeIndexRec(const IndexRecord&rec);
-	std::list<Page::IndexRecord> findInIndex(Time from, Time to)const;
+	std::list<Page::IndexRecord> findInIndex(const IdArray& ids,Time from, Time to)const;
 protected:
     std::string *m_filename;
 

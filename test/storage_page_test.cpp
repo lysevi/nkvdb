@@ -24,10 +24,12 @@ BOOST_AUTO_TEST_CASE(PageCreateOpen) {
 		BOOST_CHECK_EQUAL(openned->size(), mdb_test::sizeInMb10);
 		BOOST_CHECK(!openned->isFull());
 	}
+
 }
 
 BOOST_AUTO_TEST_CASE(PageIO) {
 	const int TestableMeasCount = 10000;
+	std::string index = "";
 	{
 		{
 			Page::PPage storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
@@ -71,7 +73,11 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 		BOOST_CHECK_EQUAL(hdr.maxTime, TestableMeasCount - 1);
 		BOOST_CHECK_EQUAL(hdr.minTime, 0);
 		BOOST_CHECK_EQUAL(hdr.size, storage->size());
+		index = storage->index_fileName();
 	}
+
+	utils::rm(mdb_test::test_page_name);
+	utils::rm(index);
 }
 
 BOOST_AUTO_TEST_CASE(Capacity) {
@@ -86,6 +92,11 @@ BOOST_AUTO_TEST_CASE(Capacity) {
 	page->append(newMeas);
 	delete newMeas;
 	BOOST_CHECK_EQUAL(page->capacity(), 8);
+	auto index = page->index_fileName();
+	page->close();
+
+	utils::rm(mdb_test::test_page_name);
+	utils::rm(index);
 }
 
 
@@ -111,10 +122,15 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
 
 	BOOST_CHECK_EQUAL(page->minTime(), 0);
 	BOOST_CHECK_EQUAL(page->maxTime(), arr_size - 1);
+	auto index = page->index_fileName();
+	page->close();
+	utils::rm(mdb_test::test_page_name);
+	utils::rm(index);
 }
 
 BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
 	const int TestableMeasCount = 1000;
+	std::string index = "";
 	{
 		{
 			Page::PPage storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
@@ -167,6 +183,10 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
 
 			BOOST_CHECK(haveSource);
 			BOOST_CHECK(haveFlag);
+			index = storage->index_fileName();
 		}
 	}
+
+	utils::rm(mdb_test::test_page_name);
+	utils::rm(index);
 }

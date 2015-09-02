@@ -25,6 +25,14 @@ public:
         uint64_t size; //in bytes
     };
 
+	struct IndexRecord
+	{
+		uint64_t pos;
+		uint64_t count;
+		Time     minTime;
+		Time     maxTime;
+	};
+
     typedef std::shared_ptr<Page> PPage;
 	typedef std::map<Time, uint64_t> Time2Index;
 public:
@@ -35,6 +43,7 @@ public:
 
     size_t size()const;
     std::string fileName()const;
+	std::string index_fileName()const;
     Time minTime()const;
     Time maxTime()const;
     bool isFull()const;
@@ -51,6 +60,8 @@ private:
     Page(std::string fname);
     void initHeader(char * data);
     void updateMinMax(Meas::PMeas value);
+	void writeIndexRec(const IndexRecord&rec);
+	std::list<Page::IndexRecord> findInIndex(Time from, Time to)const;
 protected:
     std::string *m_filename;
 

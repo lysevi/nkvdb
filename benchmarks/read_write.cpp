@@ -164,7 +164,7 @@ int main(int argc, char*argv[]) {
 							  "Id: {0}, src:1,  flag:1; 6.3-7.7");
 		ds->Close();
 
-        if (!dont_remove)
-            utils::rm(storage_path);
+		if (!dont_remove)
+			utils::rm(storage_path);
     }
 }

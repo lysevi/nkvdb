@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 		delete meas;
 		ds = nullptr;
 		auto pages = utils::ls(storage_path);
-		BOOST_CHECK_EQUAL(pages.size(), write_iteration);
+		BOOST_CHECK_EQUAL(pages.size(), write_iteration*2);
 	}
 	{
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Open(storage_path);
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 		ds->Close();
 
 		auto pages = utils::ls(storage_path);
-		BOOST_CHECK_EQUAL(pages.size(), write_iteration);
+		BOOST_CHECK_EQUAL(pages.size(), write_iteration *2);
 	}
 	utils::rm(storage_path);
 }

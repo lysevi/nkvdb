@@ -2,7 +2,7 @@
 #include <utils/Exception.h>
 #include <algorithm>
 #include <sstream>
-#include <fstream>
+#include <cstdlib>
 #include <cmath>
 #include <boost/filesystem.hpp>
 
@@ -13,6 +13,7 @@ namespace ios = boost::iostreams;
 using namespace storage;
 
 const size_t oneMb = sizeof (char) * 1024 * 1024;
+
 
 Page::Page(std::string fname):m_filename(new std::string(fname)),
     m_file(new boost::iostreams::mapped_file) {
@@ -33,6 +34,10 @@ size_t Page::size() const {
 
 std::string Page::fileName()const {
     return std::string(*m_filename);
+}
+
+std::string Page::index_fileName()const {
+	return std::string(*m_filename) + "i";
 }
 
 Time Page::minTime()const {
@@ -133,8 +138,17 @@ bool Page::append(const Meas::PMeas value) {
 
     updateMinMax(value);
 
-    memcpy(&m_data_begin[m_header->write_pos], value, sizeof (Meas));
-    m_header->write_pos++;
+	memcpy(&m_data_begin[m_header->write_pos], value, sizeof (Meas));
+	
+	IndexRecord rec;
+	rec.minTime = value->time;
+	rec.maxTime = value->time;
+	rec.count = 1;
+	rec.pos = m_header->write_pos;
+
+	this->writeIndexRec(rec);
+
+	m_header->write_pos++;
     return true;
 }
 
@@ -151,18 +165,32 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
 	memcpy(m_data_begin + m_header->write_pos, begin, to_write*sizeof(Meas));
 	
 
-    updateMinMax(&begin[0]);
-    updateMinMax(&begin[size-1]);
+	updateMinMax(&begin[0]);
+	updateMinMax(&begin[size - 1]);
 
-//	size_t index = 0;
-//	for (auto i = m_header->write_pos; i < to_write; ++i) {
-//		if (!(index < size)) {
-//			assert(index < size);
-//		}
-//		index++;
-//	}
+	IndexRecord rec;
+	rec.minTime = begin[0].time;
+	rec.maxTime = begin[size - 1].time;
+	rec.count = to_write;
+	rec.pos = m_header->write_pos;
+	
+	this->writeIndexRec(rec);
+	
 	m_header->write_pos += to_write;
 	return to_write;
+}
+
+void  Page::writeIndexRec(const IndexRecord&rec) {
+	FILE * pFile=std::fopen(this->index_fileName().c_str(), "ab");
+	
+	try {
+		fwrite(&rec, sizeof(rec),1,pFile);
+	} catch (std::exception&ex) {
+		auto message = ex.what();
+		MAKE_EXCEPTION(message);
+		fclose(pFile);
+	}
+	fclose(pFile);
 }
 
 bool Page::read(Meas::PMeas result, uint64_t position) {
@@ -179,6 +207,36 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
     return true;
 }
 
+std::list<Page::IndexRecord> Page::findInIndex(Time from, Time to)const {
+	std::list<Page::IndexRecord> result;
+
+	FILE * pFile = std::fopen(this->index_fileName().c_str(), "rb");
+	if (!pFile) {
+		return result;
+	}
+	try {
+		while (true) {
+			IndexRecord rec;
+			
+			int c=fread(&rec, sizeof(rec), 1, pFile);
+			if (c == 0) {
+				break;
+			}
+
+			if (utils::inInterval(from, to, rec.minTime) || utils::inInterval(from, to, rec.maxTime)) {
+				result.push_back(rec);
+			}
+		}
+	} catch (std::exception&ex) {
+		auto message = ex.what();
+		MAKE_EXCEPTION(message);
+		fclose(pFile);
+	}
+	fclose(pFile);
+
+	return result;
+}
+
 storage::Meas::MeasList Page::readInterval(Time from, Time to) {
 	return this->readInterval(IdArray{}, 0, 0, from, to);
 }
@@ -187,35 +245,38 @@ storage::Meas::MeasList Page::readInterval(const IdArray& ids, storage::Flag sou
 	storage::Meas::MeasList result;
 	storage::Meas readedValue;
 
-	auto max_pos = m_header->write_pos;
+	auto irecords = findInIndex(from, to);
+	for (IndexRecord&rec : irecords) {
+		auto max_pos = rec.pos+rec.count;
 
-	for (size_t i = 0; i < max_pos; ++i) {
-		if (!read(&readedValue, i)) {
-			std::stringstream ss;
-			ss << "ReadIntervalError: "
-				<< " file name: " << m_filename
-				<< " writePos: " << m_header->write_pos
-				<< " size: " << m_header->size;
+		for (size_t i = rec.pos; i < max_pos; ++i) {
+			if (!read(&readedValue, i)) {
+				std::stringstream ss;
+				ss << "ReadIntervalError: "
+					<< " file name: " << m_filename
+					<< " writePos: " << m_header->write_pos
+					<< " size: " << m_header->size;
 
-			throw Exception::CreateAndLog(POSITION, ss.str());
-		}
-		if (utils::inInterval(from, to, readedValue.time)) {
-			if (flag != 0) {
-				if (readedValue.flag != flag) {
-					continue;
-				}
+				throw Exception::CreateAndLog(POSITION, ss.str());
 			}
-			if (source != 0) {
-				if (readedValue.source != source) {
-					continue;
+			if (utils::inInterval(from, to, readedValue.time)) {
+				if (flag != 0) {
+					if (readedValue.flag != flag) {
+						continue;
+					}
 				}
-			}
-			if (ids.size() != 0) {
-				if (std::find(ids.cbegin(), ids.cend(), readedValue.id) == ids.end()) {
-					continue;
+				if (source != 0) {
+					if (readedValue.source != source) {
+						continue;
+					}
 				}
+				if (ids.size() != 0) {
+					if (std::find(ids.cbegin(), ids.cend(), readedValue.id) == ids.end()) {
+						continue;
+					}
+				}
+				result.push_back(readedValue);
 			}
-			result.push_back(readedValue);
 		}
 	}
 	return result;

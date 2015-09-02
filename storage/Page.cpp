@@ -219,8 +219,14 @@ std::list<Page::IndexRecord> Page::findInIndex(const IdArray& ids,Time from, Tim
 		return result;
 	}
 	try {
-		Id minId = *std::min_element(ids.cbegin(), ids.cend());
-		Id maxId = *std::max_element(ids.cbegin(), ids.cend());
+		bool index_filter = false;
+		Id minId = 0; 
+		Id maxId = 0; 
+		if (ids.size() != 0) {
+			index_filter = true;
+			minId = *std::min_element(ids.cbegin(), ids.cend());
+			maxId = *std::max_element(ids.cbegin(), ids.cend());
+		}
 		while (true) {
 			IndexRecord rec;
 			
@@ -230,10 +236,10 @@ std::list<Page::IndexRecord> Page::findInIndex(const IdArray& ids,Time from, Tim
 			}
 
 			if (utils::inInterval(from, to, rec.minTime) || utils::inInterval(from, to, rec.maxTime)) {
-				if (ids.size() == 0) {
+				if (!index_filter) {
 					result.push_back(rec);
 				} else {
-					if (utils::inInterval(rec.minId, rec.maxId, minId) || utils::inInterval(rec.minId, rec.maxId, maxId)) {
+					if (utils::inInterval(minId, maxId, rec.minId) || utils::inInterval(minId, maxId, rec.maxId)) {
 						result.push_back(rec);
 					}
 				}

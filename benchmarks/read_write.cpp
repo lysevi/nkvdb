@@ -36,28 +36,26 @@ void makeAndWrite(int mc, int ic) {
     clock_t write_t1 = clock();
     logger << "write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC;
     delete meas;
+	ds->Close();
     ds = nullptr;
     utils::rm(storage_path);
 }
 
 void readIntervalBench(storage::DataStorage::PDataStorage ds, storage::Time from, storage::Time to,std::string message){
-    logger<<"readInterval "<<message;
-
     clock_t read_t0 = clock();
     auto meases = ds->readInterval(from, to);
     clock_t read_t1 = clock();
 
-    logger << "time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC;
+	logger << "=> : " << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC;
 }
 
 void readIntervalBenchFltr(storage::IdArray ids, storage::Flag src, storage::Flag flag, storage::DataStorage::PDataStorage ds, storage::Time from, storage::Time to, std::string message) {
-	logger << "=> :" << message;
 
 	clock_t read_t0 = clock();
 	auto meases = ds->readInterval(ids,src,flag,from, to);
 	clock_t read_t1 = clock();
 
-	logger << "time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC;
+	logger << "=> :" << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC;
 }
 
 int main(int argc, char*argv[]) {
@@ -141,27 +139,21 @@ int main(int argc, char*argv[]) {
 
 		logger<<"fltr big readers";
 		readIntervalBenchFltr(storage::IdArray{ 0, 1, 2, 3, 4, 5 }, 1, 1, ds, 
-							  0, pagesize / 2, 
-							  "Id: {0-5}, src:1, flag:1; 0-0.5");
+							  0, pagesize / 2, 							                               "Id: {0- 5}, src:1, flag:1; 0-0.5");
 
 		readIntervalBenchFltr(storage::IdArray{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 1, 0, ds, 
-							  3 * pagesize + pagesize / 2, 3 * pagesize * 2, 
-							  "Id: {0-9},src:1, flag:0; 3.5-6");
+							  3 * pagesize + pagesize / 2, 3 * pagesize * 2,   			               "Id: {0- 9}, src:1, flag:0; 3.5-6");
 
 		readIntervalBenchFltr(storage::IdArray{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, 1, 1, ds, 
-							  7 * pagesize, 8 * pagesize + pagesize*1.5, 
-							  "Id: {0-12},src:1,  flag:1; 7-9.5");
+							  7 * pagesize, 8 * pagesize + pagesize*1.5, 						       "Id: {0-12}, src:1, flag:1; 7-9.5");
 
 		logger << "fltr small readers";
 		readIntervalBenchFltr(storage::IdArray{ 0, 1 }, 1, 1, ds, 
-							  5 * pagesize + pagesize / 3, 6 * pagesize, 
-							  "Id: {0,1}, src:1,  flag:1; 5.3-6");
+							  5 * pagesize + pagesize / 3, 6 * pagesize, "Id: {0,1},   src:1,  flag:1; 5.3-6.0");
 		readIntervalBenchFltr(storage::IdArray{ 0, 1,3 }, 1, 1, ds, 
-							  2 * pagesize, 2 * pagesize + pagesize*1.5, 
-							  "Id: {0,1,3}, src:1,  flag:1; 2-3.5");
+							  2 * pagesize, 2 * pagesize + pagesize*1.5, "Id: {0,1,3}, src:1,  flag:1; 2.0-3.5");
 		readIntervalBenchFltr(storage::IdArray{ 0 }, 1, 1, ds, 
-							  6 * pagesize*0.3, 7 * pagesize*0.7, 
-							  "Id: {0}, src:1,  flag:1; 6.3-7.7");
+							  6 * pagesize*0.3, 7 * pagesize*0.7,  	      "Id: {0},    src:1,  flag:1; 6.3-7.7");
 		ds->Close();
 
 		if (!dont_remove)

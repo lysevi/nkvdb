@@ -7,6 +7,14 @@
 
 #define NOT_IMPLEMENTED throw std::logic_error("Not implemented");
 
+#ifdef _DEBUG
+#define ENSURE(A,E) if(!(A)) { throw std::invalid_argument(E); }
+#define ENSURE_NOT_NULL(A) ENSURE(A, "null pointer")
+#else
+#define ENSURE(A,E)
+#define ENSURE_NOT_NULL(A)
+#endif
+
 namespace utils {
 
     class NonCopy {

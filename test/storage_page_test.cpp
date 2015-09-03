@@ -8,6 +8,7 @@
 #include <storage/storage.h>
 #include <utils/ProcessLogger.h>
 #include <utils/utils.h>
+#include <utils/Exception.h>
 
 #include <iterator>
 #include <list>
@@ -17,12 +18,34 @@ BOOST_AUTO_TEST_CASE(PageCreateOpen) {
 	{
 		Page::PPage created = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
 		BOOST_CHECK(!created->isFull());
+		created->close();
 	}
 	{
 		Page::PPage openned = Page::Open(mdb_test::test_page_name);
 
 		BOOST_CHECK_EQUAL(openned->size(), mdb_test::sizeInMb10);
 		BOOST_CHECK(!openned->isFull());
+		openned->close();
+	}
+}
+
+BOOST_AUTO_TEST_CASE(PageOpenTwice) {
+	{
+		Page::PPage created = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+		BOOST_CHECK(!created->isFull());
+		created->close();
+	}
+	{
+		Page::PPage openned = Page::Open(mdb_test::test_page_name);
+		/*bool throwed = false;
+		try {
+			Page::PPage openned2 = Page::Open(mdb_test::test_page_name);
+		} catch (utils::Exception&ex) {
+			throwed = true;
+		}*/
+
+		BOOST_CHECK_THROW(Page::Open(mdb_test::test_page_name),utils::Exception);
+		openned->close();
 	}
 
 }
@@ -33,6 +56,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 	{
 		{
 			Page::PPage storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+			storage->close();
 		}
 		const int flagValue = 1;
 		const int srcValue = 2;
@@ -47,6 +71,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 			newMeas->time = i;
 			storage->append(newMeas);
 			delete newMeas;
+			storage->close();
 		}
 
 		Page::PPage storage = Page::Open(mdb_test::test_page_name);
@@ -74,6 +99,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 		BOOST_CHECK_EQUAL(hdr.minTime, 0);
 		BOOST_CHECK_EQUAL(hdr.size, storage->size());
 		index = storage->index_fileName();
+		storage->close();
 	}
 
 	utils::rm(mdb_test::test_page_name);
@@ -134,6 +160,7 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
 	{
 		{
 			Page::PPage storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+			storage->close();
 		}
 
 		Page::PPage storage = Page::Open(mdb_test::test_page_name);
@@ -185,6 +212,7 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
 			BOOST_CHECK(haveFlag);
 			index = storage->index_fileName();
 		}
+		storage->close();
 	}
 
 	utils::rm(mdb_test::test_page_name);

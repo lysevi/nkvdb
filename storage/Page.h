@@ -9,6 +9,7 @@
 #include <boost/iostreams/device/mapped_file.hpp>
 
 #include "Meas.h"
+#include "config.h"
 
 namespace storage {
 
@@ -16,6 +17,7 @@ class Page : public utils::NonCopy {
 public:
     struct Header {
 		uint8_t version;
+		bool   isOpen;
 		bool   minMaxInit;
         Time   minTime;
         Time   maxTime;

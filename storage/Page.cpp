@@ -20,12 +20,20 @@ Page::Page(std::string fname):m_filename(new std::string(fname)),
 }
 
 Page::~Page() {
-    if(this->m_file->is_open()){
-        m_file->close();
-    }
+	this->close();
     delete m_file;
     delete m_filename;
 }
+
+void Page::close() {
+	if (this->m_file->is_open()) {
+		this->m_header->isOpen = false;
+		m_file->close();
+	}
+
+	this->m_file->close();
+}
+
 
 size_t Page::size() const {
     return m_file->size();
@@ -49,7 +57,13 @@ Time Page::maxTime()const {
 }
 
 Page::PPage Page::Open(std::string filename) {
-    PPage result(new Page(filename));
+#ifdef CHECK_PAGE_OPEN
+	storage::Page::Header hdr = Page::ReadHeader(filename);
+	if (hdr.isOpen) {
+		throw utils::Exception::CreateAndLog(POSITION, "page is already openned. ");
+	}
+#endif
+	PPage result(new Page(filename));
 
     try {
         boost::iostreams::mapped_file_params params;
@@ -63,10 +77,12 @@ Page::PPage Page::Open(std::string filename) {
     if (!result->m_file->is_open())
         throw utils::Exception::CreateAndLog(POSITION, "can`t create file ");
 
-    char*data = result->m_file->data();
-    result->m_header = (Page::Header*)data;
-    result->m_data_begin = (Meas*) (data + sizeof (Page::Header));
-    return result;
+	
+	char*data = result->m_file->data();
+	result->m_header = (Page::Header*)data;
+	result->m_data_begin = (Meas*)(data + sizeof(Page::Header));
+	result->m_header->isOpen = true;
+	return result;
 }
 
 Page::PPage Page::Create(std::string filename, uint64_t fsize) {
@@ -90,7 +106,7 @@ Page::PPage Page::Create(std::string filename, uint64_t fsize) {
     
     result->initHeader(data);
     result->m_data_begin = (Meas*) (data + sizeof (Page::Header));
-
+	result->m_header->isOpen = true;
     return result;
 }
 
@@ -313,6 +329,3 @@ Page::Header Page::getHeader()const{
     return *m_header;
 }
 
-void Page::close(){
-    this->m_file->close();
-}

@@ -208,6 +208,7 @@ Meas::MeasList DataStorage::readInterval(const IdArray& ids, storage::Flag sourc
 	auto page_list = pageList();
 	for (auto page : page_list) {
 		storage::Page::PPage page2read;
+		bool shouldClosed = false;
 		if (page == m_curpage->fileName()) {
 			if (HeaderIntervalCheck(from, to, m_curpage->getHeader())) {
 				page2read = m_curpage;
@@ -216,6 +217,7 @@ Meas::MeasList DataStorage::readInterval(const IdArray& ids, storage::Flag sourc
 			storage::Page::Header hdr = storage::Page::ReadHeader(page);
 			if (HeaderIntervalCheck(from, to, hdr)) {
 				page2read = storage::Page::Open(page);
+				shouldClosed = true;
 			} else {
 				continue;
 			}
@@ -226,6 +228,9 @@ Meas::MeasList DataStorage::readInterval(const IdArray& ids, storage::Flag sourc
 
 		Meas::MeasList subResult = page2read->readInterval(ids,source,flag,from, to);
 		std::copy(subResult.begin(), subResult.end(), std::back_inserter(list_result));
+		if (shouldClosed) {
+			page2read->close();
+		}
 	}
 
 	this->m_cache_writer.continue_work();

@@ -6,6 +6,7 @@
 #include <storage/Meas.h>
 #include <storage/Page.h>
 #include <storage/storage.h>
+#include <storage/config.h>
 #include <utils/ProcessLogger.h>
 #include <utils/utils.h>
 #include <utils/Exception.h>
@@ -29,6 +30,7 @@ BOOST_AUTO_TEST_CASE(PageCreateOpen) {
 	}
 }
 
+#ifdef CHECK_PAGE_OPEN
 BOOST_AUTO_TEST_CASE(PageOpenTwice) {
 	{
 		Page::PPage created = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
@@ -37,18 +39,14 @@ BOOST_AUTO_TEST_CASE(PageOpenTwice) {
 	}
 	{
 		Page::PPage openned = Page::Open(mdb_test::test_page_name);
-		/*bool throwed = false;
-		try {
-			Page::PPage openned2 = Page::Open(mdb_test::test_page_name);
-		} catch (utils::Exception&ex) {
-			throwed = true;
-		}*/
 
 		BOOST_CHECK_THROW(Page::Open(mdb_test::test_page_name),utils::Exception);
+
 		openned->close();
 	}
 
 }
+#endif
 
 BOOST_AUTO_TEST_CASE(PageIO) {
 	const int TestableMeasCount = 10000;

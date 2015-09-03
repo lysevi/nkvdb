@@ -1,5 +1,6 @@
 #include "Page.h"
 #include <utils/Exception.h>
+#include <utils/search.h>
 #include <algorithm>
 #include <sstream>
 #include <cstdlib>
@@ -14,6 +15,19 @@ using namespace storage;
 
 const size_t oneMb = sizeof (char) * 1024 * 1024;
 
+
+int cmp_pred(const storage::Meas& r, const storage::Meas &l) {
+	if (r.time < l.time)
+		return -1;
+	if (r.time == l.time)
+		return 0;
+
+	return 1;
+}
+
+int delta_pred(const Meas &r, const Meas& l) {
+	return r.time - l.time;
+}
 
 Page::Page(std::string fname):m_filename(new std::string(fname)),
     m_file(new boost::iostreams::mapped_file) {
@@ -275,6 +289,7 @@ storage::Meas::MeasList Page::readInterval(Time from, Time to) {
 	return this->readInterval(IdArray{}, 0, 0, from, to);
 }
 
+
 storage::Meas::MeasList Page::readInterval(const IdArray& ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
 	storage::Meas::MeasList result;
 	storage::Meas readedValue;
@@ -282,8 +297,13 @@ storage::Meas::MeasList Page::readInterval(const IdArray& ids, storage::Flag sou
 	auto irecords = findInIndex(ids, from, to);
 	for (IndexRecord&rec : irecords) {
 		auto max_pos = rec.pos+rec.count;
+		
+		storage::Meas key;
+		key.time == from;
 
-		for (size_t i = rec.pos; i < max_pos; ++i) {
+		auto begin = utils::find_begin(this->m_data_begin + rec.pos, this->m_data_begin + max_pos, key, cmp_pred, delta_pred);
+
+		for (size_t i = std::distance(m_data_begin, begin); i < max_pos; ++i) {
 			if (!read(&readedValue, i)) {
 				std::stringstream ss;
 				ss << "ReadIntervalError: "

@@ -4,7 +4,7 @@
 
 #include <utils/utils.h>
 #include <utils/asyncworker.h>
-
+#include <utils/search.h>
 
 BOOST_AUTO_TEST_CASE(UtilsEmpty) {
 	BOOST_CHECK(utils::inInterval(1,5,1));
@@ -61,4 +61,51 @@ BOOST_AUTO_TEST_CASE(Worker) {
     worker.stop();
     BOOST_CHECK(worker.stoped());
     BOOST_CHECK_EQUAL(worker.value,(int)1+2+3+4);
+}
+
+
+
+BOOST_AUTO_TEST_CASE(find_begin) {
+	{
+		std::vector<int> a = { 0, 1, 2, 4, 5, 6, 7 };
+
+		for (int i = 0; i <= 7; i++) {
+			auto res = utils::find_begin(a.begin(), a.end(), i, [](int r, int l)
+			{
+				if (r < l)
+					return -1;
+				if (r == l)
+					return 0;
+
+				return 1;
+			}, 
+				[](int r, int l)
+			{
+				return r - l; 
+			});
+			BOOST_CHECK(*res >= i);
+		}
+	}
+
+
+	{
+		std::vector<int> a = { 0,  2, 4, 6, 7 };
+
+		for (int i = 0; i <= 7; i++) {
+			auto res = utils::find_begin(a.begin(), a.end(), i, [](int r, int l)
+			{
+				if (r < l)
+					return -1;
+				if (r == l)
+					return 0;
+
+				return 1;
+			},
+				[](int r, int l)
+			{
+				return r - l;
+			});
+			BOOST_CHECK(*res >= i);
+		}
+	}
 }

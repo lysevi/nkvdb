@@ -2,7 +2,7 @@
 
 #include <string>
 #include <list>
-
+#include <iterator>
 #include <boost/filesystem.hpp>
 
 #define NOT_IMPLEMENTED throw std::logic_error("Not implemented");
@@ -30,9 +30,11 @@ namespace utils {
     bool rm(const std::string&rm_path);
 	std::string filename(std::string fname); //without ex
 	std::string parent_path(std::string fname);
-
+	
 	template<typename T>
 	bool inInterval(T from, T to, T value) {
 		return value >= from && value <= to;
 	}
+
+	
 }

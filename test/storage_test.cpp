@@ -62,10 +62,10 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 		storage::Meas::PMeas meas = storage::Meas::empty();
         storage::Time end_it= (meas2write*write_iteration);
         for (storage::Time i = 0; i < end_it; ++i) {
-			if (end_it - i != 0) {
+			/*if (end_it - i != 0) {
 				auto meases = ds->readInterval(i, end_it - i);
 				BOOST_CHECK(meases.size() == 0);
-			}
+			}*/
 
 			meas->value = i;
 			meas->id = i;

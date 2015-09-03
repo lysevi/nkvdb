@@ -244,11 +244,24 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
 std::list<Page::IndexRecord> Page::findInIndex(const IdArray& ids,Time from, Time to)const {
 	std::list<Page::IndexRecord> result;
 
-	FILE * pFile = std::fopen(this->index_fileName().c_str(), "rb");
-	if (!pFile) {
-		return result;
-	}
+	
+	boost::iostreams::mapped_file i_file;
+
 	try {
+		
+		boost::iostreams::mapped_file_params params;
+		params.path = this->index_fileName();
+		params.flags = i_file.readwrite;
+		
+		i_file.open(params);
+
+		if (!i_file.is_open()) {
+			return result;
+		}
+
+		IndexRecord*i_data = (IndexRecord*)i_file.data();
+		auto fsize = i_file.size();
+
 		bool index_filter = false;
 		Id minId = 0; 
 		Id maxId = 0; 
@@ -257,13 +270,19 @@ std::list<Page::IndexRecord> Page::findInIndex(const IdArray& ids,Time from, Tim
 			minId = *std::min_element(ids.cbegin(), ids.cend());
 			maxId = *std::max_element(ids.cbegin(), ids.cend());
 		}
-		while (true) {
+
+		IndexRecord val;
+		val.minTime = from;
+		val.maxTime = to;
+		IndexRecord* from_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
+												 [](IndexRecord a, IndexRecord b) { return a.minTime < b.minTime; });
+		IndexRecord* to_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
+												 [](IndexRecord a, IndexRecord b) { return a.maxTime < b.maxTime; });
+
+		for (auto pos = from_pos; pos<=to_pos; pos++) {
 			IndexRecord rec;
 			
-			int c=fread(&rec, sizeof(rec), 1, pFile);
-			if (c == 0) {
-				break;
-			}
+			rec = *pos;
 
 			if (utils::inInterval(from, to, rec.minTime) || utils::inInterval(from, to, rec.maxTime)) {
 				if (!index_filter) {
@@ -278,9 +297,9 @@ std::list<Page::IndexRecord> Page::findInIndex(const IdArray& ids,Time from, Tim
 	} catch (std::exception&ex) {
 		auto message = ex.what();
 		MAKE_EXCEPTION(message);
-		fclose(pFile);
+		i_file.close();
 	}
-	fclose(pFile);
+	i_file.close();
 
 	return result;
 }

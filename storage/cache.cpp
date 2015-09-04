@@ -97,45 +97,93 @@ Meas::MeasList Cache::readInterval(Time from, Time to) const {
 }
 
 Meas::PMeas Cache::asArray()const {
-    //std::lock_guard<std::mutex> lock(this->m_rw_lock);
-    //int i = 0;
-    /*for (auto it = m_data.begin(); it != m_data.end(); ++it) {
-        for (auto m : it->second) {
-            result[i]=m_meases[m];
-            ++i;
-        }
-    }*/
-
-    //    for (auto i = 0; i<m_index; ++i) {
-    //        output[i] = m_meases[i];
-    //    }
     return m_meases;
 }
 
+void Cache::setSize(const size_t sz) {
+	if (sz != m_max_size) {
+		Meas*new_cache = new Meas[sz];
+		delete[] m_meases;
+		m_meases = new_cache;
+		m_max_size = sz;
+	}
+}
 
 CachePool::CachePool(const size_t pool_size, const size_t cache_size):
     m_pool_size(pool_size),
     m_cache_size(cache_size)
+	
 {
-    this->resize(m_pool_size);
-    for(size_t i=0;i<m_pool_size;++i){
-        Cache::PCache c(new Cache(m_cache_size));
-        (*this)[i]=c;
-    }
+	m_recalc_period = (int)(pool_size / 3);
 }
 
+void CachePool::init_pool() {
+	this->clear();
+	this->resize(m_pool_size);
+	for (size_t i = 0; i<m_pool_size; ++i) {
+		Cache::PCache c(new Cache(m_cache_size));
+		(*this)[i] = c;
+	}
+}
 
-bool CachePool::haveCache()const{
+bool CachePool::haveCache(){
     auto c=this->getCache();
     return c!=nullptr;
 }
 
-Cache::PCache CachePool::getCache()const{
+Cache::PCache CachePool::getCache(){
+	m_recalc_period--;
+	Cache::PCache result = nullptr;
+	int count_of_free = 0;
     for(size_t i=0;i<this->size();i++){
         if (!this->at(i)->is_sync()){
-            return this->at(i);
+            result=this->at(i);
+			count_of_free++;
         }
     }
 
-    return nullptr;
+	if (result == nullptr) {
+		this->setPoolSize((int)m_pool_size*1.5);
+		this->setCacheSize((int)m_cache_size*1.5);
+		m_recalc_period = m_pool_size;
+		return this->getCache();
+	} 
+#ifdef ENABLE_CACHE_DYNAMIC_RESIZE
+	// FIX more smartable method.
+	if (m_recalc_period <=0) {
+		if (count_of_free >= (int)(m_pool_size / 2)) { // free >= 50%
+			this->setPoolSize((int)m_pool_size / 2);
+			this->setCacheSize((int)m_cache_size*0.75);
+			m_recalc_period = (int)m_pool_size / 2;
+		}
+
+		if (count_of_free <= m_pool_size*0.85) { //free<=85%
+			this->setPoolSize((int)m_pool_size * 2);
+			this->setCacheSize((int)m_cache_size*1.5);
+			m_recalc_period = (int)m_pool_size / 2;
+		}
+	}
+#endif
+	return result;
+	
+
+}
+
+void CachePool::setCacheSize(const size_t sz) {
+	m_cache_size = sz;
+	for (size_t i = 0; i<this->size(); i++) {
+		if (!this->at(i)->is_sync()) {
+			this->at(i)->setSize(sz);
+		}
+	}
+}
+
+void CachePool::setPoolSize(const size_t sz) {
+	for (size_t i = 0; i<this->size(); i++) {
+		if (this->at(i)->is_sync()) {
+			throw std::logic_error("this->at(i)->is_sync()");
+		}
+	}
+	m_pool_size = sz;
+	this->init_pool();
 }

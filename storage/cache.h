@@ -20,6 +20,7 @@ namespace storage
         storage::Meas::MeasList readInterval(Time from, Time to)const;
         Meas::PMeas asArray()const;
         size_t size()const { return m_size; }
+		void setSize(const size_t sz);
         void clear();
 
         bool is_sync() const;
@@ -40,9 +41,14 @@ namespace storage
         CachePool(){}
     public:
         CachePool(const size_t pool_size, const size_t cache_size);
-        bool haveCache()const;
-        Cache::PCache getCache()const;
+        bool haveCache();
+        Cache::PCache getCache();
+		void setCacheSize(const size_t sz);
+		void setPoolSize(const size_t sz);
+	protected:
+		void init_pool();
     private:
         size_t m_pool_size, m_cache_size;
+		int m_recalc_period;
     };
 }

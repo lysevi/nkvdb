@@ -3,9 +3,11 @@
 #include <vector>
 #include <memory>
 #include "Meas.h"
+#include "common.h"
 
 namespace storage
 {
+	
     class Cache
     {
     public:
@@ -13,8 +15,8 @@ namespace storage
         Cache(size_t size);
         ~Cache();
         bool isFull()const;
-        bool append(const Meas value);
-        size_t append(const Meas::PMeas begin, const size_t size);
+		append_result append(const Meas& value, const Time past_time);
+		append_result append(const Meas::PMeas begin, const size_t size, const Time past_time);
         storage::Meas::MeasList readInterval(Time from, Time to)const;
         Meas::PMeas asArray()const;
         size_t size()const { return m_size; }

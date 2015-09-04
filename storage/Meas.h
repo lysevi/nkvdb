@@ -3,14 +3,14 @@
 #include <memory>
 #include <vector>
 #include <list>
-
+#include <ctime>
 #include <utils/utils.h>
 
 using namespace utils;
 
 namespace storage
 {
-    typedef uint64_t Time;
+    typedef clock_t  Time;
     typedef uint64_t Id;
     typedef uint64_t Flag;
     typedef uint64_t Value;
@@ -32,4 +32,6 @@ namespace storage
         Flag flag;
         Value value;
     };
+
+	bool checkPastTime(const Time t, const Time past_time); // |current time - t| < past_time
 }

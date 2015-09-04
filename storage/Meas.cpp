@@ -19,3 +19,14 @@ void Meas::readFrom(const Meas::PMeas m){
     flag=m->flag;
     value=m->value;
 }
+
+
+
+bool storage::checkPastTime(const Time t, const Time past_time) { // |current time - t| < m_past_time
+	if (past_time == 0) {
+		return true;
+	} else {
+		clock_t cur_t = clock();
+		return  std::abs(cur_t - t) <= past_time;
+	}
+}

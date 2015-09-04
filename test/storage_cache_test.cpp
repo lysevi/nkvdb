@@ -27,15 +27,17 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 			newMeas->flag = flagValue;
 			newMeas->source = srcValue;
 			newMeas->time = i;
-			bool flag=c.append(*newMeas);
-			BOOST_CHECK_EQUAL(flag, true);
+			auto wrt_res=c.append(*newMeas,0);
+			BOOST_CHECK_EQUAL(wrt_res.writed, 1);
 			delete newMeas;
 		}
 		auto newMeas = storage::Meas::empty();
-		bool flag=c.append(*newMeas);
+		auto  wrt_res=c.append(*newMeas,0);
+		
+		BOOST_CHECK_EQUAL(wrt_res.writed, 0);
+		BOOST_CHECK_EQUAL(c.append(*newMeas, 1).ignored, 1);
+		
 		delete newMeas;
-		BOOST_CHECK_EQUAL(flag, false);
-
 		auto interval = c.readInterval(0, TestableMeasCount); 
 		BOOST_CHECK_EQUAL(interval.size(), TestableMeasCount-1);
 		for (auto m : interval) {

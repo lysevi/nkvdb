@@ -34,20 +34,30 @@ void Cache::sync_complete(){
     m_sync=false;
 }
 
-bool Cache::append(const Meas value) {
+append_result Cache::append(const Meas& value, const Time past_time) {
+	append_result res{};
+	
+	if (!checkPastTime(value.time, past_time)) {
+		res.writed = 1;
+		res.ignored = 1;
+		return res;
+	}
     //std::lock_guard<std::mutex> lock(this->m_rw_lock);
     if (!isFull()) {
         m_meases[m_index] = value;
         //this->m_data[value.time].push_back(m_index);
         m_index++;
         m_size++;
-        return true;
+
+		res.writed = 1;
+		res.ignored = 0;
+        return res;
     } else {
-        return false;
+        return res;
     }
 }
 
-size_t Cache::append(const Meas::PMeas begin, const size_t size) {
+append_result Cache::append(const Meas::PMeas begin, const size_t size, const Time past_time) {
     //std::lock_guard<std::mutex> lock(this->m_rw_lock);
     size_t cap = this->m_max_size;
     size_t to_write = 0;
@@ -59,16 +69,23 @@ size_t Cache::append(const Meas::PMeas begin, const size_t size) {
         to_write = cap;
     }
 
+	append_result res{};
+	res.writed = to_write;
+	
     for (size_t i = 0; i < to_write; ++i) {
+		if (!checkPastTime(begin[i].time, past_time)) {
+			res.ignored++;
+			continue;
+		}
         m_meases[m_index] = Meas{ begin[i] };
         m_size++;
         m_index++;
     }
 
-    return to_write;
+	return res;
 }
 
-storage::Meas::MeasList Cache::readInterval(Time from, Time to) const {
+Meas::MeasList Cache::readInterval(Time from, Time to) const {
     //std::lock_guard<std::mutex> lock(this->m_rw_lock);
     Meas::MeasList result;
     for (size_t i = 0; i<m_index; ++i) {

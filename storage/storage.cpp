@@ -2,6 +2,7 @@
 #include <boost/filesystem.hpp>
 #include <utils/Exception.h>
 #include <ctime>
+#include <cmath>
 #include <sstream>
 #include <iterator>
 
@@ -54,6 +55,7 @@ DataStorage::DataStorage() :m_cache_pool(defaultcachePoolSize,defaultcacheSize) 
     m_cache=m_cache_pool.getCache();
     m_cache_writer.setStorage(this);
     m_cache_writer.start();
+	m_past_time = 0;
 }
 
 DataStorage::~DataStorage(){
@@ -125,31 +127,35 @@ bool DataStorage::havePage2Write()const{
     return this->m_curpage!=nullptr && !this->m_curpage->isFull();
 }
 
-void DataStorage::append(const Meas::PMeas m){
+append_result DataStorage::append(const Meas::PMeas m) {
     std::lock_guard<std::mutex> guard(m_write_mutex);
-	bool isAppend = false;
-	while (!isAppend) {
-        isAppend = m_cache->append(*m);
-		if (!isAppend) {
+	append_result res{};
+	while (res.writed==0) {
+		res = m_cache->append(*m, m_past_time);
+		if (res.writed==0) {
 			this->writeCache();
 		}
 	}
+	return res;
 }
 
-void DataStorage::append(const Meas::PMeas begin, const size_t meas_count) {
+append_result DataStorage::append(const Meas::PMeas begin, const size_t meas_count) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
     if (m_cache->isFull()) {
 		this->writeCache();
 	}
-	
 	size_t to_write = meas_count;
+	append_result result{};
 	while (to_write > 0) {
-        size_t writed = m_cache->append(begin+(meas_count - to_write), to_write);
-		if (writed != to_write) {
+		auto wrt_res = m_cache->append(begin + (meas_count - to_write), to_write, m_past_time);
+		
+		if (wrt_res.writed != to_write) {
 			this->writeCache();
 		}
-		to_write -= writed;
+		to_write -= wrt_res.writed;
+		result =result+ wrt_res;
 	}
+	return result;
 }
 
 void DataStorage::writeCache() {
@@ -252,4 +258,12 @@ std::list<std::string> DataStorage::pageList()const {
 	}
 	
 	return result;
+}
+
+Time DataStorage::pastTime()const {
+	return m_past_time;
+}
+
+void DataStorage::setPastTime(const Time&t) {
+	m_past_time = t;
 }

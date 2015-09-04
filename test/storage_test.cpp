@@ -12,6 +12,9 @@
 #include <iterator>
 #include <list>
 #include <iostream>
+#include <ctime>
+#include <chrono>
+#include <thread>
 
 using namespace storage;
 
@@ -150,6 +153,57 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 
 		auto pages = utils::ls(storage_path);
 		BOOST_CHECK_EQUAL(pages.size(), write_iteration *2);
+	}
+	utils::rm(storage_path);
+}
+
+
+
+BOOST_AUTO_TEST_CASE(StorageIORealTime) {
+	const int meas2write = 10;
+	const int write_iteration = 10;
+	const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas)*meas2write);
+	const std::string storage_path = mdb_test::storage_path + "storageIO";
+
+	{
+		storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
+		
+		ds->setPastTime(CLOCKS_PER_SEC*2);
+
+		size_t arr_size = meas2write * write_iteration;
+
+		storage::Meas::PMeas array = new storage::Meas[arr_size];
+		for (size_t i = 0; i < arr_size; ++i) {
+			array[i].id = i;
+			array[i].time = clock();
+		}
+		ds->append(array, arr_size);
+		
+
+		auto interval = ds->readInterval(array[0].time, array[arr_size-1].time);
+		BOOST_CHECK_EQUAL(interval.size(), arr_size);
+		for (auto m : interval) {
+			BOOST_CHECK(utils::inInterval<storage::Time>(array[0].time, array[arr_size - 1].time, m.time));
+		}
+
+		for (size_t i = 0; i < arr_size; ++i) {
+			bool isExists = false;
+			for (auto m : interval) {
+				if (m.id == i) {
+					isExists = true;
+					break;
+				}
+			}
+			BOOST_CHECK(isExists);
+		}
+		
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+		auto wrt_res = ds->append(array, arr_size);
+		BOOST_CHECK(wrt_res.writed==wrt_res.ignored);
+
+		delete[] array;
+		ds->Close();
 	}
 	utils::rm(storage_path);
 }

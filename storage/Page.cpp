@@ -317,12 +317,12 @@ storage::Meas::MeasList Page::readInterval(const IdArray& ids, storage::Flag sou
 	for (IndexRecord&rec : irecords) {
 		auto max_pos = rec.pos+rec.count;
 		
-		storage::Meas key;
-		key.time == from;
+		/*storage::Meas key;
+		key.time = from;
 
-		auto begin = utils::find_begin(this->m_data_begin + rec.pos, this->m_data_begin + max_pos, key, cmp_pred, delta_pred);
-
-		for (size_t i = std::distance(m_data_begin, begin); i < max_pos; ++i) {
+		auto begin = utils::find_begin(this->m_data_begin + rec.pos, this->m_data_begin + max_pos, key, cmp_pred, delta_pred);*/
+		for (size_t i = rec.pos; i < max_pos; ++i) {
+		//for (size_t i = std::distance(m_data_begin, begin); i < max_pos; ++i) {
 			if (!read(&readedValue, i)) {
 				std::stringstream ss;
 				ss << "ReadIntervalError: "

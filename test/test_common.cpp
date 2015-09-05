@@ -1,5 +1,3 @@
 #include "test_common.h"
 
-namespace mdb_test {
-
-}
+namespace mdb_test {}

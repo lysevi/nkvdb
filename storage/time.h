@@ -1,12 +1,10 @@
 #pragma once
 #include "Meas.h"
 
-namespace storage{
+namespace storage {
 
-class TimeWork
-{
+class TimeWork {
 public:
-    static storage::Time CurrentUtcTime();
+  static storage::Time CurrentUtcTime();
 };
-
 }

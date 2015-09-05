@@ -7,105 +7,91 @@
 #include <utils/search.h>
 
 BOOST_AUTO_TEST_CASE(UtilsEmpty) {
-	BOOST_CHECK(utils::inInterval(1,5,1));
-	BOOST_CHECK(utils::inInterval(1, 5, 2));
-	BOOST_CHECK(utils::inInterval(1, 5, 5));
-	BOOST_CHECK(!utils::inInterval(1, 5, 0));
-	BOOST_CHECK(!utils::inInterval(0, 1, 2));
+  BOOST_CHECK(utils::inInterval(1, 5, 1));
+  BOOST_CHECK(utils::inInterval(1, 5, 2));
+  BOOST_CHECK(utils::inInterval(1, 5, 5));
+  BOOST_CHECK(!utils::inInterval(1, 5, 0));
+  BOOST_CHECK(!utils::inInterval(0, 1, 2));
 }
-
 
 BOOST_AUTO_TEST_CASE(FileUtils) {
-	std::string filename = "foo/bar/test.txt";
-	BOOST_CHECK_EQUAL(utils::filename(filename), "test");
-	BOOST_CHECK_EQUAL(utils::parent_path(filename), "foo/bar");
+  std::string filename = "foo/bar/test.txt";
+  BOOST_CHECK_EQUAL(utils::filename(filename), "test");
+  BOOST_CHECK_EQUAL(utils::parent_path(filename), "foo/bar");
 }
 
-
-class TestWorker: public utils::AsyncWorker<int>{
+class TestWorker : public utils::AsyncWorker<int> {
 public:
-    int value;
-    TestWorker():value(0)
-    {}
+  int value;
+  TestWorker() : value(0) {}
 
-    void call(const int data) override  {
-        value+=data;
-    }
+  void call(const int data) override { value += data; }
 };
 
 BOOST_AUTO_TEST_CASE(Worker) {
 
-    TestWorker worker;
+  TestWorker worker;
 
-    worker.start();
+  worker.start();
 
-    BOOST_CHECK(!worker.isBusy());
+  BOOST_CHECK(!worker.isBusy());
 
-    worker.pause_work();
+  worker.pause_work();
 
-    worker.add(1);
-    worker.add(2);
-    worker.add(3);
-    worker.add(4);
+  worker.add(1);
+  worker.add(2);
+  worker.add(3);
+  worker.add(4);
 
-    BOOST_CHECK(worker.isBusy());
-    BOOST_CHECK_EQUAL(worker.value,(int)0);
+  BOOST_CHECK(worker.isBusy());
+  BOOST_CHECK_EQUAL(worker.value, (int)0);
 
-    worker.continue_work();
+  worker.continue_work();
 
-    while(true){
-        if (!worker.isBusy()){
-            break;
-        }
+  while (true) {
+    if (!worker.isBusy()) {
+      break;
     }
-    worker.stop();
-    BOOST_CHECK(worker.stoped());
-    BOOST_CHECK_EQUAL(worker.value,(int)1+2+3+4);
+  }
+  worker.stop();
+  BOOST_CHECK(worker.stoped());
+  BOOST_CHECK_EQUAL(worker.value, (int)1 + 2 + 3 + 4);
 }
 
-
-
 BOOST_AUTO_TEST_CASE(find_begin) {
-	{
-		std::vector<int> a = { 0, 1, 2, 4, 5, 6, 7 };
+  {
+    std::vector<int> a = {0, 1, 2, 4, 5, 6, 7};
 
-		for (int i = 0; i <= 7; i++) {
-			auto res = utils::find_begin(a.begin(), a.end(), i, [](int r, int l)
-			{
-				if (r < l)
-					return -1;
-				if (r == l)
-					return 0;
+    for (int i = 0; i <= 7; i++) {
+      auto res = utils::find_begin(a.begin(), a.end(), i,
+                                   [](int r, int l) {
+                                     if (r < l)
+                                       return -1;
+                                     if (r == l)
+                                       return 0;
 
-				return 1;
-			}, 
-				[](int r, int l)
-			{
-				return r - l; 
-			});
-			BOOST_CHECK(*res >= i);
-		}
-	}
+                                     return 1;
+                                   },
+                                   [](int r, int l) { return r - l; });
+      BOOST_CHECK(*res >= i);
+    }
+  }
 
+  {
+    std::vector<int> a = {0, 2, 4, 6, 7};
 
-	{
-		std::vector<int> a = { 0,  2, 4, 6, 7 };
+    for (int i = 0; i <= 7; i++) {
+      auto res = utils::find_begin(a.begin(), a.end(), i,
+                                   [](int r, int l) {
+                                     if (r < l)
+                                       return -1;
+                                     if (r == l)
+                                       return 0;
 
-		for (int i = 0; i <= 7; i++) {
-			auto res = utils::find_begin(a.begin(), a.end(), i, [](int r, int l)
-			{
-				if (r < l)
-					return -1;
-				if (r == l)
-					return 0;
-
-				return 1;
-			},
-				[](int r, int l)
-			{
-				return r - l;
-			});
-			BOOST_CHECK(*res >= i);
-		}
-	}
+                                     return 1;
+                                   },
+                                   [](int r, int l) { return r - l; });
+      BOOST_CHECK(*res >= i);
+    }
+  }
 }

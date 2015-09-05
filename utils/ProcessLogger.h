@@ -12,8 +12,4 @@
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 
-
-#define logger BOOST_LOG_TRIVIAL(info) 
-
- 
-
+#define logger BOOST_LOG_TRIVIAL(info)

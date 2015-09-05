@@ -1,8 +1,6 @@
 #include "asyncwriter.h"
 #include "storage.h"
 
-#include <utils/ProcessLogger.h>
-
 #include <assert.h>
 #include <algorithm>
 using namespace storage;

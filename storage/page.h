@@ -8,7 +8,7 @@
 #include <map>
 #include <boost/iostreams/device/mapped_file.hpp>
 
-#include "Meas.h"
+#include "meas.h"
 #include "config.h"
 
 namespace storage {
@@ -55,7 +55,7 @@ public:
   void close();
   Header getHeader() const;
 
-  bool append(const Meas::PMeas value);
+  bool append(const Meas& value);
   size_t append(const Meas::PMeas begin, const size_t size);
   bool read(Meas::PMeas result, uint64_t position);
   storage::Meas::MeasList readInterval(Time from, Time to);
@@ -65,7 +65,7 @@ public:
 private:
   Page(std::string fname);
   void initHeader(char *data);
-  void updateMinMax(Meas::PMeas value);
+  void updateMinMax(const Meas& value);
   void writeIndexRec(const IndexRecord &rec);
   std::list<Page::IndexRecord> findInIndex(const IdArray &ids, Time from,
                                            Time to) const;

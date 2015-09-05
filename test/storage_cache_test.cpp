@@ -3,10 +3,10 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/Meas.h>
+#include <storage/meas.h>
 #include <utils/utils.h>
 #include <storage/cache.h>
-#include <utils/ProcessLogger.h>
+#include <utils/logger.h>
 #include <utils/utils.h>
 
 #include <iterator>

@@ -3,12 +3,11 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/Meas.h>
-#include <storage/Page.h>
+#include <storage/page.h>
 #include <storage/storage.h>
 #include <storage/config.h>
 #include <storage/time.h>
-#include <utils/ProcessLogger.h>
+#include <utils/logger.h>
 #include <utils/utils.h>
 
 #include <iterator>
@@ -80,7 +79,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       meas->id = i;
       meas->source = meas->flag = i % meas2write;
       meas->time = i;
-      ds->append(meas);
+      ds->append(*meas);
 
       auto meases = ds->readInterval(0, end_it);
 

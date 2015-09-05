@@ -1,12 +1,11 @@
 #include "cache.h"
 #include "time.h"
-#include <utils/ProcessLogger.h>
+#include <utils/logger.h>
 #include <iostream>
 
 using namespace storage;
 
-Cache::Cache(size_t size)
-    : m_max_size(size), m_size(0), m_index(0), m_sync(false) {
+Cache::Cache(size_t size): m_max_size(size), m_size(0), m_index(0), m_sync(false) {
   m_meases = new Meas[size];
 }
 

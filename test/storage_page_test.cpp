@@ -3,13 +3,13 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/Meas.h>
-#include <storage/Page.h>
+#include <storage/meas.h>
+#include <storage/page.h>
 #include <storage/storage.h>
 #include <storage/config.h>
-#include <utils/ProcessLogger.h>
+#include <utils/logger.h>
 #include <utils/utils.h>
-#include <utils/Exception.h>
+#include <utils/exception.h>
 
 #include <iterator>
 #include <list>
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
       newMeas->flag = flagValue;
       newMeas->source = srcValue;
       newMeas->time = i;
-      storage->append(newMeas);
+      storage->append(*newMeas);
       delete newMeas;
       storage->close();
     }
@@ -113,10 +113,10 @@ BOOST_AUTO_TEST_CASE(Capacity) {
   BOOST_CHECK_EQUAL(page->capacity(), 10);
 
   auto newMeas = storage::Meas::empty();
-  page->append(newMeas);
+  page->append(*newMeas);
 
   BOOST_CHECK_EQUAL(page->capacity(), 9);
-  page->append(newMeas);
+  page->append(*newMeas);
   delete newMeas;
   BOOST_CHECK_EQUAL(page->capacity(), 8);
   auto index = page->index_fileName();
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
       newMeas->flag = (storage::Flag)(i % 5);
       newMeas->source = (storage::Flag)(i % 5);
       newMeas->time = i;
-      storage->append(newMeas);
+      storage->append(*newMeas);
       delete newMeas;
     }
 

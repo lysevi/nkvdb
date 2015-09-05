@@ -3,10 +3,9 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/Meas.h>
-#include <storage/Page.h>
+#include <storage/page.h>
 #include <storage/storage.h>
-#include <utils/ProcessLogger.h>
+#include <utils/logger.h>
 #include <utils/utils.h>
 
 #include <iterator>
@@ -15,6 +14,7 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+
 using namespace storage;
 
 std::atomic<int> threads_count(0);
@@ -30,7 +30,7 @@ void writer(storage::DataStorage::PDataStorage ds) {
     meas->id = i;
     meas->source = meas->flag = i % meas2write;
     meas->time = i;
-    ds->append(meas);
+    ds->append(*meas);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   delete meas;

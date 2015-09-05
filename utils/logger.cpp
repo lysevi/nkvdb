@@ -1,4 +1,4 @@
-#include "ProcessLogger.h"
+#include "logger.h"
 #include <iostream>
 
 namespace logging = boost::log;

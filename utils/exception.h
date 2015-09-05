@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "ProcessLogger.h"
+#include "logger.h"
 #include <stdexcept>
 #include <sstream>
 

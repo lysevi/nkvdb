@@ -1,8 +1,10 @@
 #include <ctime>
 #include <iostream>
 #include <cstdlib>
+
 #include <storage/storage.h>
-#include <utils/ProcessLogger.h>
+#include <utils/logger.h>
+
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
@@ -41,7 +43,7 @@ void makeAndWrite(int mc, int ic) {
     meas->source = meas->flag = i % mc;
     meas->time = i;
 
-    ds->append(meas);
+    ds->append(*meas);
   }
 
   clock_t write_t1 = clock();
@@ -137,7 +139,7 @@ int main(int argc, char *argv[]) {
       meas->source = meas->flag = i % meas2write;
       meas->time = i;
 
-      ds->append(meas);
+      ds->append(*meas);
       clock_t verb_t1 = clock();
       if (verbose) {
         logger << "write[" << i

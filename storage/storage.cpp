@@ -1,6 +1,6 @@
 #include "storage.h"
 #include <boost/filesystem.hpp>
-#include <utils/Exception.h>
+#include <utils/exception.h>
 #include <ctime>
 #include <cmath>
 #include <sstream>
@@ -122,11 +122,11 @@ bool DataStorage::havePage2Write() const {
   return this->m_curpage != nullptr && !this->m_curpage->isFull();
 }
 
-append_result DataStorage::append(const Meas::PMeas m) {
+append_result DataStorage::append(const Meas& m) {
   std::lock_guard<std::mutex> guard(m_write_mutex);
   append_result res{};
   while (res.writed == 0) {
-    res = m_cache->append(*m, m_past_time);
+    res = m_cache->append(m, m_past_time);
     if (res.writed == 0) {
       this->writeCache();
     }

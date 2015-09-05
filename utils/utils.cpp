@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "ProcessLogger.h"
+#include "exception.h"
 
 std::list<boost::filesystem::path> utils::ls(const std::string &path) {
   std::list<boost::filesystem::path> result;
@@ -44,7 +44,7 @@ bool utils::rm(const std::string &rm_path) {
     return true;
   } catch (boost::filesystem::filesystem_error &ex) {
     std::string msg = ex.what();
-    logger << "utils::rm exception: " << msg;
+    MAKE_EXCEPTION("utils::rm exception: " + msg);
     throw;
   }
 }

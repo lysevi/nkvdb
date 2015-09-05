@@ -4,7 +4,7 @@
 #include <memory>
 #include <thread>
 #include <mutex>
-#include "Page.h"
+#include "page.h"
 #include "cache.h"
 #include "asyncwriter.h"
 
@@ -25,7 +25,7 @@ public:
   ~DataStorage();
   void Close();
   bool havePage2Write() const;
-  append_result append(const Meas::PMeas m);
+  append_result append(const Meas& m);
   append_result append(const Meas::PMeas begin, const size_t meas_count);
 
   Meas::MeasList readInterval(Time from, Time to);

@@ -1,5 +1,7 @@
 
 #include <iostream>
-#include "utils/ProcessLogger.h"
+#include "utils/logger.h"
 
-int main(int argc, char **argv) { logger << "Start!"; }
+int main(int argc, char **argv) { 
+    logger << "Start!"; 
+}

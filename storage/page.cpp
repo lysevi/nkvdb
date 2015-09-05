@@ -1,5 +1,5 @@
-#include "Page.h"
-#include <utils/Exception.h>
+#include "page.h"
+#include <utils/exception.h>
 #include <utils/search.h>
 #include <algorithm>
 #include <sstream>
@@ -131,37 +131,37 @@ void Page::initHeader(char *data) {
   m_header->minMaxInit = false;
 }
 
-void Page::updateMinMax(Meas::PMeas value) {
+void Page::updateMinMax(const Meas& value) {
   if (m_header->minMaxInit) {
-    m_header->minTime = std::min(value->time, m_header->minTime);
-    m_header->maxTime = std::max(value->time, m_header->maxTime);
+    m_header->minTime = std::min(value.time, m_header->minTime);
+    m_header->maxTime = std::max(value.time, m_header->maxTime);
 
-    m_header->minId = std::min(value->id, m_header->minId);
-    m_header->maxId = std::max(value->id, m_header->maxId);
+    m_header->minId = std::min(value.id, m_header->minId);
+    m_header->maxId = std::max(value.id, m_header->maxId);
   } else {
     m_header->minMaxInit = true;
-    m_header->minTime = value->time;
-    m_header->maxTime = value->time;
+    m_header->minTime = value.time;
+    m_header->maxTime = value.time;
 
-    m_header->minId = value->id;
-    m_header->maxId = value->id;
+    m_header->minId = value.id;
+    m_header->maxId = value.id;
   }
 }
 
-bool Page::append(const Meas::PMeas value) {
+bool Page::append(const Meas& value) {
   if (this->isFull()) {
     return false;
   }
 
   updateMinMax(value);
 
-  memcpy(&m_data_begin[m_header->write_pos], value, sizeof(Meas));
+  memcpy(&m_data_begin[m_header->write_pos], &value, sizeof(Meas));
 
   IndexRecord rec;
-  rec.minTime = value->time;
-  rec.maxTime = value->time;
-  rec.minId = value->id;
-  rec.maxId = value->id;
+  rec.minTime = value.time;
+  rec.maxTime = value.time;
+  rec.minId = value.id;
+  rec.maxId = value.id;
   rec.count = 1;
   rec.pos = m_header->write_pos;
 
@@ -183,8 +183,8 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
   }
   memcpy(m_data_begin + m_header->write_pos, begin, to_write * sizeof(Meas));
 
-  updateMinMax(&begin[0]);
-  updateMinMax(&begin[size - 1]);
+  updateMinMax(begin[0]);
+  updateMinMax(begin[size - 1]);
 
   IndexRecord rec;
   rec.minTime = begin[0].time;

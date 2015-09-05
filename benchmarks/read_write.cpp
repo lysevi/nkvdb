@@ -14,13 +14,16 @@ int pagesize = 1000000;
 bool write_only = false;
 bool verbose = false;
 bool dont_remove = false;
+bool enable_dyn_cache=false;
 
 void makeAndWrite(int mc, int ic) {
-    logger << "makeAndWrite mc:" << mc << " ic:" << ic;
+    logger << "makeAndWrite mc:" << mc << " ic:" << ic<< " dyn_cache: "<<(enable_dyn_cache? "true":"false");
 
     const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas)*pagesize);
 
     storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
+    ds->enableCacheDynamicSize(enable_dyn_cache);
+
     clock_t write_t0 = clock();
     storage::Meas::PMeas meas = storage::Meas::empty();
 
@@ -64,6 +67,7 @@ int main(int argc, char*argv[]) {
     desc.add_options()
             ("help", "produce help message")
             ("mc", po::value<int>(&meas2write)->default_value(meas2write), "measurment count")
+            ("dyncache", po::value<bool>(&enable_dyn_cache)->default_value(enable_dyn_cache), "enable dynamic cache")
             ("write-only", "don`t run readInterval")
             ("verbose", "verbose ouput")
             ("dont-remove", "dont remove created storage")

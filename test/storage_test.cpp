@@ -7,6 +7,7 @@
 #include <storage/Page.h>
 #include <storage/storage.h>
 #include <storage/config.h>
+#include <storage/time.h>
 #include <utils/ProcessLogger.h>
 #include <utils/utils.h>
 
@@ -159,7 +160,6 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 }
 
 
-#ifdef ENABLE_CACHE_DYNAMIC_RESIZE
 BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 	const int meas2write = 10;
 	const int write_iteration = 10;
@@ -210,4 +210,3 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 	}
 	utils::rm(storage_path);
 }
-#endif

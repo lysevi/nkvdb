@@ -267,3 +267,11 @@ Time DataStorage::pastTime()const {
 void DataStorage::setPastTime(const Time&t) {
 	m_past_time = t;
 }
+
+void DataStorage::enableCacheDynamicSize(bool flg){
+    m_cache_pool.enableDynamicSize(flg);
+}
+
+bool DataStorage::cacheDynamicSize()const{
+    return m_cache_pool.dynamicSize();
+}

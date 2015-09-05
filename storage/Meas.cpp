@@ -1,4 +1,5 @@
 #include "Meas.h"
+#include "time.h"
 
 using namespace storage;
 
@@ -26,7 +27,8 @@ bool storage::checkPastTime(const Time t, const Time past_time) { // |current ti
 	if (past_time == 0) {
 		return true;
 	} else {
-		clock_t cur_t = clock();
-		return  std::abs(cur_t - t) <= past_time;
+        Time cur_t = storage::TimeWork::CurrentUtcTime();
+        auto delta=std::abs(cur_t - t);
+        return  delta<=past_time;
 	}
 }

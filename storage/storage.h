@@ -33,6 +33,9 @@ namespace storage{
 
 		Time pastTime()const;
 		void setPastTime(const Time&t);
+
+        void enableCacheDynamicSize(bool flg);
+        bool cacheDynamicSize()const;
     private:
         DataStorage();
 		std::list<std::string> pageList()const;

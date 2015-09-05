@@ -14,13 +14,13 @@
 using namespace storage;
 
 BOOST_AUTO_TEST_CASE(CacheIO) {
-  const int TestableMeasCount = 10000;
+  const size_t TestableMeasCount = 10000;
   {
     const int flagValue = 1;
     const int srcValue = 2;
     storage::Cache c(TestableMeasCount - 1);
 
-    for (int i = 0; i < TestableMeasCount - 1; ++i) {
+    for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
       auto newMeas = storage::Meas::empty();
       newMeas->value = i;
       newMeas->id = i;
@@ -28,14 +28,14 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
       newMeas->source = srcValue;
       newMeas->time = i;
       auto wrt_res = c.append(*newMeas, 0);
-      BOOST_CHECK_EQUAL(wrt_res.writed, 1);
+      BOOST_CHECK_EQUAL(wrt_res.writed, size_t(1));
       delete newMeas;
     }
     auto newMeas = storage::Meas::empty();
     auto wrt_res = c.append(*newMeas, 0);
 
-    BOOST_CHECK_EQUAL(wrt_res.writed, 0);
-    BOOST_CHECK_EQUAL(c.append(*newMeas, 1).ignored, 1);
+    BOOST_CHECK_EQUAL(wrt_res.writed, size_t(0));
+    BOOST_CHECK_EQUAL(c.append(*newMeas, 1).ignored, size_t(1));
 
     delete newMeas;
     auto interval = c.readInterval(0, TestableMeasCount);
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
           utils::inInterval<storage::Time>(0, TestableMeasCount - 1, m.time));
     }
 
-    for (int i = 0; i < TestableMeasCount - 1; ++i) {
+    for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
       bool isExists = false;
       for (auto m : interval) {
         if (m.id == (uint64_t)i) {
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
     }
 
     auto output_array = c.asArray();
-    for (int i = 0; i < TestableMeasCount - 1; ++i) {
+    for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
       bool isExists = false;
       for (uint64_t j = 0; j < c.size(); ++j) {
         if (output_array[j].id == (uint64_t)i) {
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(CacheResize) {
     storage::Cache c(TestableMeasCount - 1);
 
     c.setSize(10);
-    BOOST_CHECK_EQUAL(c.size(), 10);
+    BOOST_CHECK_EQUAL(c.size(), size_t(10));
   }
 }
 

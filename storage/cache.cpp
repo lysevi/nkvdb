@@ -1,6 +1,5 @@
 #include "cache.h"
 #include "time.h"
-#include <utils/logger.h>
 #include <iostream>
 
 using namespace storage;

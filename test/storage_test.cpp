@@ -40,14 +40,14 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
 
       std::list<boost::filesystem::path> pages =
           utils::ls(mdb_test::storage_path);
-      BOOST_CHECK_EQUAL(pages.size(), 1);
+      BOOST_CHECK_EQUAL(pages.size(), (size_t)1);
       ds = nullptr;
 
       ds = storage::DataStorage::Create(mdb_test::storage_path);
       BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
       BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
       pages = utils::ls(mdb_test::storage_path);
-      BOOST_CHECK_EQUAL(pages.size(), 1);
+      BOOST_CHECK_EQUAL(pages.size(), (size_t)1);
     }
     {
       storage::DataStorage::PDataStorage ds =
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
     delete meas;
     ds = nullptr;
     auto pages = utils::ls(storage_path);
-    BOOST_CHECK_EQUAL(pages.size(), write_iteration * 2);
+    BOOST_CHECK_EQUAL(pages.size(), (size_t)(write_iteration * 2));
   }
   {
     storage::DataStorage::PDataStorage ds =
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       storage::Time to = i * ((meas2write * write_iteration) / 100);
       auto meases = ds->readInterval(0, to);
 
-      BOOST_CHECK_EQUAL(meases.size(), to + 1);
+      BOOST_CHECK_EQUAL(meases.size(), (size_t)(to + 1));
 
       for (storage::Meas m : meases) {
         BOOST_CHECK(utils::inInterval<storage::Time>(0, to, m.time));
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {
   const int meas2write = 10;
-  const int write_iteration = 10;
+  const size_t write_iteration = 10;
   const uint64_t storage_size =
       sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
   const std::string storage_path = mdb_test::storage_path + "storageIO";
@@ -181,10 +181,11 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
     storage::Meas::PMeas array = new storage::Meas[arr_size];
 
+    auto cur_utc_time=storage::TimeWork::CurrentUtcTime();
     for (size_t i = 0; i < arr_size; ++i) {
 
       array[i].id = i;
-      array[i].time = storage::TimeWork::CurrentUtcTime();
+      array[i].time = cur_utc_time;
     }
     ds->append(array, arr_size);
 
@@ -206,7 +207,8 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
       BOOST_CHECK(isExists);
     }
 
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    ds->setPastTime(1);
+
     auto wrt_res = ds->append(array, arr_size);
     BOOST_CHECK_EQUAL(wrt_res.writed, wrt_res.ignored);
 

@@ -168,16 +168,18 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
 	{
 		storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
-		
-		ds->setPastTime(CLOCKS_PER_SEC*2);
+
+        ds->setPastTime(CLOCKS_PER_SEC);
 
 		size_t arr_size = meas2write * write_iteration;
 
 		storage::Meas::PMeas array = new storage::Meas[arr_size];
-		for (size_t i = 0; i < arr_size; ++i) {
-			array[i].id = i;
-			array[i].time = clock();
-		}
+
+        for (size_t i = 0; i < arr_size; ++i) {
+
+            array[i].id = i;
+            array[i].time = storage::TimeWork::CurrentUtcTime();
+        }
 		ds->append(array, arr_size);
 		
 
@@ -199,9 +201,9 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 		}
 		
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        std::this_thread::sleep_for(std::chrono::seconds(5));
 		auto wrt_res = ds->append(array, arr_size);
-		BOOST_CHECK(wrt_res.writed==wrt_res.ignored);
+        BOOST_CHECK_EQUAL(wrt_res.writed,wrt_res.ignored);
 
 		delete[] array;
 		ds->Close();

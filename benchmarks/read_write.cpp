@@ -124,9 +124,12 @@ int main(int argc, char *argv[]) {
   makeAndWrite(meas2write, 3000000);
 
   if (!write_only) {
-    storage::DataStorage::PDataStorage ds =
-        storage::DataStorage::Create(storage_path, storage_size);
+    storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
     storage::Meas::PMeas meas = storage::Meas::empty();
+
+    ds->enableCacheDynamicSize(enable_dyn_cache);
+    ds->setPoolSize(cache_pool_size);
+    ds->setCacheSize(cache_size);
 
     logger << "creating storage...";
     logger << "pages_size:" << pagesize;

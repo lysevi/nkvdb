@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
     storage::DataStorage::PDataStorage ds =
         storage::DataStorage::Create(storage_path, storage_size);
 
-    ds->setPastTime(CLOCKS_PER_SEC);
+    ds->setPastTime(storage::TimeWork::fromDuration(std::chrono::seconds(2)));
 
     size_t arr_size = meas2write * write_iteration;
 

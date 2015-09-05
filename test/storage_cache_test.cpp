@@ -74,8 +74,6 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 BOOST_AUTO_TEST_CASE(CacheResize) {
 	const int TestableMeasCount = 10000;
 	{
-		const int flagValue = 1;
-		const int srcValue = 2;
 		storage::Cache c(TestableMeasCount - 1);
 
 		c.setSize(10);

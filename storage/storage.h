@@ -50,5 +50,4 @@ namespace storage{
         CachePool    m_cache_pool;
 		Time         m_past_time;
     };
-
-};
+}

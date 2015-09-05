@@ -5,6 +5,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cmath>
+#include <fstream>
 #include <boost/filesystem.hpp>
 
 const uint8_t page_version = 1;

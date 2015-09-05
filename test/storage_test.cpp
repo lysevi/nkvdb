@@ -6,6 +6,7 @@
 #include <storage/Meas.h>
 #include <storage/Page.h>
 #include <storage/storage.h>
+#include <storage/config.h>
 #include <utils/ProcessLogger.h>
 #include <utils/utils.h>
 
@@ -82,7 +83,7 @@ BOOST_AUTO_TEST_CASE(StorageIO){
 			for (storage::Time j = 0; j < i; ++j) {
 				bool isExists = false;
 				for (storage::Meas m : meases) {
-					if (m.id == j) {
+                    if (m.id == static_cast<storage::Id>(j)) {
 						isExists = true;
 						break;
 					}
@@ -158,7 +159,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 }
 
 
-
+#ifdef ENABLE_CACHE_DYNAMIC_RESIZE
 BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 	const int meas2write = 10;
 	const int write_iteration = 10;
@@ -207,3 +208,4 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 	}
 	utils::rm(storage_path);
 }
+#endif

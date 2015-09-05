@@ -106,6 +106,7 @@ void Cache::setSize(const size_t sz) {
 		delete[] m_meases;
 		m_meases = new_cache;
 		m_max_size = sz;
+        m_size = sz;
 	}
 }
 
@@ -115,6 +116,7 @@ CachePool::CachePool(const size_t pool_size, const size_t cache_size):
 	
 {
 	m_recalc_period = (int)(pool_size / 3);
+    init_pool();
 }
 
 void CachePool::init_pool() {
@@ -142,13 +144,14 @@ Cache::PCache CachePool::getCache(){
         }
     }
 
+#ifdef ENABLE_CACHE_DYNAMIC_RESIZE
 	if (result == nullptr) {
 		this->setPoolSize((int)m_pool_size*1.5);
 		this->setCacheSize((int)m_cache_size*1.5);
 		m_recalc_period = m_pool_size;
 		return this->getCache();
 	} 
-#ifdef ENABLE_CACHE_DYNAMIC_RESIZE
+
 	// FIX more smartable method.
 	if (m_recalc_period <=0) {
 		if (count_of_free >= (int)(m_pool_size / 2)) { // free >= 50%

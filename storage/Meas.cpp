@@ -4,7 +4,7 @@ using namespace storage;
 
 Meas::Meas() {
     id = time = source = flag = value = 0;
-};
+}
 
 
 Meas::PMeas Meas::empty() {

@@ -1,5 +1,6 @@
 #include "cache.h"
 #include "time.h"
+#include <utils/utils.h>
 #include <iostream>
 
 using namespace storage;
@@ -101,7 +102,7 @@ void Cache::setSize(const size_t sz) {
 
 CachePool::CachePool(const size_t pool_size, const size_t cache_size)
     : m_pool_size(pool_size), m_cache_size(cache_size),
-      m_default_pool_size(pool_size), m_default_cache_size(cache_size),
+      m_default_pool_size(pool_size), /*m_default_cache_size(cache_size),*/
       m_dynamic_size(false) {
   m_recalc_period = (int)(pool_size / 3);
   init_pool();
@@ -138,8 +139,8 @@ Cache::PCache CachePool::getCache() {
 
   if (m_dynamic_size) {
     if (result == nullptr) {
-      this->setPoolSize((int)m_pool_size * 1.5);
-      this->setCacheSize((int)m_cache_size * 1.5);
+      this->setPoolSize((int)(m_pool_size * 1.5));
+      this->setCacheSize((int)(m_cache_size * 1.5));
       m_recalc_period = m_pool_size;
       return this->getCache();
     }

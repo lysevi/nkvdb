@@ -4,9 +4,6 @@
 #include <vector>
 #include <list>
 #include <ctime>
-#include <utils/utils.h>
-
-using namespace utils;
 
 namespace storage {
 typedef clock_t Time;

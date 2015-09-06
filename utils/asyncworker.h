@@ -12,6 +12,11 @@ namespace utils {
 // look usage example in utils_test.cpp
 template <class T> class AsyncWorker {
 public:
+    virtual ~AsyncWorker(){
+        if(m_thread_work){
+            this->kill();
+        }
+    }
   void add(T data) {
     std::unique_lock<std::mutex> lock(m_add_lock);
     m_data.push(data);

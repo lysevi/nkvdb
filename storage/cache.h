@@ -58,7 +58,7 @@ protected:
 private:
   size_t m_pool_size, m_cache_size;
   size_t m_default_pool_size;  // pool size on it init.
-  size_t m_default_cache_size; // pool size on it init.
+  //size_t m_default_cache_size; // pool size on it init.
   int m_recalc_period;
   bool m_dynamic_size;
 };

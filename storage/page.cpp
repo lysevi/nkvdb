@@ -115,7 +115,7 @@ Page::Header Page::ReadHeader(std::string filename) {
   std::ifstream istream;
   istream.open(filename, std::fstream::in);
   if (!istream.is_open())
-    throw Exception::CreateAndLog(POSITION, "can open file.");
+    throw utils::Exception::CreateAndLog(POSITION, "can open file.");
 
   Header result;
   istream.read((char *)&result, sizeof(Page::Header));
@@ -323,7 +323,7 @@ storage::Meas::MeasList Page::readInterval(const IdArray &ids,
            << " writePos: " << m_header->write_pos
            << " size: " << m_header->size;
 
-        throw Exception::CreateAndLog(POSITION, ss.str());
+        throw utils::Exception::CreateAndLog(POSITION, ss.str());
       }
       if (utils::inInterval(from, to, readedValue.time)) {
         if (flag != 0) {

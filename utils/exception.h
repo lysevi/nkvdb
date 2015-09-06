@@ -6,7 +6,7 @@
 
 #define POSITION (utils::CodePosition(__FILE__, __LINE__, __FUNCTION__))
 
-#define MAKE_EXCEPTION(msg) Exception::CreateAndLog(POSITION, msg)
+#define MAKE_EXCEPTION(msg) utils::Exception::CreateAndLog(POSITION, msg)
 
 namespace utils {
 struct CodePosition {

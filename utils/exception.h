@@ -9,6 +9,7 @@
 #define MAKE_EXCEPTION(msg) utils::Exception::CreateAndLog(POSITION, msg)
 
 namespace utils {
+
 struct CodePosition {
   CodePosition(const char *file, int line, const char *function)
       : File(file), Line(line), Function(function) {}
@@ -25,13 +26,13 @@ struct CodePosition {
 class Exception : public std::exception {
 public:
   inline static Exception CreateAndLog(const CodePosition &pos) {
-    logger << "FATAL ERROR. The Exception will be thrown! " << pos.toString();
+	  logger_fatal("FATAL ERROR. The Exception will be thrown! " << pos.toString());
     return Exception();
   }
   inline static Exception CreateAndLog(const CodePosition &pos,
                                        const std::string &message) {
-    logger << "FATAL ERROR. The Exception will be thrown! " << pos.toString()
-           << " Message: " << message;
+	  logger_fatal("FATAL ERROR. The Exception will be thrown! " << pos.toString()
+           << " Message: " << message);
     return Exception(message);
   }
 

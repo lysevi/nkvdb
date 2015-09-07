@@ -65,22 +65,22 @@ Page::PPage Page::Open(std::string filename) {
 #ifdef CHECK_PAGE_OPEN
   storage::Page::Header hdr = Page::ReadHeader(filename);
   if (hdr.isOpen) {
-    throw utils::Exception::CreateAndLog(POSITION, "page is already openned. ");
+	  throw MAKE_EXCEPTION("page is already openned. ");
   }
 #endif
   PPage result(new Page(filename));
 
   try {
-    boost::iostreams::mapped_file_params params;
-    params.path = filename;
-    params.flags = result->m_file->readwrite;
-    result->m_file->open(params);
+	  boost::iostreams::mapped_file_params params;
+	  params.path = filename;
+	  params.flags = result->m_file->readwrite;
+	  result->m_file->open(params);
   } catch (std::runtime_error &ex) {
-    std::string what = ex.what();
-    throw utils::Exception::CreateAndLog(POSITION, ex.what());
+	  std::string what = ex.what();
+	  throw MAKE_EXCEPTION(ex.what());
   }
   if (!result->m_file->is_open())
-    throw utils::Exception::CreateAndLog(POSITION, "can`t create file ");
+	  throw MAKE_EXCEPTION("can`t create file ");
 
   char *data = result->m_file->data();
   result->m_header = (Page::Header *)data;
@@ -93,18 +93,18 @@ Page::PPage Page::Create(std::string filename, uint64_t fsize) {
   PPage result(new Page(filename));
 
   try {
-    boost::iostreams::mapped_file_params params;
-    params.new_file_size = fsize;
-    params.path = filename;
-    params.flags = result->m_file->readwrite;
-    result->m_file->open(params);
+	  boost::iostreams::mapped_file_params params;
+	  params.new_file_size = fsize;
+	  params.path = filename;
+	  params.flags = result->m_file->readwrite;
+	  result->m_file->open(params);
   } catch (std::runtime_error &ex) {
-    std::string what = ex.what();
-    throw utils::Exception::CreateAndLog(POSITION, ex.what());
+	  std::string what = ex.what();
+	  throw MAKE_EXCEPTION(ex.what());
   }
 
   if (!result->m_file->is_open())
-    throw utils::Exception::CreateAndLog(POSITION, "can`t create file ");
+	  throw MAKE_EXCEPTION("can`t create file ");
 
   char *data = result->m_file->data();
 
@@ -118,7 +118,7 @@ Page::Header Page::ReadHeader(std::string filename) {
   std::ifstream istream;
   istream.open(filename, std::fstream::in);
   if (!istream.is_open())
-    throw utils::Exception::CreateAndLog(POSITION, "can open file.");
+	  throw MAKE_EXCEPTION("can open file.");
 
   Header result;
   istream.read((char *)&result, sizeof(Page::Header));
@@ -250,7 +250,7 @@ storage::Meas::MeasList Page::readInterval(const IdArray &ids,
            << " writePos: " << m_header->write_pos
            << " size: " << m_header->size;
 
-        throw utils::Exception::CreateAndLog(POSITION, ss.str());
+		throw MAKE_EXCEPTION(ss.str());
       }
       if (utils::inInterval(from, to, readedValue.time)) {
         if (flag != 0) {

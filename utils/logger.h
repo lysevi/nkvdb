@@ -3,13 +3,24 @@
 #include <cstdint>
 #include <iostream>
 
-#include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/expressions.hpp>
-//#include <boost/log/sinks/text_file_backend.hpp>
-//#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
+#define logger(msg)       utils::Logger::get()->GetStream()<<"   "<<msg<<std::endl
+#define logger_fatal(msg) utils::Logger::get()->GetStream()<<"   "<<msg<<std::endl
 
-#define logger BOOST_LOG_TRIVIAL(info)
+namespace utils
+{
+	class Logger
+	{
+	public:
+		static Logger* get();
+		virtual std::ostream& GetStream();
+
+		virtual ~Logger() {
+		};
+	private:
+		uint16_t m_level;
+		static Logger *m_instance;
+
+		Logger() {
+		};
+	};
+}

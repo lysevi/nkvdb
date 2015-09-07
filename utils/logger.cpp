@@ -1,13 +1,19 @@
 #include "logger.h"
+
 #include <iostream>
 
-namespace logging = boost::log;
+namespace utils
+{
+	Logger* Logger::m_instance;
 
-bool init_logger() {
-  logging::core::get()->set_filter(logging::trivial::severity >=
-                                   logging::trivial::info);
+	Logger* Logger::get() {
+		if (Logger::m_instance == nullptr) {
+			Logger::m_instance = new Logger();
+		}
+		return m_instance;
+	}
 
-  return true;
+	std::ostream& Logger::GetStream() {
+		return std::cerr;
+	}
 }
-
-static bool isLogInit = init_logger();

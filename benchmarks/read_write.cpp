@@ -21,8 +21,7 @@ size_t cache_size=storage::defaultcacheSize;
 size_t cache_pool_size=storage::defaultcachePoolSize;
 
 void makeAndWrite(int mc, int ic) {
-  logger << "makeAndWrite mc:" << mc << " ic:" << ic
-         << " dyn_cache: " << (enable_dyn_cache ? "true" : "false");
+  logger("makeAndWrite mc:" << mc << " ic:" << ic << " dyn_cache: " << (enable_dyn_cache ? "true" : "false"));
 
   const uint64_t storage_size =
       sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
@@ -47,7 +46,7 @@ void makeAndWrite(int mc, int ic) {
   }
 
   clock_t write_t1 = clock();
-  logger << "write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC;
+  logger("write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC);
   delete meas;
   ds->Close();
   ds = nullptr;
@@ -61,8 +60,7 @@ void readIntervalBench(storage::DataStorage::PDataStorage ds,
   auto meases = ds->readInterval(from, to);
   clock_t read_t1 = clock();
 
-  logger << "=> : " << message
-         << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC;
+  logger("=> : " << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
 }
 
 void readIntervalBenchFltr(storage::IdArray ids, storage::Flag src,
@@ -74,8 +72,8 @@ void readIntervalBenchFltr(storage::IdArray ids, storage::Flag src,
   auto meases = ds->readInterval(ids, src, flag, from, to);
   clock_t read_t1 = clock();
 
-  logger << "=> :" << message
-         << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC;
+  logger("=> :" << message
+         << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
 }
 
 int main(int argc, char *argv[]) {
@@ -94,7 +92,7 @@ int main(int argc, char *argv[]) {
   try {
     po::store(po::parse_command_line(argc, argv, desc), vm);
   } catch (std::exception &ex) {
-    logger << "Error: " << ex.what();
+    logger("Error: " << ex.what());
     exit(1);
   }
   po::notify(vm);
@@ -131,8 +129,8 @@ int main(int argc, char *argv[]) {
     ds->setPoolSize(cache_pool_size);
     ds->setCacheSize(cache_size);
 
-    logger << "creating storage...";
-    logger << "pages_size:" << pagesize;
+    logger( "creating storage...");
+    logger( "pages_size:" << pagesize);
 
     for (int i = 0; i < pagesize * 10; ++i) {
       clock_t verb_t0 = clock();
@@ -145,26 +143,25 @@ int main(int argc, char *argv[]) {
       ds->append(*meas);
       clock_t verb_t1 = clock();
       if (verbose) {
-        logger << "write[" << i
-               << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC;
+        logger("write[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC);
       }
     }
     delete meas;
 
-    logger << "big readers";
+    logger( "big readers");
     readIntervalBench(ds, 0, pagesize / 2, "[0-0.5]");
     readIntervalBench(ds, 3 * pagesize + pagesize / 2, 3 * pagesize * 2,
                       "[3.5-6]");
     readIntervalBench(ds, 7 * pagesize, 8 * pagesize + pagesize * 1.5,
                       "[7-9.5]");
 
-    logger << "small readers";
+    logger("small readers");
     readIntervalBench(ds, 5 * pagesize + pagesize / 3, 6 * pagesize, "[5.3-6]");
     readIntervalBench(ds, 2 * pagesize, 2 * pagesize + pagesize * 1.5,
                       "[2-3.5]");
     readIntervalBench(ds, 6 * pagesize * 0.3, 7 * pagesize * 0.7, "[6.3-7.7]");
 
-    logger << "fltr big readers";
+    logger("fltr big readers");
     readIntervalBenchFltr(storage::IdArray{0, 1, 2, 3, 4, 5}, 1, 1, ds, 0,
                           pagesize / 2, "Id: {0- 5}, src:1, flag:1; [0-0.5]");
 
@@ -177,7 +174,7 @@ int main(int argc, char *argv[]) {
         7 * pagesize, 8 * pagesize + pagesize * 1.5,
         "Id: {0-12}, src:1, flag:1; [7-9.5]");
 
-    logger << "fltr small readers";
+    logger("fltr small readers");
     readIntervalBenchFltr(storage::IdArray{0, 1}, 1, 1, ds,
                           5 * pagesize + pagesize / 3, 6 * pagesize,
                           "Id: {0,1},   src:1,  flag:1; [5.3-6.0]");

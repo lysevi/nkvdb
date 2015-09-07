@@ -1,9 +1,12 @@
 #include "meas.h"
 #include "time.h"
+#include <cstdlib>
 
 using namespace storage;
 
-Meas::Meas() { id = time = source = flag = value = 0; }
+Meas::Meas() { 
+	std::memset(this, 0, sizeof(Meas)); 
+}
 
 Meas::PMeas Meas::empty() {
   Meas::PMeas result = new Meas();
@@ -11,11 +14,7 @@ Meas::PMeas Meas::empty() {
 }
 
 void Meas::readFrom(const Meas::PMeas m) {
-  id = m->id;
-  time = m->time;
-  source = m->source;
-  flag = m->flag;
-  value = m->value;
+	std::memcpy(this, m, sizeof(Meas));
 }
 
 bool storage::checkPastTime(const Time t, const Time past_time) { // |current time - t| < m_past_time

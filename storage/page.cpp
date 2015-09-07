@@ -29,7 +29,10 @@ int delta_pred(const Meas &r, const Meas &l) { return r.time - l.time; }
 
 Page::Page(std::string fname)
     : m_filename(new std::string(fname)),
-      m_file(new boost::iostreams::mapped_file) {}
+      m_file(new boost::iostreams::mapped_file) {
+	
+	this->m_index.setFileName(this->index_fileName());
+}
 
 Page::~Page() {
   this->close();
@@ -157,7 +160,7 @@ bool Page::append(const Meas& value) {
 
   memcpy(&m_data_begin[m_header->write_pos], &value, sizeof(Meas));
 
-  IndexRecord rec;
+  Index::IndexRecord rec;
   rec.minTime = value.time;
   rec.maxTime = value.time;
   rec.minId = value.id;
@@ -165,7 +168,7 @@ bool Page::append(const Meas& value) {
   rec.count = 1;
   rec.pos = m_header->write_pos;
 
-  this->writeIndexRec(rec);
+  this->m_index.writeIndexRec(rec);
 
   m_header->write_pos++;
   return true;
@@ -186,7 +189,7 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
   updateMinMax(begin[0]);
   updateMinMax(begin[size - 1]);
 
-  IndexRecord rec;
+  Index::IndexRecord rec;
   rec.minTime = begin[0].time;
   rec.maxTime = begin[size - 1].time;
   rec.minId = begin[0].id;
@@ -194,24 +197,13 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
   rec.count = to_write;
   rec.pos = m_header->write_pos;
 
-  this->writeIndexRec(rec);
+  this->m_index.writeIndexRec(rec);
 
   m_header->write_pos += to_write;
   return to_write;
 }
 
-void Page::writeIndexRec(const IndexRecord &rec) {
-  FILE *pFile = std::fopen(this->index_fileName().c_str(), "ab");
 
-  try {
-    fwrite(&rec, sizeof(rec), 1, pFile);
-  } catch (std::exception &ex) {
-    auto message = ex.what();
-    MAKE_EXCEPTION(message);
-    fclose(pFile);
-  }
-  fclose(pFile);
-}
 
 bool Page::read(Meas::PMeas result, uint64_t position) {
   if (result == nullptr)
@@ -227,72 +219,7 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
   return true;
 }
 
-std::list<Page::IndexRecord> Page::findInIndex(const IdArray &ids, Time from,
-                                               Time to) const {
-  std::list<Page::IndexRecord> result;
 
-  boost::iostreams::mapped_file i_file;
-
-  try {
-
-    boost::iostreams::mapped_file_params params;
-    params.path = this->index_fileName();
-    params.flags = i_file.readwrite;
-
-    i_file.open(params);
-
-    if (!i_file.is_open()) {
-      return result;
-    }
-
-    IndexRecord *i_data = (IndexRecord *)i_file.data();
-    auto fsize = i_file.size();
-
-    bool index_filter = false;
-    Id minId = 0;
-    Id maxId = 0;
-    if (ids.size() != 0) {
-      index_filter = true;
-      minId = *std::min_element(ids.cbegin(), ids.cend());
-      maxId = *std::max_element(ids.cbegin(), ids.cend());
-    }
-
-    IndexRecord val;
-    val.minTime = from;
-    val.maxTime = to;
-    IndexRecord *from_pos = std::lower_bound(
-        i_data, i_data + fsize / sizeof(IndexRecord), val,
-        [](IndexRecord a, IndexRecord b) { return a.minTime < b.minTime; });
-    IndexRecord *to_pos = std::lower_bound(
-        i_data, i_data + fsize / sizeof(IndexRecord), val,
-        [](IndexRecord a, IndexRecord b) { return a.maxTime < b.maxTime; });
-
-    for (auto pos = from_pos; pos <= to_pos; pos++) {
-      IndexRecord rec;
-
-      rec = *pos;
-
-      if (utils::inInterval(from, to, rec.minTime) ||
-          utils::inInterval(from, to, rec.maxTime)) {
-        if (!index_filter) {
-          result.push_back(rec);
-        } else {
-          if (utils::inInterval(minId, maxId, rec.minId) ||
-              utils::inInterval(minId, maxId, rec.maxId)) {
-            result.push_back(rec);
-          }
-        }
-      }
-    }
-  } catch (std::exception &ex) {
-    auto message = ex.what();
-    MAKE_EXCEPTION(message);
-    i_file.close();
-  }
-  i_file.close();
-
-  return result;
-}
 
 storage::Meas::MeasList Page::readInterval(Time from, Time to) {
   return this->readInterval(IdArray{}, 0, 0, from, to);
@@ -305,8 +232,8 @@ storage::Meas::MeasList Page::readInterval(const IdArray &ids,
   storage::Meas::MeasList result;
   storage::Meas readedValue;
 
-  auto irecords = findInIndex(ids, from, to);
-  for (IndexRecord &rec : irecords) {
+  auto irecords = m_index.findInIndex(ids, from, to);
+  for (Index::IndexRecord &rec : irecords) {
     auto max_pos = rec.pos + rec.count;
 
     /*storage::Meas key;

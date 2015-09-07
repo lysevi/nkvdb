@@ -10,6 +10,7 @@
 
 #include "meas.h"
 #include "config.h"
+#include "index.h"
 
 namespace storage {
 
@@ -27,17 +28,7 @@ public:
     uint64_t size; // in bytes
   };
 
-  struct IndexRecord {
-    uint64_t pos;
-    uint64_t count;
-    Time minTime;
-    Time maxTime;
-    Id minId;
-    Id maxId;
-  };
-
   typedef std::shared_ptr<Page> PPage;
-  typedef std::map<Time, uint64_t> Time2Index;
 
 public:
   static PPage Open(std::string filename);
@@ -66,9 +57,7 @@ private:
   Page(std::string fname);
   void initHeader(char *data);
   void updateMinMax(const Meas& value);
-  void writeIndexRec(const IndexRecord &rec);
-  std::list<Page::IndexRecord> findInIndex(const IdArray &ids, Time from,
-                                           Time to) const;
+  
 
 protected:
   std::string *m_filename;
@@ -78,5 +67,6 @@ protected:
   Meas *m_data_begin;
 
   Header *m_header;
+  Index  m_index;
 };
 }

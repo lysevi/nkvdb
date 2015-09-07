@@ -1,10 +1,19 @@
 cmake_minimum_required (VERSION 2.8)
 project (Ladybird)
 
+set(Boost_USE_STATIC_LIBS        OFF)
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME     OFF)
+set(BOOST_ALL_DYN_LINK           ON)
+
 IF(WIN32)
   MESSAGE(STATUS "WIN32:")
   set(BOOST_ROOT "d:\\soft\\boost_1_57_0\\boost_1_57_0")
   MESSAGE(STATUS "+ boost root: " ${BOOST_ROOT})
+
+  
+
+  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log)
 
   include (GenerateExportHeader)
 
@@ -29,15 +38,9 @@ else(WIN32)
 
   #LINK_DIRECTORIES(${LINK_DIRECTORIES} "/mnt/data/soft/cpp/boost_1_57_0/stage/lib")
   set(BoostUSESTATIC_LIBS OFF)
+  
+  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log program_options)
 ENDIF(WIN32)
-
-
-set(Boost_USE_STATIC_LIBS        OFF)
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME     OFF)
-set(BOOST_ALL_DYN_LINK           ON)
-
-find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log program_options)
 
 IF(Boost_FOUND)
   INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})

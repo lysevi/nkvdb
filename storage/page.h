@@ -54,6 +54,11 @@ public:
                                        storage::Flag flag, Time from, Time to);
 
 private:
+  storage::Meas::MeasList readAll();
+  storage::Meas::MeasList readFromToPos(const IdArray &ids,
+                                        storage::Flag source,
+                                        storage::Flag flag, Time from,
+                                        Time to,size_t begin,size_t end);
   Page(std::string fname);
   void initHeader(char *data);
   void updateMinMax(const Meas& value);

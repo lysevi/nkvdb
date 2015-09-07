@@ -219,39 +219,36 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
   return true;
 }
 
-
-
-storage::Meas::MeasList Page::readInterval(Time from, Time to) {
-  return this->readInterval(IdArray{}, 0, 0, from, to);
+storage::Meas::MeasList  Page::readAll(){
+    storage::Meas::MeasList result(this->m_data_begin,this->m_data_begin + m_header->write_pos);
+    //result.resize(m_header->write_pos);
+    //std::copy(this->m_data_begin,this->m_data_begin + m_header->write_pos, std::back_inserter(result));
+    return result;
 }
 
-storage::Meas::MeasList Page::readInterval(const IdArray &ids,
-                                           storage::Flag source,
-                                           storage::Flag flag, Time from,
-                                           Time to) {
-  storage::Meas::MeasList result;
-  storage::Meas readedValue;
+storage::Meas::MeasList Page::readInterval(Time from, Time to) {
+    static IdArray emptyArray;
+  return this->readInterval(emptyArray, 0, 0, from, to);
+}
 
-  auto irecords = m_index.findInIndex(ids, from, to);
-  for (Index::IndexRecord &rec : irecords) {
-    auto max_pos = rec.pos + rec.count;
-
-    /*storage::Meas key;
-    key.time = from;
-
-    auto begin = utils::find_begin(this->m_data_begin + rec.pos,
-    this->m_data_begin + max_pos, key, cmp_pred, delta_pred);*/
-    for (size_t i = rec.pos; i < max_pos; ++i) {
-      // for (size_t i = std::distance(m_data_begin, begin); i < max_pos; ++i) {
-      if (!read(&readedValue, i)) {
+storage::Meas::MeasList Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end){
+    storage::Meas::MeasList result;
+    storage::Meas readedValue;
+    //storage::Meas key;
+    //key.time = from;
+    //auto read_start = utils::find_begin(this->m_data_begin + begin, this->m_data_begin + end, key, cmp_pred, delta_pred);
+    for (size_t i = begin; i < end; ++i) {
+   //for (size_t i = std::distance(this->m_data_begin + begin, read_start); i < end; ++i) {
+    if (!read(&readedValue, i)) {
         std::stringstream ss;
         ss << "ReadIntervalError: "
            << " file name: " << m_filename
            << " writePos: " << m_header->write_pos
            << " size: " << m_header->size;
 
-		throw MAKE_EXCEPTION(ss.str());
+        throw MAKE_EXCEPTION(ss.str());
       }
+
       if (utils::inInterval(from, to, readedValue.time)) {
         if (flag != 0) {
           if (readedValue.flag != flag) {
@@ -270,8 +267,35 @@ storage::Meas::MeasList Page::readInterval(const IdArray &ids,
           }
         }
         result.push_back(readedValue);
+      }else{
+          if(result.size()!=0){
+              break;
+          }
       }
     }
+    return result;
+}
+
+storage::Meas::MeasList Page::readInterval(const IdArray &ids,
+                                           storage::Flag source,
+                                           storage::Flag flag, Time from,
+                                           Time to) {
+  storage::Meas::MeasList result;
+ //logger("Page::ReadInterval: from:"<<from<<" to:"<<to<<" min:"<<m_header->minTime<<" max:"<<m_header->maxTime);
+  // [from...minTime,maxTime...to]
+  if((from<=m_header->minTime) && (to>=m_header->maxTime)){
+        if((ids.size()==0) && (source==0) && (flag==0)){
+            return this->readAll();
+        }else{
+            return this->readFromToPos(ids,source,flag,from,to,0,m_header->write_pos);
+        }
+  }
+
+  auto irecords = m_index.findInIndex(ids, from, to);
+  for (Index::IndexRecord &rec : irecords) {
+    auto max_pos = rec.pos + rec.count;
+    auto sub_res=this->readFromToPos(ids,source,flag,from,to, rec.pos,max_pos);
+    std::copy(sub_res.begin(),sub_res.end(),std::back_inserter(result));
   }
   return result;
 }
@@ -282,9 +306,7 @@ bool Page::isFull() const {
 }
 
 size_t Page::capacity() const {
-  size_t bytes_left =
-      m_header->size -
-      (sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos);
+  size_t bytes_left = m_header->size -(sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos);
   return bytes_left / sizeof(Meas);
 }
 

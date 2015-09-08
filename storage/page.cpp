@@ -219,20 +219,12 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
   return true;
 }
 
-storage::Meas::MeasList  Page::readAll(){
-    storage::Meas::MeasList result(this->m_data_begin,this->m_data_begin + m_header->write_pos);
-    //result.resize(m_header->write_pos);
-    //std::copy(this->m_data_begin,this->m_data_begin + m_header->write_pos, std::back_inserter(result));
-    return result;
+void  Page::readAll(storage::Meas::MeasList *dest) {
+	std::copy(this->m_data_begin, this->m_data_begin + m_header->write_pos, std::back_inserter(*dest));
 }
 
-storage::Meas::MeasList Page::readInterval(Time from, Time to) {
-    static IdArray emptyArray;
-  return this->readInterval(emptyArray, 0, 0, from, to);
-}
 
-storage::Meas::MeasList Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end){
-    storage::Meas::MeasList result;
+void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end, storage::Meas::MeasList *dest){
     storage::Meas readedValue;
     //storage::Meas key;
     //key.time = from;
@@ -266,14 +258,18 @@ storage::Meas::MeasList Page::readFromToPos(const IdArray &ids, storage::Flag so
             continue;
           }
         }
-        result.push_back(readedValue);
+        dest->push_back(readedValue);
       }/*else{
           if(result.size()!=0){
               break;
           }
       }*/
     }
-    return result;
+}
+
+storage::Meas::MeasList Page::readInterval(Time from, Time to) {
+	static IdArray emptyArray;
+	return this->readInterval(emptyArray, 0, 0, from, to);
 }
 
 storage::Meas::MeasList Page::readInterval(const IdArray &ids,
@@ -285,17 +281,18 @@ storage::Meas::MeasList Page::readInterval(const IdArray &ids,
   // [from...minTime,maxTime...to]
   if((from<=m_header->minTime) && (to>=m_header->maxTime)){
         if((ids.size()==0) && (source==0) && (flag==0)){
-            return this->readAll();
+            this->readAll(&result);
+			return result;
         }else{
-            return this->readFromToPos(ids,source,flag,from,to,0,m_header->write_pos);
+            this->readFromToPos(ids,source,flag,from,to,0,m_header->write_pos,&result);
+			return result;
         }
   }
 
   auto irecords = m_index.findInIndex(ids, from, to);
   for (Index::IndexRecord &rec : irecords) {
     auto max_pos = rec.pos + rec.count;
-    auto sub_res=this->readFromToPos(ids,source,flag,from,to, rec.pos,max_pos);
-    std::copy(sub_res.begin(),sub_res.end(),std::back_inserter(result));
+    this->readFromToPos(ids,source,flag,from,to, rec.pos,max_pos,&result);
   }
   return result;
 }

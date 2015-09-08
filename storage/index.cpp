@@ -2,6 +2,7 @@
 
 #include <utils/exception.h>
 #include <utils/utils.h>
+#include <utils/search.h>
 #include <boost/iostreams/device/mapped_file.hpp>
 
 using namespace storage;
@@ -33,6 +34,16 @@ void Index::writeIndexRec(const Index::IndexRecord &rec) {
 	}
 	fclose(pFile);
 }
+int i_cmp_pred(const Index::IndexRecord &r, const Index::IndexRecord &l) {
+	if (r.minTime < l.minTime)
+		return -1;
+	if (r.minTime == l.minTime)
+		return 0;
+
+	return 1;
+}
+
+int i_delta_pred(const Index::IndexRecord &r, const Index::IndexRecord &l) { return r.minTime - l.minTime; }
 
 std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, Time to) const {
 	std::list<Index::IndexRecord> result;
@@ -63,30 +74,41 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 			maxId = *std::max_element(ids.cbegin(), ids.cend());
 		}
 
-		/*IndexRecord val;
+		IndexRecord val;
 		val.minTime = from;
 		val.maxTime = to;
-		IndexRecord *from_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
+		
+		//auto read_start = i_data;// utils::find_begin(i_data, i_data + fsize / sizeof(IndexRecord), val, i_cmp_pred, i_delta_pred);
+		/*IndexRecord *from_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
 			[](IndexRecord a, IndexRecord b) { return a.minTime < b.minTime; });
 		IndexRecord *to_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
 			[](IndexRecord a, IndexRecord b) { return a.maxTime < b.maxTime; });*/
-
-		for (auto pos = 0; pos <= fsize / sizeof(IndexRecord); pos++) {
+		
+		Index::IndexRecord prev_value;
+		bool first = true;
+		for (auto pos = 0; pos<fsize / sizeof(IndexRecord); pos++) {
 			Index::IndexRecord rec;
 
 			rec = i_data[pos];
 
-			if (utils::inInterval(from, to, rec.minTime) ||
-				utils::inInterval(from, to, rec.maxTime)) {
-				if (!index_filter) {
-					result.push_back(rec);
-				} else {
-					if (utils::inInterval(minId, maxId, rec.minId) ||
-						utils::inInterval(minId, maxId, rec.maxId)) {
-						result.push_back(rec);
+			if (utils::inInterval(from, to, rec.minTime) ||	utils::inInterval(from, to, rec.maxTime)) {
+				if ((!index_filter) || (utils::inInterval(minId, maxId, rec.minId) || utils::inInterval(minId, maxId, rec.maxId))) {
+					if (!first) {
+						if ((prev_value.pos + prev_value.count) == rec.pos) {
+							prev_value.count += rec.count;
+						} else {
+							result.push_back(prev_value);
+							prev_value = rec;
+						}
+					} else {
+						first = false;
+						prev_value = rec;
 					}
 				}
 			}
+		}
+		if (!first) {
+			result.push_back(prev_value);
 		}
 	} catch (std::exception &ex) {
 		auto message = ex.what();

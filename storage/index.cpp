@@ -28,8 +28,8 @@ void Index::writeIndexRec(const Index::IndexRecord &rec) {
 		fwrite(&rec, sizeof(rec), 1, pFile);
 	} catch (std::exception &ex) {
 		auto message = ex.what();
-		MAKE_EXCEPTION(message);
 		fclose(pFile);
+		throw MAKE_EXCEPTION(message);
 	}
 	fclose(pFile);
 }
@@ -63,20 +63,18 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 			maxId = *std::max_element(ids.cbegin(), ids.cend());
 		}
 
-		IndexRecord val;
+		/*IndexRecord val;
 		val.minTime = from;
 		val.maxTime = to;
-		IndexRecord *from_pos = std::lower_bound(
-			i_data, i_data + fsize / sizeof(IndexRecord), val,
+		IndexRecord *from_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
 			[](IndexRecord a, IndexRecord b) { return a.minTime < b.minTime; });
-		IndexRecord *to_pos = std::lower_bound(
-			i_data, i_data + fsize / sizeof(IndexRecord), val,
-			[](IndexRecord a, IndexRecord b) { return a.maxTime < b.maxTime; });
+		IndexRecord *to_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
+			[](IndexRecord a, IndexRecord b) { return a.maxTime < b.maxTime; });*/
 
-		for (auto pos = from_pos; pos <= to_pos; pos++) {
+		for (auto pos = 0; pos <= fsize / sizeof(IndexRecord); pos++) {
 			Index::IndexRecord rec;
 
-			rec = *pos;
+			rec = i_data[pos];
 
 			if (utils::inInterval(from, to, rec.minTime) ||
 				utils::inInterval(from, to, rec.maxTime)) {
@@ -92,8 +90,8 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 		}
 	} catch (std::exception &ex) {
 		auto message = ex.what();
-		MAKE_EXCEPTION(message);
 		i_file.close();
+		throw MAKE_EXCEPTION(message);
 	}
 	i_file.close();
 

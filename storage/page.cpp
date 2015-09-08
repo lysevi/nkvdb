@@ -267,11 +267,11 @@ storage::Meas::MeasList Page::readFromToPos(const IdArray &ids, storage::Flag so
           }
         }
         result.push_back(readedValue);
-      }else{
+      }/*else{
           if(result.size()!=0){
               break;
           }
-      }
+      }*/
     }
     return result;
 }

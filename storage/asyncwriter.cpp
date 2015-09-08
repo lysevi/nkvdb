@@ -19,7 +19,7 @@ void AsyncWriter::call(const Cache::PCache data) {
   auto output = data->asArray();
 
   MeasCmpByTime time_cmp;
-  std::sort(output, output + data->size(), time_cmp);
+  //std::sort(output, output + data->size(), time_cmp);
 
   size_t meas_count = data->size();
   size_t to_write = data->size();

@@ -313,7 +313,7 @@ Page::Header Page::getHeader() const { return *m_header; }
 Meas::MeasList Page::readCurValues(IdSet&id_set) {
 	
 	Meas::MeasList result;
-    for (size_t pos = this->m_header->write_pos - 1; pos != size_t(0); --pos) {
+    for (size_t pos = this->m_header->write_pos - 1; ; --pos) {
 		Meas curValue = m_data_begin[pos];
 
 		if (id_set.find(curValue.id) != id_set.end()) {
@@ -323,6 +323,9 @@ Meas::MeasList Page::readCurValues(IdSet&id_set) {
 		if (id_set.size() == 0) {
 			break;
 		}
+        if(pos==0){
+            break;
+        }
 	}
 	return result;
 }

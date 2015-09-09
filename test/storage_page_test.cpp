@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
   }
 
   BOOST_CHECK_EQUAL(page->minTime(), 0);
-  BOOST_CHECK_EQUAL(page->maxTime(), (storage::Time)writed);
+  BOOST_CHECK_EQUAL(page->maxTime(), (storage::Time)writed-1);
   auto index = page->index_fileName();
   page->close();
   utils::rm(mdb_test::test_page_name);

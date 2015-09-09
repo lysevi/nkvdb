@@ -176,12 +176,21 @@ void DataStorage::writeCache() {
 }
 
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
-  if (hdr.minTime >= from || hdr.maxTime <= to) {
-    return true;
-  } else {
-    return false;
-  }
+	if (utils::inInterval(from, to, hdr.minTime) || utils::inInterval(from, to, hdr.maxTime)) {
+		return true;
+	} else {
+		return false;
+	}
 }
+
+bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
+	if (hdr.minId >= from || hdr.maxId <= to) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 
 Meas::MeasList DataStorage::readInterval(Time from, Time to) {
   return this->readInterval(IdArray{}, 0, 0, from, to);
@@ -224,6 +233,9 @@ Meas::MeasList DataStorage::readInterval(const IdArray &ids,
 
     Meas::MeasList subResult =
         page2read->readInterval(ids, source, flag, from, to);
+	if (subResult.size() != 10) {
+		int a = 3;
+	}
     std::copy(subResult.begin(), subResult.end(),
               std::back_inserter(list_result));
     if (shouldClosed) {
@@ -240,6 +252,35 @@ Meas::MeasList DataStorage::readInterval(const IdArray &ids,
 
   return list_result;
 }
+
+void DataStorage::loadCurValues(const IdArray&ids) {
+	typedef std::pair<std::string, storage::Time> page_time;
+	auto from = *std::min_element(ids.begin(),ids.end());
+	auto to = *std::max_element(ids.begin(), ids.end());
+
+	Meas::MeasList list_result;
+	auto page_list = pageList();
+	
+
+	std::vector<page_time> page_time_vector{};
+	for (auto page : page_list) {
+		storage::Page::PPage page2read;
+		bool shouldClosed = false;
+		if (page == m_curpage->fileName()) {
+			if (HeaderIdIntervalCheck(from, to, m_curpage->getHeader())) {
+				page_time_vector.push_back(std::make_pair(page, m_curpage->maxTime()));
+			}
+		} else {
+			storage::Page::Header hdr = storage::Page::ReadHeader(page);
+			if (HeaderIdIntervalCheck(from, to, hdr)) {
+				page_time_vector.push_back(std::make_pair(page, hdr.maxTime));
+			}
+		}
+	}
+
+	std::sort(page_time_vector.begin(), page_time_vector.end(), [](const page_time&a, const page_time&b){return a.second > b.second; });
+}
+
 std::list<std::string> DataStorage::pageList() const {
   auto page_list = utils::ls(m_path, ".page");
 

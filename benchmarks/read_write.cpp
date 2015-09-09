@@ -132,14 +132,14 @@ int main(int argc, char *argv[]) {
     logger( "creating storage...");
     logger( "pages_size:" << pagesize);
 
-    for (int i = 0; i < pagesize * 10; ++i) {
+    for (int64_t i = 0; i < pagesize * 10; ++i) {
       clock_t verb_t0 = clock();
-
+	  
       meas->value = i;
       meas->id = i % meas2write;
       meas->source = meas->flag = i % meas2write;
       meas->time = i;
-
+	  
       ds->append(*meas);
       clock_t verb_t1 = clock();
       if (verbose) {

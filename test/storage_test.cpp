@@ -220,36 +220,7 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
 
 BOOST_AUTO_TEST_CASE(StorageCurvalues) {
-	const int meas2write = 10;
-	const size_t write_iteration = 10;
-	const uint64_t storage_size =
-		sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
-	const std::string storage_path = mdb_test::storage_path + "storageIO";
-
-	{
-		storage::DataStorage::PDataStorage ds =
-			storage::DataStorage::Create(storage_path, storage_size);
-
-		size_t arr_size = meas2write * write_iteration;
-
-		std::map<storage::Id, storage::Meas> id2meas;
-
-		storage::Meas::PMeas array = new storage::Meas[arr_size];
-		for (size_t i = 0; i < arr_size; ++i) {
-			array[i].id = i%meas2write;
-			array[i].time = i;
-			id2meas[array[i].id] = array[i];
-		}
-		ds->append(array, arr_size);
-		delete[] array;
-
-		IdArray query{};
-		query.resize(id2meas.size());
-		size_t pos = 0;
-		for (auto kv : id2meas) {
-			query[pos] = kv.first;
-			pos++;
-		}
+	auto test_storage = [](IdArray query, std::map<storage::Id, storage::Meas> id2meas, storage::DataStorage::PDataStorage ds){
 		auto curValues = ds->curValues(query);
 		BOOST_CHECK_EQUAL(curValues.size(), id2meas.size());
 		for (auto v : curValues) {
@@ -260,6 +231,48 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 			}
 		}
 		BOOST_CHECK(id2meas.size() == 0);
+	};
+
+	const int meas2write = 10;
+	const size_t write_iteration = 10;
+	const uint64_t storage_size =
+		sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+	const std::string storage_path = mdb_test::storage_path + "storageIO";
+	
+	std::map<storage::Id, storage::Meas> id2meas;
+	IdArray query{};
+	{
+		{
+			storage::DataStorage::PDataStorage ds =	storage::DataStorage::Create(storage_path, storage_size);
+
+			size_t arr_size = meas2write * write_iteration;
+
+			
+
+			storage::Meas::PMeas array = new storage::Meas[arr_size];
+			for (size_t i = 0; i < arr_size; ++i) {
+				array[i].id = i%meas2write;
+				array[i].time = i;
+				id2meas[array[i].id] = array[i];
+			}
+			ds->append(array, arr_size);
+			delete[] array;
+
+			
+			query.resize(id2meas.size());
+			size_t pos = 0;
+			for (auto kv : id2meas) {
+				query[pos] = kv.first;
+				pos++;
+			}
+
+			test_storage(query, id2meas, ds);
+		}
+		/*{
+			storage::DataStorage::PDataStorage ds =	storage::DataStorage::Open(storage_path);
+			ds->loadCurValues(query);
+			test_storage(query, id2meas, ds);
+		}*/
 	}
 	utils::rm(storage_path);
 }

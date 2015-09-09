@@ -23,7 +23,7 @@ bool storage::checkPastTime(const Time t, const Time past_time) { // |current ti
     return true;
   } else {
     Time cur_t = storage::TimeWork::CurrentUtcTime();
-    auto delta = std::abs(cur_t - t);
+    auto delta = cur_t - t;
 
     return delta <= past_time;
   }

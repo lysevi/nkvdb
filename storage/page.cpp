@@ -141,6 +141,7 @@ void Page::updateMinMax(const Meas& value) {
 
     m_header->minId = std::min(value.id, m_header->minId);
     m_header->maxId = std::max(value.id, m_header->maxId);
+	
   } else {
     m_header->minMaxInit = true;
     m_header->minTime = value.time;
@@ -177,23 +178,26 @@ bool Page::append(const Meas& value) {
 size_t Page::append(const Meas::PMeas begin, const size_t size) {
   size_t cap = this->capacity();
   size_t to_write = 0;
+  if (cap == 0) {
+	  return 0;
+  }
   if (cap > size) {
     to_write = size;
   } else if (cap == size) {
-    to_write = size;
+	  to_write = size;
   } else if (cap < size) {
     to_write = cap;
   }
   memcpy(m_data_begin + m_header->write_pos, begin, to_write * sizeof(Meas));
 
   updateMinMax(begin[0]);
-  updateMinMax(begin[to_write]);
+  updateMinMax(begin[to_write-1]);
 
   Index::IndexRecord rec;
   rec.minTime = begin[0].time;
-  rec.maxTime = begin[size - 1].time;
+  rec.maxTime = begin[to_write - 1].time;
   rec.minId = begin[0].id;
-  rec.maxId = begin[size - 1].id;
+  rec.maxId = begin[to_write - 1].id;
   rec.count = to_write;
   rec.pos = m_header->write_pos;
 

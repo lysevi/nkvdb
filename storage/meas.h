@@ -6,7 +6,7 @@
 #include <ctime>
 
 namespace storage {
-typedef clock_t Time;
+typedef uint64_t Time;
 typedef uint64_t Id;
 typedef uint64_t Flag;
 typedef uint64_t Value;

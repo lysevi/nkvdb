@@ -45,12 +45,11 @@ public:
   size_t getCacheSize()const;
   void setCacheSize(size_t sz);
 
-  
+  void loadCurValues(const IdArray&ids);
 private:
   DataStorage();
   std::list<std::string> pageList() const;
   void writeCache();
-
 protected:
   std::string m_path;
   Page::PPage m_curpage;

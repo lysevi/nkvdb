@@ -187,7 +187,7 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
   memcpy(m_data_begin + m_header->write_pos, begin, to_write * sizeof(Meas));
 
   updateMinMax(begin[0]);
-  updateMinMax(begin[size - 1]);
+  updateMinMax(begin[to_write]);
 
   Index::IndexRecord rec;
   rec.minTime = begin[0].time;

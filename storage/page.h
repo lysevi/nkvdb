@@ -51,7 +51,8 @@ public:
   bool read(Meas::PMeas result, uint64_t position);
   void readInterval(Time from, Time to, storage::Meas::MeasList&result);
   void readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, storage::Meas::MeasList&result);
-
+  
+  Meas::MeasList readCurValues(IdSet&id_set);
 private:
   void readAll(storage::Meas::MeasList *dest);
   void readFromToPos(const IdArray &ids,
@@ -63,7 +64,7 @@ private:
   void initHeader(char *data);
   void updateMinMax(const Meas& value);
   
-
+  
 protected:
   std::string *m_filename;
 

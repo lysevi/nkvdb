@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cmath>
 #include <sstream>
+
 #include <iterator>
 
 using namespace storage;
@@ -253,12 +254,9 @@ void DataStorage::loadCurValues(const IdArray&ids) {
 	typedef std::pair<std::string, storage::Time> page_time;
 	auto from = *std::min_element(ids.begin(),ids.end());
 	auto to = *std::max_element(ids.begin(), ids.end());
-
-	Meas::MeasList list_result;
-	auto page_list = pageList();
-	
-
 	std::vector<page_time> page_time_vector{};
+
+	auto page_list = pageList();
 	for (auto page : page_list) {
 		storage::Page::PPage page2read;
 		bool shouldClosed = false;
@@ -275,6 +273,29 @@ void DataStorage::loadCurValues(const IdArray&ids) {
 	}
 
 	std::sort(page_time_vector.begin(), page_time_vector.end(), [](const page_time&a, const page_time&b){return a.second > b.second; });
+	IdSet id_set(ids.begin(), ids.end());
+
+	for (auto kv : page_time_vector) {
+		if (id_set.size() == 0) {
+			break;
+		}
+		storage::Page::PPage page2read;
+		auto page = kv.first;
+		bool shouldClosed = false;
+		if (page == m_curpage->fileName()) {
+			page2read = m_curpage;
+		} else {
+			page2read = storage::Page::Open(page);
+			shouldClosed = true;
+		}
+		auto sub_result=page2read->readCurValues(id_set);
+		for(auto m:sub_result) {
+			m_cur_values.writeValue(m);
+		}
+		if (shouldClosed) {
+			page2read->close();
+		}
+	}
 }
 
 std::list<std::string> DataStorage::pageList() const {

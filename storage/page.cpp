@@ -312,3 +312,21 @@ size_t Page::capacity() const {
 }
 
 Page::Header Page::getHeader() const { return *m_header; }
+
+
+Meas::MeasList Page::readCurValues(IdSet&id_set) {
+	
+	Meas::MeasList result;
+	for (auto pos = this->m_header->write_pos - 1; pos >= 0; --pos) {
+		Meas curValue = m_data_begin[pos];
+
+		if (id_set.find(curValue.id) != id_set.end()) {
+			result.push_back(curValue);
+			id_set.erase(curValue.id);
+		}
+		if (id_set.size() == 0) {
+			break;
+		}
+	}
+	return result;
+}

@@ -267,11 +267,11 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 
 			test_storage(query, id2meas, ds);
 		}
-		/*{
+		{
 			storage::DataStorage::PDataStorage ds =	storage::DataStorage::Open(storage_path);
 			ds->loadCurValues(query);
 			test_storage(query, id2meas, ds);
-		}*/
+		}
 	}
 	utils::rm(storage_path);
 }

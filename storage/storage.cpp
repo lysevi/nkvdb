@@ -259,7 +259,6 @@ void DataStorage::loadCurValues(const IdArray&ids) {
 	auto page_list = pageList();
 	for (auto page : page_list) {
 		storage::Page::PPage page2read;
-		bool shouldClosed = false;
 		if (page == m_curpage->fileName()) {
 			if (HeaderIdIntervalCheck(from, to, m_curpage->getHeader())) {
 				page_time_vector.push_back(std::make_pair(page, m_curpage->maxTime()));

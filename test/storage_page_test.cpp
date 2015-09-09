@@ -76,8 +76,8 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 
     Page::PPage storage = Page::Open(mdb_test::test_page_name);
 
-    BOOST_CHECK_EQUAL(storage->minTime(), 0);
-    BOOST_CHECK_EQUAL(storage->maxTime(), (storage::Time)(TestableMeasCount - 1));
+    BOOST_CHECK_EQUAL(storage->minTime(), storage::Time(0));
+    BOOST_CHECK_EQUAL(storage->maxTime(), static_cast<storage::Time>(TestableMeasCount - 1));
 
     auto newMeas = storage::Meas::empty();
     for (size_t i = 0; i < TestableMeasCount; ++i) {
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 
     auto hdr = storage->getHeader();
     BOOST_CHECK_EQUAL(hdr.maxTime, (storage::Time)TestableMeasCount - 1);
-    BOOST_CHECK_EQUAL(hdr.minTime, 0);
+    BOOST_CHECK_EQUAL(hdr.minTime, storage::Time(0));
     BOOST_CHECK_EQUAL(hdr.size, storage->size());
     index = storage->index_fileName();
     storage->close();
@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
     BOOST_CHECK_EQUAL(readed.id, i);
   }
 
-  BOOST_CHECK_EQUAL(page->minTime(), 0);
+  BOOST_CHECK_EQUAL(page->minTime(), storage::Time(0));
   BOOST_CHECK_EQUAL(page->maxTime(), (storage::Time)writed-1);
   auto index = page->index_fileName();
   page->close();
@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
         BOOST_CHECK(it->id != 4 && it->id != 5);
         BOOST_CHECK(it->flag == 3);
         BOOST_CHECK(it->source == 3);
-        BOOST_CHECK(it->time <= TestableMeasCount && it->time >= 0);
+        BOOST_CHECK(it->time <= TestableMeasCount);
       }
     }
 
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
         if (it->flag > 3) {
           haveFlag = true;
         }
-        BOOST_CHECK(it->time <= TestableMeasCount && it->time >= 0);
+        BOOST_CHECK(it->time <= TestableMeasCount);
       }
 
       BOOST_CHECK(haveSource);

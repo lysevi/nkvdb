@@ -236,7 +236,7 @@ void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag
     //storage::Meas key;
     //key.time = from;
     //auto read_start = utils::find_begin(this->m_data_begin + begin, this->m_data_begin + end, key, cmp_pred, delta_pred);
-	bool append = false;
+
 	for (size_t i = begin; i < end; ++i) {
 		//for (size_t i = std::distance(this->m_data_begin + begin, read_start); i < end; ++i) {
 		if (!read(&readedValue, i)) {
@@ -266,13 +266,9 @@ void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag
 					continue;
 				}
 			}
-			append = true;
+
 			dest->push_back(readedValue);
-		}/* else {
-			if (append) {
-				break;
-			}
-		}*/
+        }
 	}
 }
 
@@ -317,7 +313,7 @@ Page::Header Page::getHeader() const { return *m_header; }
 Meas::MeasList Page::readCurValues(IdSet&id_set) {
 	
 	Meas::MeasList result;
-	for (auto pos = this->m_header->write_pos - 1; pos >= 0; --pos) {
+    for (size_t pos = this->m_header->write_pos - 1; pos != size_t(0); --pos) {
 		Meas curValue = m_data_begin[pos];
 
 		if (id_set.find(curValue.id) != id_set.end()) {

@@ -74,11 +74,12 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 			maxId = *std::max_element(ids.cbegin(), ids.cend());
 		}
 
-		IndexRecord val;
+        /*IndexRecord val;
 		val.minTime = from;
 		val.maxTime = to;
-		
-		//auto read_start = i_data;// utils::find_begin(i_data, i_data + fsize / sizeof(IndexRecord), val, i_cmp_pred, i_delta_pred);
+
+        auto read_start = i_data;
+        utils::find_begin(i_data, i_data + fsize / sizeof(IndexRecord), val, i_cmp_pred, i_delta_pred);*/
 		/*IndexRecord *from_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
 			[](IndexRecord a, IndexRecord b) { return a.minTime < b.minTime; });
 		IndexRecord *to_pos = std::lower_bound(i_data, i_data + fsize / sizeof(IndexRecord), val,
@@ -86,7 +87,7 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 		
 		Index::IndexRecord prev_value;
 		bool first = true;
-		for (auto pos = 0; pos<fsize / sizeof(IndexRecord); pos++) {
+        for (size_t pos = 0; pos<fsize / sizeof(IndexRecord); pos++) {
 			Index::IndexRecord rec;
 
 			rec = i_data[pos];

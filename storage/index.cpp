@@ -34,16 +34,16 @@ void Index::writeIndexRec(const Index::IndexRecord &rec) {
 	}
 	fclose(pFile);
 }
-int i_cmp_pred(const Index::IndexRecord &r, const Index::IndexRecord &l) {
-	if (r.minTime < l.minTime)
-		return -1;
-	if (r.minTime == l.minTime)
-		return 0;
-
-	return 1;
-}
-
-int i_delta_pred(const Index::IndexRecord &r, const Index::IndexRecord &l) { return r.minTime - l.minTime; }
+//int i_cmp_pred(const Index::IndexRecord &r, const Index::IndexRecord &l) {
+//	if (r.minTime < l.minTime)
+//		return -1;
+//	if (r.minTime == l.minTime)
+//		return 0;
+//
+//	return 1;
+//}
+//
+//int i_delta_pred(const Index::IndexRecord &r, const Index::IndexRecord &l) { return r.minTime - l.minTime; }
 
 std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, Time to) const {
 	std::list<Index::IndexRecord> result;

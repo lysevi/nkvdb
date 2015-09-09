@@ -153,7 +153,7 @@ Cache::PCache CachePool::getCache() {
     if (result == nullptr) {
       this->setPoolSize((int)(m_pool_size * 1.5));
       this->setCacheSize((int)(m_cache_size * 1.5));
-      m_recalc_period = m_pool_size;
+      m_recalc_period = static_cast<int>(m_pool_size);
       return this->getCache();
     }
 

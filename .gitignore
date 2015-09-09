@@ -1,3 +1,4 @@
+*.so
 *.idx
 *_export.h
 *.db

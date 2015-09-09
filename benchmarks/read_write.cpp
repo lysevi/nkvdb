@@ -114,14 +114,17 @@ int main(int argc, char *argv[]) {
     dont_remove = true;
   }
 
-  const uint64_t storage_size =
-      sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
+  
 
   makeAndWrite(meas2write, 1000000);
   makeAndWrite(meas2write, 2000000);
   makeAndWrite(meas2write, 3000000);
 
   if (!write_only) {
+	  int pagesize = 1000000;
+	  const uint64_t storage_size =
+		  sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
+
     storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
     storage::Meas::PMeas meas = storage::Meas::empty();
 

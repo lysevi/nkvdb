@@ -25,7 +25,10 @@ int cmp_pred(const storage::Meas &r, const storage::Meas &l) {
   return 1;
 }
 
-int delta_pred(const Meas &r, const Meas &l) { return r.time - l.time; }
+uint32_t delta_pred(const Meas &r, const Meas &l) 
+{
+	return r.time - l.time; 
+}
 
 Page::Page(std::string fname)
     : m_filename(new std::string(fname)),
@@ -233,63 +236,61 @@ void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag
     //storage::Meas key;
     //key.time = from;
     //auto read_start = utils::find_begin(this->m_data_begin + begin, this->m_data_begin + end, key, cmp_pred, delta_pred);
-    for (size_t i = begin; i < end; ++i) {
-   //for (size_t i = std::distance(this->m_data_begin + begin, read_start); i < end; ++i) {
-    if (!read(&readedValue, i)) {
-        std::stringstream ss;
-        ss << "ReadIntervalError: "
-           << " file name: " << m_filename
-           << " writePos: " << m_header->write_pos
-           << " size: " << m_header->size;
+	bool append = false;
+	for (size_t i = begin; i < end; ++i) {
+		//for (size_t i = std::distance(this->m_data_begin + begin, read_start); i < end; ++i) {
+		if (!read(&readedValue, i)) {
+			std::stringstream ss;
+			ss << "ReadIntervalError: "
+				<< " file name: " << m_filename
+				<< " writePos: " << m_header->write_pos
+				<< " size: " << m_header->size;
 
-        throw MAKE_EXCEPTION(ss.str());
-      }
+			throw MAKE_EXCEPTION(ss.str());
+		}
 
-      if (utils::inInterval(from, to, readedValue.time)) {
-        if (flag != 0) {
-          if (readedValue.flag != flag) {
-            continue;
-          }
-        }
-        if (source != 0) {
-          if (readedValue.source != source) {
-            continue;
-          }
-        }
-        if (ids.size() != 0) {
-          if (std::find(ids.cbegin(), ids.cend(), readedValue.id) ==
-              ids.end()) {
-            continue;
-          }
-        }
-        dest->push_back(readedValue);
-      }/*else{
-          if(result.size()!=0){
-              break;
-          }
-      }*/
-    }
+		if (utils::inInterval(from, to, readedValue.time)) {
+			if (flag != 0) {
+				if (readedValue.flag != flag) {
+					continue;
+				}
+			}
+			if (source != 0) {
+				if (readedValue.source != source) {
+					continue;
+				}
+			}
+			if (ids.size() != 0) {
+				if (std::find(ids.cbegin(), ids.cend(), readedValue.id) ==
+					ids.end()) {
+					continue;
+				}
+			}
+			append = true;
+			dest->push_back(readedValue);
+		}/* else {
+			if (append) {
+				break;
+			}
+		}*/
+	}
 }
 
-storage::Meas::MeasList Page::readInterval(Time from, Time to) {
+void Page::readInterval(Time from, Time to, storage::Meas::MeasList&result) {
 	static IdArray emptyArray;
-	return this->readInterval(emptyArray, 0, 0, from, to);
+	this->readInterval(emptyArray, 0, 0, from, to,result);
 }
 
-storage::Meas::MeasList Page::readInterval(const IdArray &ids,
-                                           storage::Flag source,
-                                           storage::Flag flag, Time from,
-                                           Time to) {
-  storage::Meas::MeasList result;
+void Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, storage::Meas::MeasList&result) {
  //logger("Page::ReadInterval: from:"<<from<<" to:"<<to<<" min:"<<m_header->minTime<<" max:"<<m_header->maxTime);
   // [from...minTime,maxTime...to]
   if((from<=m_header->minTime) && (to>=m_header->maxTime)){
         if((ids.size()==0) && (source==0) && (flag==0)){
             this->readAll(&result);
-			return result;
+			return;
         }else{
             this->readFromToPos(ids,source,flag,from,to,0,m_header->write_pos,&result);
-			return result;
+			return;
         }
   }
 
@@ -298,7 +299,6 @@ storage::Meas::MeasList Page::readInterval(const IdArray &ids,
     auto max_pos = rec.pos + rec.count;
     this->readFromToPos(ids,source,flag,from,to, rec.pos,max_pos,&result);
   }
-  return result;
 }
 
 bool Page::isFull() const {

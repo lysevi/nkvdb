@@ -193,7 +193,8 @@ bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
 
 
 Meas::MeasList DataStorage::readInterval(Time from, Time to) {
-  return this->readInterval(IdArray{}, 0, 0, from, to);
+	static IdArray empty{};
+  return this->readInterval(empty, 0, 0, from, to);
 }
 
 Meas::MeasList DataStorage::readInterval(const IdArray &ids,
@@ -231,14 +232,9 @@ Meas::MeasList DataStorage::readInterval(const IdArray &ids,
       continue;
     }
 
-    Meas::MeasList subResult =
-        page2read->readInterval(ids, source, flag, from, to);
-	if (subResult.size() != 10) {
-		int a = 3;
-	}
-    std::copy(subResult.begin(), subResult.end(),
-              std::back_inserter(list_result));
-    if (shouldClosed) {
+    page2read->readInterval(ids, source, flag, from, to,list_result);
+
+	if (shouldClosed) {
       page2read->close();
     }
   }

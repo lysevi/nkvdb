@@ -103,8 +103,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
     storage::DataStorage::PDataStorage ds =
         storage::DataStorage::Open(storage_path);
 
-    for (int i = 1; i < meas2write * write_iteration;
-         i += (meas2write * write_iteration) / 100) {
+    for (int i = 1; i < meas2write * write_iteration;i += (meas2write * write_iteration) / 100) {
       storage::Time to = i * ((meas2write * write_iteration) / 100);
       auto meases = ds->readInterval(0, to);
 

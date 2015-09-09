@@ -6,14 +6,15 @@ set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME     OFF)
 set(BOOST_ALL_DYN_LINK           ON)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 IF(WIN32)
   MESSAGE(STATUS "WIN32:")
-  set(BOOST_ROOT "d:\\soft\\boost_1_57_0\\boost_1_57_0")
   MESSAGE(STATUS "+ boost root: " ${BOOST_ROOT})
 
   
 
-  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log)
+  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log  program_options)
 
   include (GenerateExportHeader)
 
@@ -34,9 +35,6 @@ else(WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -Wall -Werror")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Werror  -pthread")
 
-  #set(BOOST_ROOT "/home/lsv/soft/cpp/boost_1_57_0")
-
-  #LINK_DIRECTORIES(${LINK_DIRECTORIES} "/mnt/data/soft/cpp/boost_1_57_0/stage/lib")
   set(BoostUSESTATIC_LIBS OFF)
   
   find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log program_options)

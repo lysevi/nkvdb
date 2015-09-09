@@ -2,10 +2,12 @@
 
 #include <vector>
 #include <memory>
+#include <map>
 #include "meas.h"
 #include "common.h"
 
 namespace storage {
+	class DataStorage;
 
 class Cache {
 public:
@@ -15,7 +17,7 @@ public:
   bool isFull() const;
   append_result append(const Meas &value, const Time past_time);
   append_result append(const Meas::PMeas begin, const size_t size,
-                       const Time past_time);
+					   const Time past_time);
   storage::Meas::MeasList readInterval(Time from, Time to) const;
   Meas::PMeas asArray() const;
   size_t size() const { return m_size; }
@@ -26,6 +28,7 @@ public:
   void sync_begin();
   void sync_complete();
 
+  void setStorage(DataStorage*ds);
 private:
   // typedef std::map<storage::Time, std::list<size_t>> time2meas;
 
@@ -35,6 +38,7 @@ private:
   size_t m_size;
   size_t m_index;
   bool m_sync;
+  DataStorage*m_ds;
 };
 
 class CachePool : std::vector<Cache::PCache> {
@@ -62,4 +66,15 @@ private:
   int m_recalc_period;
   bool m_dynamic_size;
 };
+
+class CurValuesCache
+{
+public:
+	CurValuesCache();
+	void writeValue(const storage::Meas&v);
+	storage::Meas::MeasList readValue(const storage::IdArray&ids)const;
+private:
+	std::map<storage::Id, storage::Meas> m_values;
+};
+
 }

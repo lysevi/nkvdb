@@ -1,15 +1,19 @@
 #include "cache.h"
 #include "time.h"
+#include "storage.h"
 #include <utils/utils.h>
 #include <iostream>
 
 using namespace storage;
 
-Cache::Cache(size_t size): m_max_size(size), m_size(0), m_index(0), m_sync(false) {
+Cache::Cache(size_t size): m_max_size(size), m_size(0), m_index(0), m_sync(false),m_ds(nullptr) {
   m_meases = new Meas[size];
 }
 
-Cache::~Cache() { delete[] m_meases; }
+Cache::~Cache() { 
+	delete[] m_meases; 
+	m_ds = nullptr;
+}
 
 bool Cache::isFull() const { return m_size == m_max_size; }
 
@@ -24,6 +28,10 @@ bool Cache::is_sync() const { return m_sync; }
 void Cache::sync_begin() { m_sync = true; }
 
 void Cache::sync_complete() { m_sync = false; }
+
+void Cache::setStorage(DataStorage*ds) {
+	m_ds = ds;
+}
 
 append_result Cache::append(const Meas &value, const Time past_time) {
   append_result res{};
@@ -49,7 +57,7 @@ append_result Cache::append(const Meas &value, const Time past_time) {
 }
 
 append_result Cache::append(const Meas::PMeas begin, const size_t size,
-                            const Time past_time) {
+							const Time past_time) {
   // std::lock_guard<std::mutex> lock(this->m_rw_lock);
   size_t cap = this->m_max_size;
   size_t to_write = 0;
@@ -69,7 +77,11 @@ append_result Cache::append(const Meas::PMeas begin, const size_t size,
       res.ignored++;
       continue;
     }
-    m_meases[m_index] = Meas{begin[i]};
+	auto value = Meas{ begin[i] };
+    m_meases[m_index] = value;
+	if (m_ds != nullptr) {
+		m_ds->m_cur_values.writeValue(value);
+	}
     m_size++;
     m_index++;
   }
@@ -197,4 +209,23 @@ void CachePool::setPoolSize(const size_t sz) {
 
 size_t CachePool::getPoolSize()const{
     return m_pool_size;
+}
+
+
+CurValuesCache::CurValuesCache() :m_values() {
+}
+
+void CurValuesCache::writeValue(const storage::Meas&v) {
+	this->m_values.insert(std::make_pair(v.id, v));
+}
+
+storage::Meas::MeasList CurValuesCache::readValue(const storage::IdArray&ids)const {
+	Meas::MeasList result;
+	for (auto id : ids) {
+		auto it = m_values.find(id);
+		if (it != m_values.end()) {
+			result.push_back(it->second);
+		}
+	}
+	return result;
 }

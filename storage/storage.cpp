@@ -52,6 +52,7 @@ std::string getNewPageUniqueName(const std::string &ds_path) {
 DataStorage::DataStorage()
     : m_cache_pool(defaultcachePoolSize, defaultcacheSize) {
   m_cache = m_cache_pool.getCache();
+  m_cache->setStorage(this);
   m_cache_writer.setStorage(this);
   m_cache_writer.start();
   m_past_time = 0;
@@ -171,6 +172,7 @@ void DataStorage::writeCache() {
       break;
     }
   }
+  m_cache->setStorage(this);
 }
 
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
@@ -275,4 +277,15 @@ size_t DataStorage::getCacheSize()const{
 
 void DataStorage::setCacheSize(size_t sz){
     m_cache_pool.setCacheSize(sz);
+}
+
+
+Meas::MeasList DataStorage::curValues(const IdArray&ids) {
+	this->writeCache();
+	while (true) {
+		if (!m_cache_writer.isBusy()) {
+			break;
+		}
+	}
+	return m_cur_values.readValue(ids);
 }

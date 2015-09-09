@@ -29,9 +29,8 @@ public:
   append_result append(const Meas::PMeas begin, const size_t meas_count);
 
   Meas::MeasList readInterval(Time from, Time to);
-  Meas::MeasList readInterval(const IdArray &ids, storage::Flag source,
-                              storage::Flag flag, Time from, Time to);
-
+  Meas::MeasList readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
+  Meas::MeasList curValues(const IdArray&ids);
   Page::PPage getCurPage();
   void createNewPage();
 
@@ -45,6 +44,8 @@ public:
   void setPoolSize(size_t sz);
   size_t getCacheSize()const;
   void setCacheSize(size_t sz);
+
+  
 private:
   DataStorage();
   std::list<std::string> pageList() const;
@@ -60,6 +61,8 @@ protected:
 
   AsyncWriter m_cache_writer;
   CachePool m_cache_pool;
+  CurValuesCache m_cur_values;
   Time m_past_time;
+  friend class storage::Cache;
 };
 }

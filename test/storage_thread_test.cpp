@@ -23,17 +23,16 @@ const int write_iteration = 10;
 size_t arr_size = meas2write * write_iteration;
 
 void writer(storage::DataStorage::PDataStorage ds) {
-  threads_count++;
-  storage::Meas::PMeas meas = storage::Meas::empty();
-  for (size_t i = 0; i < arr_size; ++i) {
-    meas->value = i;
-    meas->id = i;
-    meas->source = meas->flag = i % meas2write;
-    meas->time = i;
-    ds->append(*meas);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
-  delete meas;
+	threads_count++;
+	storage::Meas::PMeas meas = storage::Meas::empty();
+	for (size_t i = 0; i < arr_size; ++i) {
+		meas->value = i;
+		meas->id = i;
+		meas->source = meas->flag = i % meas2write;
+		meas->time = i;
+		ds->append(*meas);
+	}
+	delete meas;
 }
 
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {
@@ -52,15 +51,15 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
     std::thread t4(writer, ds);
     std::thread t5(writer, ds);
 
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
     t5.join();
+    t4.join();
+    t3.join();
+    t2.join();
+    t1.join();
 
     auto meases = ds->readInterval(0, arr_size);
 
-    BOOST_CHECK(meases.size() == arr_size * 5);
+    BOOST_CHECK_EQUAL(meases.size(), arr_size * 5);
 
     for (size_t i = 0; i < arr_size; ++i) {
       int count = threads_count;
@@ -69,7 +68,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
           count--;
         }
       }
-      BOOST_CHECK(count == 0);
+      BOOST_CHECK_EQUAL(count, 0);
     }
   }
   utils::rm(storage_path);

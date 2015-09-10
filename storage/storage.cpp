@@ -195,7 +195,7 @@ bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
 
 Meas::MeasList DataStorage::readInterval(Time from, Time to) {
 	static IdArray empty{};
-  return this->readInterval(empty, 0, 0, from, to);
+	return this->readInterval(empty, 0, 0, from, to);
 }
 
 Meas::MeasList DataStorage::readInterval(const IdArray &ids,

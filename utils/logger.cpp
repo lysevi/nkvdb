@@ -4,13 +4,9 @@
 
 namespace utils
 {
-	Logger* Logger::m_instance;
-
 	Logger* Logger::get() {
-		if (Logger::m_instance == nullptr) {
-			Logger::m_instance = new Logger();
-		}
-		return m_instance;
+		static Logger instance;
+		return &instance;
 	}
 
 	std::ostream& Logger::GetStream() {

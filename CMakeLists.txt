@@ -18,7 +18,7 @@ IF(WIN32)
 	find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /EHsc")
   else(MSVC)
-	find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log )
+        find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread iostreams filesystem log program_options)
   endif(MSVC)
 
   include (GenerateExportHeader)

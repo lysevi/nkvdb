@@ -132,6 +132,9 @@ append_result DataStorage::append(const Meas& m) {
     if (res.writed == 0) {
       this->writeCache();
     }
+	if (res.ignored != 0) {
+		logger_info("DataStorage: ignored on write:" << res.ignored);
+	}
   }
   return res;
 }
@@ -153,6 +156,9 @@ append_result DataStorage::append(const Meas::PMeas begin,
     }
     to_write -= wrt_res.writed;
     result = result + wrt_res;
+  }
+  if (result.ignored != 0) {
+	  logger_info("DataStorage: ignored on write:" << result.ignored);
   }
   return result;
 }

@@ -2,6 +2,9 @@
 *.idx
 *_export.h
 *.db
+*.dbi
+*.page
+*.pagei
 *.a
 Makefile
 mdb

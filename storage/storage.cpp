@@ -212,7 +212,7 @@ Meas::MeasList DataStorage::readInterval(const IdArray &ids,
   return list_result;
 }
 
-void DataStorage::loadCurValues(const IdArray&ids) {
+IdArray DataStorage::loadCurValues(const IdArray&ids) {
 	typedef std::pair<std::string, storage::Time> page_time;
 	auto from = *std::min_element(ids.begin(),ids.end());
 	auto to = *std::max_element(ids.begin(), ids.end());
@@ -257,6 +257,11 @@ void DataStorage::loadCurValues(const IdArray&ids) {
 			page2read->close();
 		}
 	}
+    if(id_set.size()!=0){
+        logger("DataStorage::loadCurValues: not foun "<<id_set.size()<<" id");
+    }
+    IdArray result(id_set.begin(),id_set.end());
+    return result;
 }
 
 

@@ -49,7 +49,8 @@ public:
   size_t getCacheSize()const;
   void setCacheSize(size_t sz);
 
-  void loadCurValues(const IdArray&ids);
+  /// load current values of ids. return array of not founded measurements.
+  IdArray loadCurValues(const IdArray&ids);
 private:
   DataStorage();
   void writeCache();

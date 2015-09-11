@@ -267,5 +267,12 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 			test_storage(query, id2meas, ds);
 		}
 	}
+    {
+        /// check query with not found result
+        storage::DataStorage::PDataStorage ds =	storage::DataStorage::Open(storage_path);
+        IdArray query={0,1,meas2write+2,meas2write+3};
+        auto notFound=ds->loadCurValues(query);
+        BOOST_CHECK_EQUAL(notFound.size(),size_t(2));
+    }
 	utils::rm(storage_path);
 }

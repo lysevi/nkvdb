@@ -213,25 +213,34 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
 
 
 bool Page::read(Meas::PMeas result, uint64_t position) {
-  if (result == nullptr)
-    return false;
-  {
-    if (m_header->write_pos <= position) {
-      return false;
+    if(this->m_header->write_pos==0){
+        return false;
     }
-  }
+    if (result == nullptr)
+        return false;
+    {
+        if (m_header->write_pos <= position) {
+            return false;
+        }
+    }
 
-  Meas *m = &m_data_begin[position];
-  result->readFrom(m);
-  return true;
+    Meas *m = &m_data_begin[position];
+    result->readFrom(m);
+    return true;
 }
 
 void  Page::readAll(storage::Meas::MeasList *dest) {
+    if(this->m_header->write_pos==0){
+        return;
+    }
 	std::copy(this->m_data_begin, this->m_data_begin + m_header->write_pos, std::back_inserter(*dest));
 }
 
 
 void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end, storage::Meas::MeasList *dest){
+    if(this->m_header->write_pos==0){
+        return;
+    }
     storage::Meas readedValue;
     //storage::Meas key;
     //key.time = from;
@@ -273,6 +282,9 @@ void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag
 }
 
 void Page::readInterval(Time from, Time to, storage::Meas::MeasList&result) {
+    if(this->m_header->write_pos==0){
+        return;
+    }
 	static IdArray emptyArray;
 	this->readInterval(emptyArray, 0, 0, from, to,result);
 }
@@ -280,6 +292,9 @@ void Page::readInterval(Time from, Time to, storage::Meas::MeasList&result) {
 void Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, storage::Meas::MeasList&result) {
  //logger("Page::ReadInterval: from:"<<from<<" to:"<<to<<" min:"<<m_header->minTime<<" max:"<<m_header->maxTime);
   // [from...minTime,maxTime...to]
+    if(this->m_header->write_pos==0){
+        return;
+    }
   if((from<=m_header->minTime) && (to>=m_header->maxTime)){
         if((ids.size()==0) && (source==0) && (flag==0)){
             this->readAll(&result);
@@ -311,8 +326,10 @@ Page::Header Page::getHeader() const { return *m_header; }
 
 
 Meas::MeasList Page::readCurValues(IdSet&id_set) {
-	
 	Meas::MeasList result;
+    if(this->m_header->write_pos==0){
+        return result;
+    }
     for (size_t pos = this->m_header->write_pos - 1; ; --pos) {
 		Meas curValue = m_data_begin[pos];
 

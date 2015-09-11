@@ -24,15 +24,14 @@ size_t arr_size = meas2write * write_iteration;
 
 void writer(storage::DataStorage::PDataStorage ds) {
 	threads_count++;
-	storage::Meas::PMeas meas = storage::Meas::empty();
+    storage::Meas meas = storage::Meas::empty();
 	for (size_t i = 0; i < arr_size; ++i) {
-		meas->value = i;
-		meas->id = i;
-		meas->source = meas->flag = i % meas2write;
-		meas->time = i;
-		ds->append(*meas);
+        meas.value = i;
+        meas.id = i;
+        meas.source = meas.flag = i % meas2write;
+        meas.time = i;
+        ds->append(meas);
 	}
-	delete meas;
 }
 
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {

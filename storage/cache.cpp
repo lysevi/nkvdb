@@ -225,7 +225,9 @@ storage::Meas::MeasList CurValuesCache::readValue(const storage::IdArray&ids)con
 		auto it = m_values.find(id);
 		if (it != m_values.end()) {
 			result.push_back(it->second);
-		}
+        }else{
+            result.push_back(Meas::empty());
+        }
 	}
 	return result;
 }

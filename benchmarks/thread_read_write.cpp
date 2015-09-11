@@ -41,18 +41,17 @@ void makeStorage() {
 }
 
 void writer(int writeCount) {
-	storage::Meas::PMeas meas = storage::Meas::empty();
+    storage::Meas meas = storage::Meas::empty();
 
 	for (int i = 0; i < writeCount; ++i) {
-		meas->value = i % meas2write;
-		meas->id = i % meas2write;
-		meas->source = meas->flag = i % meas2write;
-		meas->time = i;
+        meas.value = i % meas2write;
+        meas.id = i % meas2write;
+        meas.source = meas.flag = i % meas2write;
+        meas.time = i;
 
-		ds->append(*meas);
+        ds->append(meas);
 		append_count++;
 	}
-	delete meas;
 }
 
 void show_info() {

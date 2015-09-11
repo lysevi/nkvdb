@@ -34,20 +34,19 @@ void makeAndWrite(int mc, int ic) {
   ds->setCacheSize(cache_size);
   
   clock_t write_t0 = clock();
-  storage::Meas::PMeas meas = storage::Meas::empty();
+  storage::Meas meas = storage::Meas::empty();
 
   for (int i = 0; i < ic; ++i) {
-    meas->value = i % mc;
-    meas->id = i % mc;
-    meas->source = meas->flag = i % mc;
-    meas->time = i;
+    meas.value = i % mc;
+    meas.id = i % mc;
+    meas.source = meas.flag = i % mc;
+    meas.time = i;
 
-    ds->append(*meas);
+    ds->append(meas);
   }
 
   clock_t write_t1 = clock();
   logger("write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC);
-  delete meas;
   ds->Close();
   ds = nullptr;
   utils::rm(storage_path);
@@ -126,7 +125,7 @@ int main(int argc, char *argv[]) {
 		  sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
 
     storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
-    storage::Meas::PMeas meas = storage::Meas::empty();
+    storage::Meas meas = storage::Meas::empty();
 
     ds->enableCacheDynamicSize(enable_dyn_cache);
     ds->setPoolSize(cache_pool_size);
@@ -138,18 +137,17 @@ int main(int argc, char *argv[]) {
     for (int64_t i = 0; i < pagesize * 10; ++i) {
       clock_t verb_t0 = clock();
 	  
-      meas->value = i;
-      meas->id = i % meas2write;
-      meas->source = meas->flag = i % meas2write;
-      meas->time = i;
+      meas.value = i;
+      meas.id = i % meas2write;
+      meas.source = meas.flag = i % meas2write;
+      meas.time = i;
 	  
-      ds->append(*meas);
+      ds->append(meas);
       clock_t verb_t1 = clock();
       if (verbose) {
         logger("write[" << i << "]: " << ((float)verb_t1 - verb_t0) / CLOCKS_PER_SEC);
       }
     }
-    delete meas;
 
     logger( "big readers");
     readIntervalBench(ds, 0, pagesize / 2, "[0-0.5]");

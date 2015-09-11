@@ -22,22 +22,20 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 
     for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
       auto newMeas = storage::Meas::empty();
-      newMeas->value = i;
-      newMeas->id = i;
-      newMeas->flag = flagValue;
-      newMeas->source = srcValue;
-      newMeas->time = i;
-      auto wrt_res = c.append(*newMeas, 0);
+      newMeas.value = i;
+      newMeas.id = i;
+      newMeas.flag = flagValue;
+      newMeas.source = srcValue;
+      newMeas.time = i;
+      auto wrt_res = c.append(newMeas, 0);
       BOOST_CHECK_EQUAL(wrt_res.writed, size_t(1));
-      delete newMeas;
     }
     auto newMeas = storage::Meas::empty();
-    auto wrt_res = c.append(*newMeas, 0);
+    auto wrt_res = c.append(newMeas, 0);
 
     BOOST_CHECK_EQUAL(wrt_res.writed, size_t(0));
-    BOOST_CHECK_EQUAL(c.append(*newMeas, 1).ignored, size_t(1));
+    BOOST_CHECK_EQUAL(c.append(newMeas, 1).ignored, size_t(1));
 
-    delete newMeas;
     auto interval = c.readInterval(0, TestableMeasCount);
     BOOST_CHECK_EQUAL(interval.size(), TestableMeasCount - 1);
     for (auto m : interval) {

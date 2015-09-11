@@ -20,14 +20,13 @@
 using namespace storage;
 
 BOOST_AUTO_TEST_CASE(MeasEmpty) {
-  storage::Meas::PMeas pm = storage::Meas::empty();
+  storage::Meas pm = storage::Meas::empty();
 
-  BOOST_CHECK_EQUAL(pm->value, storage::Value(0));
-  BOOST_CHECK_EQUAL(pm->flag, storage::Flag(0));
-  BOOST_CHECK_EQUAL(pm->id, storage::Id(0));
-  BOOST_CHECK_EQUAL(pm->source, storage::Flag(0));
-  BOOST_CHECK_EQUAL(pm->time, storage::Time(0));
-  delete pm;
+  BOOST_CHECK_EQUAL(pm.value, storage::Value(0));
+  BOOST_CHECK_EQUAL(pm.flag, storage::Flag(0));
+  BOOST_CHECK_EQUAL(pm.id, storage::Id(0));
+  BOOST_CHECK_EQUAL(pm.source, storage::Flag(0));
+  BOOST_CHECK_EQUAL(pm.time, storage::Time(0));
 }
 
 BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
@@ -66,14 +65,14 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
     storage::DataStorage::PDataStorage ds =
         storage::DataStorage::Create(storage_path, storage_size);
 
-    storage::Meas::PMeas meas = storage::Meas::empty();
+    storage::Meas meas = storage::Meas::empty();
     storage::Time end_it = (meas2write * write_iteration);
     for (storage::Time i = 0; i < end_it; ++i) {
-      meas->value = i;
-      meas->id = i;
-      meas->source = meas->flag = i % meas2write;
-      meas->time = i;
-      ds->append(*meas);
+      meas.value = i;
+      meas.id = i;
+      meas.source = meas.flag = i % meas2write;
+      meas.time = i;
+      ds->append(meas);
 
       auto meases = ds->readInterval(0, end_it);
 
@@ -88,7 +87,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
         BOOST_CHECK(isExists);
       }
     }
-    delete meas;
+
     ds = nullptr;
     auto pages = utils::ls(storage_path);
     BOOST_CHECK_EQUAL(pages.size(), (size_t)(write_iteration * 2));
@@ -226,7 +225,7 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 		BOOST_CHECK(id2meas.size() == 0);
 	};
 
-	const int meas2write = 10;
+    const int meas2write = 10;
 	const size_t write_iteration = 10;
 	const uint64_t storage_size =
 		sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);

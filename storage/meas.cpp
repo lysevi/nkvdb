@@ -9,9 +9,8 @@ Meas::Meas() {
     memset(this, 0, sizeof(Meas));
 }
 
-Meas::PMeas Meas::empty() {
-  Meas::PMeas result = new Meas();
-  return result;
+Meas Meas::empty() {
+  return Meas{};
 }
 
 void Meas::readFrom(const Meas::PMeas m) {

@@ -64,13 +64,12 @@ BOOST_AUTO_TEST_CASE(PageIO) {
     for (size_t i = 0; i < TestableMeasCount; ++i) {
       Page::PPage storage = Page::Open(mdb_test::test_page_name);
       auto newMeas = storage::Meas::empty();
-      newMeas->value = i;
-      newMeas->id = i;
-      newMeas->flag = flagValue;
-      newMeas->source = srcValue;
-      newMeas->time = i;
-      storage->append(*newMeas);
-      delete newMeas;
+      newMeas.value = i;
+      newMeas.id = i;
+      newMeas.flag = flagValue;
+      newMeas.source = srcValue;
+      newMeas.time = i;
+      storage->append(newMeas);
       storage->close();
     }
 
@@ -81,18 +80,17 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 
     auto newMeas = storage::Meas::empty();
     for (size_t i = 0; i < TestableMeasCount; ++i) {
-      bool readState = storage->read(newMeas, i);
+      bool readState = storage->read(&newMeas, i);
 
       BOOST_CHECK_EQUAL(readState, true);
-      BOOST_CHECK_EQUAL(newMeas->value, i);
-      BOOST_CHECK_EQUAL(newMeas->id, i);
-      BOOST_CHECK_EQUAL(newMeas->flag, flagValue);
-      BOOST_CHECK_EQUAL(newMeas->source, srcValue);
+      BOOST_CHECK_EQUAL(newMeas.value, i);
+      BOOST_CHECK_EQUAL(newMeas.id, i);
+      BOOST_CHECK_EQUAL(newMeas.flag, flagValue);
+      BOOST_CHECK_EQUAL(newMeas.source, srcValue);
 
-      BOOST_CHECK_EQUAL(newMeas->time, (storage::Time)i);
+      BOOST_CHECK_EQUAL(newMeas.time, (storage::Time)i);
     }
     BOOST_CHECK(!storage->isFull());
-    delete newMeas;
 
     auto hdr = storage->getHeader();
     BOOST_CHECK_EQUAL(hdr.maxTime, (storage::Time)TestableMeasCount - 1);
@@ -113,11 +111,11 @@ BOOST_AUTO_TEST_CASE(Capacity) {
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)10);
 
   auto newMeas = storage::Meas::empty();
-  page->append(*newMeas);
+  page->append(newMeas);
 
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)9);
-  page->append(*newMeas);
-  delete newMeas;
+  page->append(newMeas);
+
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)8);
   auto index = page->index_fileName();
   page->close();
@@ -169,13 +167,12 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
     for (int i = 0; i < TestableMeasCount; ++i) {
 
       auto newMeas = storage::Meas::empty();
-      newMeas->value = i;
-      newMeas->id = i % 10;
-      newMeas->flag = (storage::Flag)(i % 5);
-      newMeas->source = (storage::Flag)(i % 5);
-      newMeas->time = i;
-      storage->append(*newMeas);
-      delete newMeas;
+      newMeas.value = i;
+      newMeas.id = i % 10;
+      newMeas.flag = (storage::Flag)(i % 5);
+      newMeas.source = (storage::Flag)(i % 5);
+      newMeas.time = i;
+      storage->append(newMeas);
     }
 
     {

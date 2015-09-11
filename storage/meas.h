@@ -21,7 +21,7 @@ struct Meas {
 
   Meas();
   void readFrom(const Meas::PMeas m);
-  static Meas::PMeas empty();
+  static Meas empty();
 
   Id id;
   Time time;

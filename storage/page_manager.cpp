@@ -6,14 +6,19 @@
 namespace fs = boost::filesystem;
 using namespace storage;
 
+PageManager *PageManager::m_instance;
 
 void PageManager::start(std::string path) {
+	if (m_instance != nullptr) {
+		throw MAKE_EXCEPTION("m_instance != nullptr");
+	}
 	PageManager::m_instance = new PageManager();
 	m_instance->m_path = path;
 }
 
 void PageManager::stop() {
 	delete m_instance;
+	m_instance = nullptr;
 }
 
 PageManager* PageManager::get() {
@@ -24,6 +29,13 @@ Page::PPage PageManager::getCurPage() {
 	return m_curpage;
 }
 
+void PageManager::closePage() {
+	if (m_curpage != nullptr) {
+		m_curpage->close();
+		m_curpage = nullptr;
+	}
+}
+
 void PageManager::createNewPage() {
 	if (m_curpage != nullptr) {
 		m_curpage->close();
@@ -32,13 +44,12 @@ void PageManager::createNewPage() {
 
 	std::string page_path = getNewPageUniqueName();
 
-	m_curpage = Page::Create(page_path, this->m_default_page_size);
+	m_curpage = Page::Create(page_path, this->default_page_size);
 }
 
 std::string PageManager::getOldesPage()const {
-	
+	return this->getOldesPage(this->pageList());
 }
-
 std::string PageManager::getOldesPage(const std::list<std::string> &pages)const {
 	if (pages.size() == 1)
 		return pages.front();
@@ -88,4 +99,8 @@ std::list<std::string> PageManager::pageList() const {
 	}
 
 	return result;
+}
+
+void PageManager::open(std::string path) {
+	m_curpage = Page::Open(path);
 }

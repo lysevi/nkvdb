@@ -48,6 +48,7 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
       BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
       pages = utils::ls(mdb_test::storage_path);
       BOOST_CHECK_EQUAL(pages.size(), (size_t)1);
+	  ds->Close();
     }
     {
       storage::DataStorage::PDataStorage ds =

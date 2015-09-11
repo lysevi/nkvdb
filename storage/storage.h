@@ -46,7 +46,6 @@ public:
   void loadCurValues(const IdArray&ids);
 private:
   DataStorage();
-  std::list<std::string> pageList() const;
   void writeCache();
 protected:
   std::string m_path;
@@ -57,6 +56,7 @@ protected:
   CachePool m_cache_pool;
   CurValuesCache m_cur_values;
   Time m_past_time;
+  bool m_closed;
   friend class storage::Cache;
 };
 }

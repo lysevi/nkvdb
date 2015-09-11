@@ -18,28 +18,30 @@ DataStorage::DataStorage()
   m_cache_writer.setStorage(this);
   m_cache_writer.start();
   m_past_time = 0;
+  m_closed = true;
 }
 
-DataStorage::~DataStorage() { this->Close(); }
+DataStorage::~DataStorage() { 
+	if (!m_closed) { 
+		this->Close(); 
+	}
+}
 
 void DataStorage::Close() {
-
+	m_closed = true;
   if (!m_cache_writer.stoped()) {
     this->writeCache();
     m_cache_writer.stop();
   }
 
-  auto curpage = PageManager::get()
-  if (curpage != nullptr) {
-    curpage->close();
-    curpage = nullptr;
-  }
+  PageManager::get()->closePage();
+  PageManager::stop();
 }
 
 DataStorage::PDataStorage DataStorage::Create(const std::string &ds_path,
                                               uint64_t page_size) {
   DataStorage::PDataStorage result(new DataStorage);
-  result->m_default_page_size = page_size;
+  
 
   if (fs::exists(ds_path)) {
     if (!utils::rm(ds_path)) {
@@ -50,7 +52,9 @@ DataStorage::PDataStorage DataStorage::Create(const std::string &ds_path,
 
   fs::create_directory(ds_path);
   result->m_path = std::string(ds_path);
-  result->createNewPage();
+  PageManager::start(result->m_path);
+  PageManager::get()->default_page_size = page_size;
+  PageManager::get()->createNewPage();
   return result;
 }
 
@@ -62,19 +66,15 @@ DataStorage::PDataStorage DataStorage::Open(const std::string &ds_path) {
   }
 
   auto pages = utils::ls(ds_path, ".page");
-  fs::path maxTimePage = getOldesPage(pages);
-
-  result->m_curpage = storage::Page::Open(maxTimePage.string());
+  PageManager::start(result->m_path);
+  fs::path maxTimePage = PageManager::get()->getOldesPage();
+  PageManager::get()->open(maxTimePage.string());
   result->m_path = std::string(ds_path);
   return result;
 }
 
-void DataStorage::createNewPage() {
-  
-}
-
 bool DataStorage::havePage2Write() const {
-  return this->m_curpage != nullptr && !this->m_curpage->isFull();
+	return PageManager::get()->getCurPage() != nullptr && !PageManager::get()->getCurPage()->isFull();
 }
 
 append_result DataStorage::append(const Meas& m) {
@@ -171,13 +171,13 @@ Meas::MeasList DataStorage::readInterval(const IdArray &ids,
   this->m_cache_writer.pause_work();
 
   Meas::MeasList list_result;
-  auto page_list = pageList();
+  auto page_list = PageManager::get()->pageList();
   for (auto page : page_list) {
     storage::Page::PPage page2read;
     bool shouldClosed = false;
-    if (page == m_curpage->fileName()) {
-      if (HeaderIntervalCheck(from, to, m_curpage->getHeader())) {
-        page2read = m_curpage;
+	if (page == PageManager::get()->getCurPage()->fileName()) {
+		if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
+			page2read = PageManager::get()->getCurPage();
       }
     } else {
       storage::Page::Header hdr = storage::Page::ReadHeader(page);
@@ -215,12 +215,12 @@ void DataStorage::loadCurValues(const IdArray&ids) {
 	auto to = *std::max_element(ids.begin(), ids.end());
 	std::vector<page_time> page_time_vector{};
 
-	auto page_list = pageList();
+	auto page_list = PageManager::get()->pageList();
 	for (auto page : page_list) {
 		storage::Page::PPage page2read;
-		if (page == m_curpage->fileName()) {
-			if (HeaderIdIntervalCheck(from, to, m_curpage->getHeader())) {
-				page_time_vector.push_back(std::make_pair(page, m_curpage->maxTime()));
+		if (page == PageManager::get()->getCurPage()->fileName()) {
+			if (HeaderIdIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
+				page_time_vector.push_back(std::make_pair(page, PageManager::get()->getCurPage()->maxTime()));
 			}
 		} else {
 			storage::Page::Header hdr = storage::Page::ReadHeader(page);
@@ -240,8 +240,8 @@ void DataStorage::loadCurValues(const IdArray&ids) {
 		storage::Page::PPage page2read;
 		auto page = kv.first;
 		bool shouldClosed = false;
-		if (page == m_curpage->fileName()) {
-			page2read = m_curpage;
+		if (page == PageManager::get()->getCurPage()->fileName()) {
+			page2read = PageManager::get()->getCurPage();
 		} else {
 			page2read = storage::Page::Open(page);
 			shouldClosed = true;

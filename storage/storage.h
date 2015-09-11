@@ -14,6 +14,9 @@ const uint64_t defaultPageSize = 10 * 1024 * 1024; // 10Mb
 const size_t defaultcacheSize = 10000;
 const size_t defaultcachePoolSize = 100;
 
+/**
+* Main class of mdb storage.
+*/
 class DataStorage {
 public:
   typedef std::shared_ptr<DataStorage> PDataStorage;
@@ -32,7 +35,9 @@ public:
   Meas::MeasList readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   Meas::MeasList curValues(const IdArray&ids);
 
+  /// get max time in past to write
   Time pastTime() const;
+  /// set max time in past to write
   void setPastTime(const Time &t);
 
   void enableCacheDynamicSize(bool flg);
@@ -40,6 +45,7 @@ public:
 
   size_t getPoolSize()const;
   void setPoolSize(size_t sz);
+
   size_t getCacheSize()const;
   void setCacheSize(size_t sz);
 

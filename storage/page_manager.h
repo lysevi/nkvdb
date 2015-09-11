@@ -6,6 +6,9 @@
 #include <list>
 
 namespace storage {
+    /**
+    * Manage of pages.
+    */
 	class PageManager : utils::NonCopy
 	{
 		static PageManager *m_instance;
@@ -15,6 +18,7 @@ namespace storage {
 		static void stop();
 		static PageManager* get();
 
+        /// get current openned page
 		Page::PPage getCurPage();
         void closeCurrentPage();
 		void createNewPage();

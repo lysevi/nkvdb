@@ -5,6 +5,9 @@
 namespace storage
 {
 
+    /**
+    * Implement index for page.
+    */
 	class Index
 	{
 	public:

@@ -40,7 +40,7 @@ public:
     m_thread.join();
   }
 
-  // whait, while all works done and stop thread.
+  /// whait, while all works done and stop thread.
   void stop() {
     if (!stoped()) {
       while (true) {

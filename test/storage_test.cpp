@@ -33,26 +33,24 @@ BOOST_AUTO_TEST_CASE(MeasEmpty) {
 BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
   {
     {
-      storage::DataStorage::PDataStorage ds =
-          storage::DataStorage::Create(mdb_test::storage_path);
+      storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(mdb_test::storage_path);
       BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
       BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
 
-      std::list<boost::filesystem::path> pages =
-          utils::ls(mdb_test::storage_path);
+      std::list<boost::filesystem::path> pages = utils::ls(mdb_test::storage_path);
       BOOST_CHECK_EQUAL(pages.size(), (size_t)1);
-      ds = nullptr;
+      ds->Close();
 
       ds = storage::DataStorage::Create(mdb_test::storage_path);
       BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
       BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
       pages = utils::ls(mdb_test::storage_path);
       BOOST_CHECK_EQUAL(pages.size(), (size_t)1);
-	  ds->Close();
+      ds->Close();
     }
     {
-      storage::DataStorage::PDataStorage ds =
-          storage::DataStorage::Open(mdb_test::storage_path);
+      storage::DataStorage::PDataStorage ds =  storage::DataStorage::Open(mdb_test::storage_path);
+      ds=nullptr;
     }
   }
   utils::rm(mdb_test::storage_path);
@@ -71,11 +69,6 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
     storage::Meas::PMeas meas = storage::Meas::empty();
     storage::Time end_it = (meas2write * write_iteration);
     for (storage::Time i = 0; i < end_it; ++i) {
-      /*if (end_it - i != 0) {
-              auto meases = ds->readInterval(i, end_it - i);
-              BOOST_CHECK(meases.size() == 0);
-      }*/
-
       meas->value = i;
       meas->id = i;
       meas->source = meas->flag = i % meas2write;

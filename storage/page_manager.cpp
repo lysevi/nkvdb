@@ -6,7 +6,7 @@
 namespace fs = boost::filesystem;
 using namespace storage;
 
-PageManager *PageManager::m_instance;
+PageManager *PageManager::m_instance=nullptr;
 
 void PageManager::start(std::string path) {
 	if (m_instance != nullptr) {
@@ -29,7 +29,7 @@ Page::PPage PageManager::getCurPage() {
 	return m_curpage;
 }
 
-void PageManager::closePage() {
+void PageManager::closeCurrentPage() {
 	if (m_curpage != nullptr) {
 		m_curpage->close();
 		m_curpage = nullptr;
@@ -101,6 +101,7 @@ std::list<std::string> PageManager::pageList() const {
 	return result;
 }
 
-void PageManager::open(std::string path) {
+Page::PPage PageManager::open(std::string path) {
 	m_curpage = Page::Open(path);
+    return m_curpage;
 }

@@ -18,24 +18,24 @@ DataStorage::DataStorage()
   m_cache_writer.setStorage(this);
   m_cache_writer.start();
   m_past_time = 0;
-  m_closed = true;
+  m_closed = false;
 }
 
 DataStorage::~DataStorage() { 
 	if (!m_closed) { 
 		this->Close(); 
-	}
+    }
 }
 
 void DataStorage::Close() {
-	m_closed = true;
   if (!m_cache_writer.stoped()) {
     this->writeCache();
     m_cache_writer.stop();
   }
 
-  PageManager::get()->closePage();
+  PageManager::get()->closeCurrentPage();
   PageManager::stop();
+  m_closed = true;
 }
 
 DataStorage::PDataStorage DataStorage::Create(const std::string &ds_path,
@@ -59,6 +59,7 @@ DataStorage::PDataStorage DataStorage::Create(const std::string &ds_path,
 }
 
 DataStorage::PDataStorage DataStorage::Open(const std::string &ds_path) {
+
   DataStorage::PDataStorage result(new DataStorage);
 
   if (!fs::exists(ds_path)) {
@@ -66,15 +67,17 @@ DataStorage::PDataStorage DataStorage::Open(const std::string &ds_path) {
   }
 
   auto pages = utils::ls(ds_path, ".page");
-  PageManager::start(result->m_path);
-  fs::path maxTimePage = PageManager::get()->getOldesPage();
-  PageManager::get()->open(maxTimePage.string());
   result->m_path = std::string(ds_path);
+
+  PageManager::start(result->m_path);
+  std::string maxTimePage = PageManager::get()->getOldesPage();
+  PageManager::get()->open(maxTimePage);
+
   return result;
 }
 
 bool DataStorage::havePage2Write() const {
-	return PageManager::get()->getCurPage() != nullptr && !PageManager::get()->getCurPage()->isFull();
+    return (PageManager::get()->getCurPage() != nullptr) && (!PageManager::get()->getCurPage()->isFull());
 }
 
 append_result DataStorage::append(const Meas& m) {

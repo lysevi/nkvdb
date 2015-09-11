@@ -11,20 +11,21 @@ namespace storage {
 		static PageManager *m_instance;
 		PageManager() = default;
 	public:
-		
 		static void start(std::string path);
 		static void stop();
 		static PageManager* get();
+
 		Page::PPage getCurPage();
-		void closePage();
+        void closeCurrentPage();
 		void createNewPage();
 
 		std::string getOldesPage()const;
-		std::string getOldesPage(const std::list<std::string> &pages)const;
 		std::string getNewPageUniqueName()const;
 
 		std::list<std::string> pageList() const;
-		void open(std::string path);
+        Page::PPage open(std::string path);
+    protected:
+        std::string getOldesPage(const std::list<std::string> &pages)const;
 	public:
 		uint64_t default_page_size;
 	protected:

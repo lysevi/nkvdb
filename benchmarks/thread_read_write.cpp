@@ -72,7 +72,7 @@ void show_info() {
 }
 
 int main(int argc, char *argv[]) {
-	po::options_description desc("Allowed options");
+    po::options_description desc("Multithread IO benchmark.\n Allowed options");
 	desc.add_options()("help", "produce help message")(
 		"mc", po::value<int>(&meas2write)->default_value(meas2write), "measurment count")
 		("dyncache", po::value<bool>(&enable_dyn_cache)->default_value(enable_dyn_cache), "enable dynamic cache")

@@ -1,0 +1,91 @@
+#include "page_manager.h"
+#include <utils/exception.h>
+
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
+using namespace storage;
+
+
+void PageManager::start(std::string path) {
+	PageManager::m_instance = new PageManager();
+	m_instance->m_path = path;
+}
+
+void PageManager::stop() {
+	delete m_instance;
+}
+
+PageManager* PageManager::get() {
+	return m_instance;
+}
+
+Page::PPage PageManager::getCurPage() {
+	return m_curpage;
+}
+
+void PageManager::createNewPage() {
+	if (m_curpage != nullptr) {
+		m_curpage->close();
+		m_curpage = nullptr;
+	}
+
+	std::string page_path = getNewPageUniqueName();
+
+	m_curpage = Page::Create(page_path, this->m_default_page_size);
+}
+
+std::string PageManager::getOldesPage()const {
+	
+}
+
+std::string PageManager::getOldesPage(const std::list<std::string> &pages)const {
+	if (pages.size() == 1)
+		return pages.front();
+	fs::path maxTimePage;
+	Time maxTime = 0;
+	for (auto p : pages) {
+		storage::Page::Header hdr = storage::Page::ReadHeader(p);
+		Time cur_time = hdr.maxTime;
+		if (maxTime < cur_time || cur_time == 0) {
+			maxTime = cur_time;
+			maxTimePage = p;
+		}
+	}
+	if (maxTimePage.string().size() == 0) {
+		throw utils::Exception::CreateAndLog(POSITION,
+											 "open error. page not found.");
+	}
+	return maxTimePage.string();
+}
+
+std::string PageManager::getNewPageUniqueName()const {
+	fs::path page_path;
+	uint32_t suffix = 0;
+
+	while (true) {
+		if (page_path.string().length() != 0 && !fs::exists(page_path))
+			break;
+
+		page_path.clear();
+
+		std::stringstream ss;
+		ss << std::time(nullptr) << '_' << suffix;
+		++suffix;
+		page_path.append(m_path);
+		page_path.append(ss.str() + ".page");
+	}
+
+	return page_path.string();
+}
+
+std::list<std::string> PageManager::pageList() const {
+	auto page_list = utils::ls(m_path, ".page");
+
+	std::list<std::string> result;
+	for (auto it = page_list.begin(); it != page_list.end(); ++it) {
+		result.push_back(it->string());
+	}
+
+	return result;
+}

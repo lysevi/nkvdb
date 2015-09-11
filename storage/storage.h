@@ -31,8 +31,6 @@ public:
   Meas::MeasList readInterval(Time from, Time to);
   Meas::MeasList readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   Meas::MeasList curValues(const IdArray&ids);
-  Page::PPage getCurPage();
-  void createNewPage();
 
   Time pastTime() const;
   void setPastTime(const Time &t);
@@ -52,12 +50,9 @@ private:
   void writeCache();
 protected:
   std::string m_path;
-  Page::PPage m_curpage;
-  uint64_t m_default_page_size;
+
   std::mutex m_write_mutex;
-
   storage::Cache::PCache m_cache;
-
   AsyncWriter m_cache_writer;
   CachePool m_cache_pool;
   CurValuesCache m_cur_values;

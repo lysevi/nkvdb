@@ -1,4 +1,5 @@
 #include "storage.h"
+#include "page_manager.h"
 #include <boost/filesystem.hpp>
 #include <utils/exception.h>
 #include <ctime>
@@ -9,46 +10,6 @@
 
 using namespace storage;
 namespace fs = boost::filesystem;
-
-fs::path getOldesPage(const std::list<fs::path> &pages) {
-  if (pages.size() == 1)
-    return pages.front();
-  fs::path maxTimePage;
-  Time maxTime = 0;
-  for (auto p : pages) {
-    storage::Page::Header hdr = storage::Page::ReadHeader(p.string());
-    Time cur_time = hdr.maxTime;
-    if (maxTime < cur_time || cur_time == 0) {
-      maxTime = cur_time;
-      maxTimePage = p;
-    }
-  }
-  if (maxTimePage.string().size() == 0) {
-    throw utils::Exception::CreateAndLog(POSITION,
-                                         "open error. page not found.");
-  }
-  return maxTimePage;
-}
-
-std::string getNewPageUniqueName(const std::string &ds_path) {
-  fs::path page_path;
-  uint32_t suffix = 0;
-
-  while (true) {
-    if (page_path.string().length() != 0 && !fs::exists(page_path))
-      break;
-
-    page_path.clear();
-
-    std::stringstream ss;
-    ss << std::time(nullptr) << '_' << suffix;
-    ++suffix;
-    page_path.append(ds_path);
-    page_path.append(ss.str() + ".page");
-  }
-
-  return page_path.string();
-}
 
 DataStorage::DataStorage()
     : m_cache_pool(defaultcachePoolSize, defaultcacheSize) {
@@ -68,13 +29,12 @@ void DataStorage::Close() {
     m_cache_writer.stop();
   }
 
-  if (m_curpage != nullptr) {
-    m_curpage->close();
-    m_curpage = nullptr;
+  auto curpage = PageManager::get()
+  if (curpage != nullptr) {
+    curpage->close();
+    curpage = nullptr;
   }
 }
-
-Page::PPage DataStorage::getCurPage() { return m_curpage; }
 
 DataStorage::PDataStorage DataStorage::Create(const std::string &ds_path,
                                               uint64_t page_size) {
@@ -110,14 +70,7 @@ DataStorage::PDataStorage DataStorage::Open(const std::string &ds_path) {
 }
 
 void DataStorage::createNewPage() {
-  if (m_curpage != nullptr) {
-    m_curpage->close();
-    m_curpage = nullptr;
-  }
-
-  std::string page_path = getNewPageUniqueName(m_path);
-
-  m_curpage = Page::Create(page_path, this->m_default_page_size);
+  
 }
 
 bool DataStorage::havePage2Write() const {
@@ -303,16 +256,6 @@ void DataStorage::loadCurValues(const IdArray&ids) {
 	}
 }
 
-std::list<std::string> DataStorage::pageList() const {
-  auto page_list = utils::ls(m_path, ".page");
-
-  std::list<std::string> result;
-  for (auto it = page_list.begin(); it != page_list.end(); ++it) {
-    result.push_back(it->string());
-  }
-
-  return result;
-}
 
 Time DataStorage::pastTime() const { return m_past_time; }
 

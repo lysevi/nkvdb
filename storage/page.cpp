@@ -9,6 +9,7 @@
 #include <boost/filesystem.hpp>
 
 const uint8_t page_version = 1;
+static uint64_t ReadSize=PageReader::defaultReadSize;
 
 namespace ios = boost::iostreams;
 

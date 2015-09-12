@@ -90,11 +90,13 @@ protected:
   Index  m_index;
 };
 
+
 class PageReader: public utils::NonCopy{
     
 public:
     typedef std::pair<uint64_t,uint64_t> from_to_pos;
-    
+    const uint64_t defaultReadSize=1024;
+    static uint64_t ReadSize;
     PageReader(Page::PPage page);
     ~PageReader();
     bool isEnd() const;

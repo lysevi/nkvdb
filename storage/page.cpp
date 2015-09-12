@@ -229,82 +229,74 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
     return true;
 }
 
-void  Page::readAll(storage::Meas::MeasList *dest) {
+PPageReader  Page::readAll() {
     if(this->m_header->write_pos==0){
-        return;
+        return nullptr;
     }
-	std::copy(this->m_data_begin, this->m_data_begin + m_header->write_pos, std::back_inserter(*dest));
+    auto ppage=this->shared_from_this();
+    auto preader=new PageReader(ppage);
+    auto result=PPageReader(preader);
+    result->addReadPos(std::make_pair(0,m_header->write_pos));
+    return result;
 }
 
 
-void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end, storage::Meas::MeasList *dest){
+PPageReader Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end){
     if(this->m_header->write_pos==0){
-        return;
+        return nullptr;
     }
 
-    storage::Meas readedValue;
-    for (size_t i = begin; i < end; ++i) {
-		if (!read(&readedValue, i)) {
-			std::stringstream ss;
-            ss << "readFromToPos: "
-				<< " file name: " << m_filename
-				<< " writePos: " << m_header->write_pos
-				<< " size: " << m_header->size;
-
-			throw MAKE_EXCEPTION(ss.str());
-		}
-
-		if (utils::inInterval(from, to, readedValue.time)) {
-			if (flag != 0) {
-				if (readedValue.flag != flag) {
-					continue;
-				}
-			}
-			if (source != 0) {
-				if (readedValue.source != source) {
-					continue;
-				}
-			}
-			if (ids.size() != 0) {
-				if (std::find(ids.cbegin(), ids.cend(), readedValue.id) ==
-					ids.end()) {
-					continue;
-				}
-			}
-
-			dest->push_back(readedValue);
-        }
-	}
+    auto ppage=this->shared_from_this();
+    auto preader=new PageReader(ppage);
+    auto result=PPageReader(preader);
+    result->addReadPos(std::make_pair(begin,end));
+    result->ids=ids;
+    result->source=source;
+    result->flag=flag;
+    result->from=from;
+    result->to=to;
+    return result;
 }
 
-void Page::readInterval(Time from, Time to, storage::Meas::MeasList&result) {
+PPageReader Page::readInterval(Time from, Time to) {
     if(this->m_header->write_pos==0){
-        return;
+        return nullptr;
     }
-	static IdArray emptyArray;
-	this->readInterval(emptyArray, 0, 0, from, to,result);
+    static IdArray emptyArray;
+    return this->readInterval(emptyArray, 0, 0, from, to);
 }
 
-void Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, storage::Meas::MeasList&result) {
+PPageReader Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
     // [from...minTime,maxTime...to]
     if(this->m_header->write_pos==0){
-        return;
+        return nullptr;
     }
-    if((from<=m_header->minTime) && (to>=m_header->maxTime)){
-        if((ids.size()==0) && (source==0) && (flag==0)){
-            this->readAll(&result);
-			return;
-        }else{
-            this->readFromToPos(ids,source,flag,from,to,0,m_header->write_pos,&result);
-			return;
+    if ((from <= m_header->minTime) && (to >= m_header->maxTime)) {
+        if ((ids.size() == 0) && (source == 0) && (flag == 0)) {
+            auto result=this->readAll();
+            result->from=from;
+            result->to=to;
+            return result;
+        } else {
+            return this->readFromToPos(ids, source, flag, from, to, 0, m_header->write_pos);
         }
-  }
+    }
+    
+    auto ppage=this->shared_from_this();
+    auto preader=new PageReader(ppage);
+    auto result=PPageReader(preader);
+    result->ids = ids;
+    result->source = source;
+    result->flag = flag;
+    result->from = from;
+    result->to = to;
 
-  auto irecords = m_index.findInIndex(ids, from, to);
-  for (Index::IndexRecord &rec : irecords) {
-    auto max_pos = rec.pos + rec.count;
-    this->readFromToPos(ids,source,flag,from,to, rec.pos,max_pos,&result);
+    auto irecords = m_index.findInIndex(ids, from, to);
+    for (Index::IndexRecord &rec : irecords) {
+        auto max_pos = rec.pos + rec.count;
+        result->addReadPos(std::make_pair(rec.pos,max_pos));
   }
+  return result;
 }
 
 bool Page::isFull() const {
@@ -342,19 +334,79 @@ Meas::MeasList Page::readCurValues(IdSet&id_set) {
 	return result;
 }
 
-PageReader::PageReader():m_page(nullptr){
+PageReader::PageReader(Page::PPage page):
+        ids(),
+        source(0),
+        flag(0),
+        from(0),
+        to(0),
+        m_read_pos_list()        
+{
+    m_cur_pos_end=m_cur_pos_begin=0;
+    m_page=page;
 }
 
 PageReader::~PageReader(){
-    if(m_page!=nullptr){
+    // FIX THIS
+    /*if(m_page!=nullptr){
         m_page->close();
         m_page=nullptr;
-    }
+    }*/
+}
+
+void PageReader::addReadPos(from_to_pos pos){
+    m_read_pos_list.push_back(pos);
 }
 
 bool PageReader::isEnd() const{
-    
+    if(m_read_pos_list.size()==0){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 void PageReader::readNext(Meas::MeasList*output){
+    if(isEnd()){
+        return;
+    }
+    // FIX read more small pieces
+    auto pos=m_read_pos_list.front();
+    m_read_pos_list.pop_front();
+    
+    m_cur_pos_begin=pos.first;
+    m_cur_pos_end=pos.second;
+    for (uint64_t i = m_cur_pos_begin; i < m_cur_pos_end; ++i) {
+        storage::Meas readedValue;
+        if (!m_page->read(&readedValue, i)) {
+            std::stringstream ss;
+            ss << "PageReader::readNext: "
+                    << " file name: " << m_page->fileName()
+                    << " readPos: " << i
+                    << " size: " << m_page->getHeader().size;
+
+            throw MAKE_EXCEPTION(ss.str());
+        }
+
+        if (utils::inInterval(from, to, readedValue.time)) {
+            if (flag != 0) {
+                if (readedValue.flag != flag) {
+                    continue;
+                }
+            }
+            if (source != 0) {
+                if (readedValue.source != source) {
+                    continue;
+                }
+            }
+            if (ids.size() != 0) {
+                if (std::find(ids.cbegin(), ids.cend(), readedValue.id) == ids.end()) {
+                    continue;
+                }
+            }
+
+            output->push_back(readedValue);
+        }
+        
+    }
 }

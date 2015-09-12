@@ -13,12 +13,13 @@
 #include "index.h"
 
 namespace storage {
-
+    class PageReader;
+    typedef std::shared_ptr<PageReader> PPageReader;
 /**
 * Page class.
 * Header + [meas_0...meas_i]
 */
-class Page : public utils::NonCopy {
+class Page : public utils::NonCopy, public std::enable_shared_from_this<Page> {
 public:
   struct Header {
     /// format version
@@ -65,17 +66,13 @@ public:
   bool append(const Meas& value);
   size_t append(const Meas::PMeas begin, const size_t size);
   bool read(Meas::PMeas result, uint64_t position);
-  void readInterval(Time from, Time to, storage::Meas::MeasList&result);
-  void readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, storage::Meas::MeasList&result);
+  PPageReader readInterval(Time from, Time to);
+  PPageReader readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   
   Meas::MeasList readCurValues(IdSet&id_set);
 private:
-  void readAll(storage::Meas::MeasList *dest);
-  void readFromToPos(const IdArray &ids,
-                                        storage::Flag source,
-                                        storage::Flag flag, Time from,
-										Time to, size_t begin, size_t end, 
-										storage::Meas::MeasList *dest);
+  PPageReader readAll();
+  PPageReader readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);
   Page(std::string fname);
   /// write empty header.
   void initHeader(char *data);
@@ -94,15 +91,24 @@ protected:
 };
 
 class PageReader: public utils::NonCopy{
-    PageReader();
+    
 public:
-    typedef std::shared_ptr<PageReader> PPageReader;
+    typedef std::pair<uint64_t,uint64_t> from_to_pos;
+    
+    PageReader(Page::PPage page);
     ~PageReader();
     bool isEnd() const;
     void readNext(Meas::MeasList*output);
+    void addReadPos(from_to_pos pos);
+    IdArray ids;
+    storage::Flag source;
+    storage::Flag flag;
+    Time from;
+    Time to;
 private:
     Page::PPage m_page;
+    std::list<from_to_pos> m_read_pos_list;
+    uint64_t m_cur_pos_begin;
+    uint64_t m_cur_pos_end;
 };
-
-
 }

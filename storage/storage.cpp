@@ -196,13 +196,11 @@ Meas::MeasList DataStorage::readInterval(const IdArray &ids,
     }
 
     auto reader=page2read->readInterval(ids, source, flag, from, to);
+    reader->shouldClose=shouldClosed;
     while(!reader->isEnd()){
         reader->readNext(&list_result);
     }
-
-    if (shouldClosed) {
-      page2read->close();
-    }
+    reader=nullptr;
   }
 
   this->m_cache_writer.continue_work();

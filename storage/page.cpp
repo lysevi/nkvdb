@@ -344,14 +344,14 @@ PageReader::PageReader(Page::PPage page):
 {
     m_cur_pos_end=m_cur_pos_begin=0;
     m_page=page;
+    shouldClose=false;
 }
 
 PageReader::~PageReader(){
-    // FIX THIS
-    /*if(m_page!=nullptr){
+    if((shouldClose) && (m_page!=nullptr)){
         m_page->close();
         m_page=nullptr;
-    }*/
+    }
 }
 
 void PageReader::addReadPos(from_to_pos pos){

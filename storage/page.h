@@ -105,6 +105,7 @@ public:
     storage::Flag flag;
     Time from;
     Time to;
+    bool shouldClose;
 private:
     Page::PPage m_page;
     std::list<from_to_pos> m_read_pos_list;

@@ -241,16 +241,12 @@ void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag
     if(this->m_header->write_pos==0){
         return;
     }
-    storage::Meas readedValue;
-    //storage::Meas key;
-    //key.time = from;
-    //auto read_start = utils::find_begin(this->m_data_begin + begin, this->m_data_begin + end, key, cmp_pred, delta_pred);
 
-	for (size_t i = begin; i < end; ++i) {
-		//for (size_t i = std::distance(this->m_data_begin + begin, read_start); i < end; ++i) {
+    storage::Meas readedValue;
+    for (size_t i = begin; i < end; ++i) {
 		if (!read(&readedValue, i)) {
 			std::stringstream ss;
-			ss << "ReadIntervalError: "
+            ss << "readFromToPos: "
 				<< " file name: " << m_filename
 				<< " writePos: " << m_header->write_pos
 				<< " size: " << m_header->size;
@@ -290,12 +286,11 @@ void Page::readInterval(Time from, Time to, storage::Meas::MeasList&result) {
 }
 
 void Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, storage::Meas::MeasList&result) {
- //logger("Page::ReadInterval: from:"<<from<<" to:"<<to<<" min:"<<m_header->minTime<<" max:"<<m_header->maxTime);
-  // [from...minTime,maxTime...to]
+    // [from...minTime,maxTime...to]
     if(this->m_header->write_pos==0){
         return;
     }
-  if((from<=m_header->minTime) && (to>=m_header->maxTime)){
+    if((from<=m_header->minTime) && (to>=m_header->maxTime)){
         if((ids.size()==0) && (source==0) && (flag==0)){
             this->readAll(&result);
 			return;
@@ -345,4 +340,21 @@ Meas::MeasList Page::readCurValues(IdSet&id_set) {
         }
 	}
 	return result;
+}
+
+PageReader::PageReader():m_page(nullptr){
+}
+
+PageReader::~PageReader(){
+    if(m_page!=nullptr){
+        m_page->close();
+        m_page=nullptr;
+    }
+}
+
+bool PageReader::isEnd() const{
+    
+}
+
+void PageReader::readNext(Meas::MeasList*output){
 }

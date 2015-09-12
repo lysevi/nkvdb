@@ -93,6 +93,16 @@ protected:
   Index  m_index;
 };
 
+class PageReader: public utils::NonCopy{
+    PageReader();
+public:
+    typedef std::shared_ptr<PageReader> PPageReader;
+    ~PageReader();
+    bool isEnd() const;
+    void readNext(Meas::MeasList*output);
+private:
+    Page::PPage m_page;
+};
 
 
 }

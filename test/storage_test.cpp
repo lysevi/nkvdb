@@ -74,7 +74,11 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       meas.time = i;
       ds->append(meas);
 
-      auto meases = ds->readInterval(0, end_it);
+      Meas::MeasList meases{};
+      auto reader = ds->readInterval(0, end_it);
+      while(!reader->isEnd()){
+          reader->readNext(&meases);
+      }
 
       for (storage::Time j = 0; j < i; ++j) {
         bool isExists = false;
@@ -98,7 +102,12 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
     for (int i = 1; i < meas2write * write_iteration;i += (meas2write * write_iteration) / 100) {
       storage::Time to = i * ((meas2write * write_iteration) / 100);
-      auto meases = ds->readInterval(0, to);
+
+      Meas::MeasList meases{};
+      auto reader = ds->readInterval(0, to);
+      while(!reader->isEnd()){
+          reader->readNext(&meases);
+      }
 
       BOOST_CHECK_EQUAL(meases.size(), (size_t)(to + 1));
 
@@ -132,7 +141,12 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
     ds->append(array, arr_size);
     delete[] array;
 
-    auto interval = ds->readInterval(0, arr_size);
+    Meas::MeasList interval{};
+    auto reader = ds->readInterval(0, arr_size);
+    while(!reader->isEnd()){
+        reader->readNext(&interval);
+    }
+
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {
       BOOST_CHECK(utils::inInterval<storage::Time>(0, arr_size, m.time));
@@ -181,7 +195,13 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
     }
     ds->append(array, arr_size);
 
-    auto interval = ds->readInterval(array[0].time, array[arr_size - 1].time);
+
+    Meas::MeasList interval {};
+    auto reader = ds->readInterval(array[0].time, array[arr_size - 1].time);
+    while(!reader->isEnd()){
+        reader->readNext(&interval);
+    }
+
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {
       BOOST_CHECK(utils::inInterval<storage::Time>(

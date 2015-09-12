@@ -56,7 +56,11 @@ void readIntervalBench(storage::DataStorage::PDataStorage ds,
                        storage::Time from, storage::Time to,
                        std::string message) {
   clock_t read_t0 = clock();
-  auto meases = ds->readInterval(from, to);
+  storage::Meas::MeasList meases {};
+  auto reader = ds->readInterval(from, to);
+  while(!reader->isEnd()){
+      reader->readNext(&meases);
+  }
   clock_t read_t1 = clock();
 
   logger("=> : " << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);

@@ -155,12 +155,12 @@ bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
 }
 
 
-Meas::MeasList DataStorage::readInterval(Time from, Time to) {
+PStorageReader DataStorage::readInterval(Time from, Time to) {
 	static IdArray empty{};
 	return this->readInterval(empty, 0, 0, from, to);
 }
 
-Meas::MeasList DataStorage::readInterval(const IdArray &ids,
+PStorageReader DataStorage::readInterval(const IdArray &ids,
                                          storage::Flag source,
                                          storage::Flag flag, Time from,
                                          Time to) {
@@ -170,6 +170,9 @@ Meas::MeasList DataStorage::readInterval(const IdArray &ids,
       break;
     }
   }
+
+  auto sr=new StorageReader();
+  PStorageReader result(sr);
 
   this->m_cache_writer.pause_work();
 
@@ -197,20 +200,13 @@ Meas::MeasList DataStorage::readInterval(const IdArray &ids,
 
     auto reader=page2read->readInterval(ids, source, flag, from, to);
     reader->shouldClose=shouldClosed;
-    while(!reader->isEnd()){
-        reader->readNext(&list_result);
-    }
-    reader=nullptr;
+
+    result->addReader(reader);
   }
 
   this->m_cache_writer.continue_work();
 
-  if (list_result.size() == 0) {
-    return Meas::MeasList{};
-  }
-  // Meas::MeasArray result{ list_result.begin(), list_result.end() };
-
-  return list_result;
+  return result;
 }
 
 IdArray DataStorage::loadCurValues(const IdArray&ids) {
@@ -219,6 +215,7 @@ IdArray DataStorage::loadCurValues(const IdArray&ids) {
 	auto to = *std::max_element(ids.begin(), ids.end());
 	std::vector<page_time> page_time_vector{};
 
+    // read page list and sort them by time;
 	auto page_list = PageManager::get()->pageList();
 	for (auto page : page_list) {
 		storage::Page::PPage page2read;
@@ -234,7 +231,9 @@ IdArray DataStorage::loadCurValues(const IdArray&ids) {
 		}
 	}
 
-	std::sort(page_time_vector.begin(), page_time_vector.end(), [](const page_time&a, const page_time&b){return a.second > b.second; });
+    std::sort(page_time_vector.begin(),
+              page_time_vector.end(),
+              [](const page_time&a, const page_time&b){return a.second > b.second; });
 	IdSet id_set(ids.begin(), ids.end());
 
 	for (auto kv : page_time_vector) {
@@ -303,4 +302,31 @@ Meas::MeasList DataStorage::curValues(const IdArray&ids) {
 		}
 	}
 	return m_cur_values.readValue(ids);
+}
+
+StorageReader::StorageReader():m_readers(){
+
+}
+
+bool StorageReader::isEnd(){
+    return this->m_readers.size()==0;
+}
+
+void StorageReader::readNext(Meas::MeasList*output){
+    if(isEnd()){
+        return;
+    }
+
+    auto reader=m_readers.back();
+    m_readers.pop_back();
+
+    while(!reader->isEnd()){
+        reader->readNext(output);
+    }
+
+    reader=nullptr;
+}
+
+void StorageReader::addReader(PPageReader reader){
+    this->m_readers.push_back(reader);
 }

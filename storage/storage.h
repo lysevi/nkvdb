@@ -13,6 +13,8 @@ namespace storage {
 const uint64_t defaultPageSize = 10 * 1024 * 1024; // 10Mb
 const size_t defaultcacheSize = 10000;
 const size_t defaultcachePoolSize = 100;
+class StorageReader;
+typedef std::shared_ptr<StorageReader> PStorageReader;
 
 /**
 * Main class of mdb storage.
@@ -31,8 +33,8 @@ public:
   append_result append(const Meas& m);
   append_result append(const Meas::PMeas begin, const size_t meas_count);
 
-  Meas::MeasList readInterval(Time from, Time to);
-  Meas::MeasList readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
+  PStorageReader readInterval(Time from, Time to);
+  PStorageReader readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   Meas::MeasList curValues(const IdArray&ids);
 
   /// get max time in past to write
@@ -65,5 +67,15 @@ protected:
   Time m_past_time;
   bool m_closed;
   friend class storage::Cache;
+};
+
+class StorageReader: public utils::NonCopy{
+public:
+    StorageReader();
+    bool isEnd();
+    void readNext(Meas::MeasList*output);
+    void addReader(PPageReader reader);
+private:
+    std::vector<PPageReader> m_readers;
 };
 }

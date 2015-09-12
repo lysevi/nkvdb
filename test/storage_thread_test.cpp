@@ -56,7 +56,11 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
     t2.join();
     t1.join();
 
-    auto meases = ds->readInterval(0, arr_size);
+    Meas::MeasList meases {};
+    auto reader = ds->readInterval(0, arr_size);
+    while(!reader->isEnd()){
+        reader->readNext(&meases);
+    }
 
     BOOST_CHECK_EQUAL(meases.size(), arr_size * 5);
 

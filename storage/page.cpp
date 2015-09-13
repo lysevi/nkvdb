@@ -339,12 +339,12 @@ Meas::MeasList Page::readCurValues(IdSet&id_set) {
 }
 
 PageReader::PageReader(Page::Page_ptr page):
-        ids(),
-        source(0),
-        flag(0),
-        from(0),
-        to(0),
-        m_read_pos_list()        
+    ids(),
+    source(0),
+    flag(0),
+    from(0),
+    to(0),
+    m_read_pos_list()
 {
     m_cur_pos_end=m_cur_pos_begin=0;
     m_page=page;
@@ -364,7 +364,7 @@ void PageReader::addReadPos(uint64_t begin,uint64_t end){
 
 bool PageReader::isEnd() const{
     if(m_read_pos_list.size()==0){
-        return true;
+        return m_cur_pos_begin==m_cur_pos_end;
     }else{
         return false;
     }
@@ -374,20 +374,28 @@ void PageReader::readNext(Meas::MeasList*output){
     if(isEnd()){
         return;
     }
-    // FIX read more small pieces
-    auto pos=m_read_pos_list.front();
-    m_read_pos_list.pop_front();
-    
-    m_cur_pos_begin=pos.first;
-    m_cur_pos_end=pos.second;
-    for (uint64_t i = m_cur_pos_begin; i < m_cur_pos_end; ++i) {
+
+    if(m_cur_pos_begin==m_cur_pos_end){
+        /// get next read interval
+        auto pos=m_read_pos_list.front();
+        m_read_pos_list.pop_front();
+
+        m_cur_pos_begin=pos.first;
+        m_cur_pos_end=pos.second;
+    }
+    auto read_to=(m_cur_pos_begin+PageReader::ReadSize);
+    uint64_t i=0;
+    for (i = m_cur_pos_begin; i < read_to; ++i) {
+        if(i==m_cur_pos_end){
+            break;
+        }
         storage::Meas readedValue;
         if (!m_page->read(&readedValue, i)) {
             std::stringstream ss;
             ss << "PageReader::readNext: "
-                    << " file name: " << m_page->fileName()
-                    << " readPos: " << i
-                    << " size: " << m_page->getHeader().size;
+               << " file name: " << m_page->fileName()
+               << " readPos: " << i
+               << " size: " << m_page->getHeader().size;
 
             throw MAKE_EXCEPTION(ss.str());
         }
@@ -413,4 +421,5 @@ void PageReader::readNext(Meas::MeasList*output){
         }
         
     }
+    m_cur_pos_begin=i;
 }

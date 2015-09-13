@@ -106,13 +106,16 @@ class PageReader: public utils::NonCopy
     typedef std::pair<uint64_t,uint64_t> from_to_pos;
 public:
     static const  uint64_t defaultReadSize=1024;
+    /// max count of measurements readed in on call of readNext
     static uint64_t ReadSize;
 
     PageReader(Page::Page_ptr page);
     ~PageReader();
     bool isEnd() const;
     void readNext(Meas::MeasList*output);
+    /// add {from,to} position to read.
     void addReadPos(uint64_t begin,uint64_t end);
+public:
     IdArray ids;
     storage::Flag source;
     storage::Flag flag;

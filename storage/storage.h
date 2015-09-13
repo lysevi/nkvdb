@@ -13,6 +13,7 @@ namespace storage {
 const uint64_t defaultPageSize = 10 * 1024 * 1024; // 10Mb
 const size_t defaultcacheSize = 10000;
 const size_t defaultcachePoolSize = 100;
+
 class StorageReader;
 typedef std::shared_ptr<StorageReader> PStorageReader;
 
@@ -74,8 +75,8 @@ public:
     StorageReader();
     bool isEnd();
     void readNext(Meas::MeasList*output);
-    void addReader(PPageReader reader);
+    void addReader(PageReader_ptr reader);
 private:
-    std::vector<PPageReader> m_readers;
+    std::vector<PageReader_ptr> m_readers;
 };
 }

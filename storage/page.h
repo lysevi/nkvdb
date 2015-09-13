@@ -14,7 +14,7 @@
 
 namespace storage {
     class PageReader;
-    typedef std::shared_ptr<PageReader> PPageReader;
+    typedef std::shared_ptr<PageReader> PageReader_ptr;
 /**
 * Page class.
 * Header + [meas_0...meas_i]
@@ -40,11 +40,11 @@ public:
     uint64_t size;
   };
 
-  typedef std::shared_ptr<Page> PPage;
+  typedef std::shared_ptr<Page> Page_ptr;
 
 public:
-  static PPage Open(std::string filename);
-  static PPage Create(std::string filename, uint64_t fsize);
+  static Page_ptr Open(std::string filename);
+  static Page_ptr Create(std::string filename, uint64_t fsize);
   /// read only header from page file.
   static Page::Header ReadHeader(std::string filename);
   ~Page();
@@ -66,13 +66,13 @@ public:
   bool append(const Meas& value);
   size_t append(const Meas::PMeas begin, const size_t size);
   bool read(Meas::PMeas result, uint64_t position);
-  PPageReader readInterval(Time from, Time to);
-  PPageReader readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
+  PageReader_ptr readInterval(Time from, Time to);
+  PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   
   Meas::MeasList readCurValues(IdSet&id_set);
 private:
-  PPageReader readAll();
-  PPageReader readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);
+  PageReader_ptr readAll();
+  PageReader_ptr readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);
   Page(std::string fname);
   /// write empty header.
   void initHeader(char *data);
@@ -98,7 +98,7 @@ public:
     static const  uint64_t defaultReadSize=1024;
     static uint64_t ReadSize;
 
-    PageReader(Page::PPage page);
+    PageReader(Page::Page_ptr page);
     ~PageReader();
     bool isEnd() const;
     void readNext(Meas::MeasList*output);
@@ -110,7 +110,7 @@ public:
     Time to;
     bool shouldClose;
 private:
-    Page::PPage m_page;
+    Page::Page_ptr m_page;
     std::list<from_to_pos> m_read_pos_list;
     uint64_t m_cur_pos_begin;
     uint64_t m_cur_pos_end;

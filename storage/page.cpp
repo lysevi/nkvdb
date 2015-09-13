@@ -65,14 +65,14 @@ Time Page::minTime() const { return m_header->minTime; }
 
 Time Page::maxTime() const { return m_header->maxTime; }
 
-Page::PPage Page::Open(std::string filename) {
+Page::Page_ptr Page::Open(std::string filename) {
 #ifdef CHECK_PAGE_OPEN
   storage::Page::Header hdr = Page::ReadHeader(filename);
   if (hdr.isOpen) {
 	  throw MAKE_EXCEPTION("page is already openned. ");
   }
 #endif
-  PPage result(new Page(filename));
+  Page_ptr result(new Page(filename));
 
   try {
 	  boost::iostreams::mapped_file_params params;
@@ -93,8 +93,8 @@ Page::PPage Page::Open(std::string filename) {
   return result;
 }
 
-Page::PPage Page::Create(std::string filename, uint64_t fsize) {
-  PPage result(new Page(filename));
+Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
+  Page_ptr result(new Page(filename));
 
   try {
 	  boost::iostreams::mapped_file_params params;
@@ -230,26 +230,26 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
     return true;
 }
 
-PPageReader  Page::readAll() {
+PageReader_ptr  Page::readAll() {
     if(this->m_header->write_pos==0){
         return nullptr;
     }
     auto ppage=this->shared_from_this();
     auto preader=new PageReader(ppage);
-    auto result=PPageReader(preader);
+    auto result=PageReader_ptr(preader);
     result->addReadPos(0,m_header->write_pos);
     return result;
 }
 
 
-PPageReader Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end){
+PageReader_ptr Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end){
     if(this->m_header->write_pos==0){
         return nullptr;
     }
 
     auto ppage=this->shared_from_this();
     auto preader=new PageReader(ppage);
-    auto result=PPageReader(preader);
+    auto result=PageReader_ptr(preader);
     result->addReadPos(begin,end);
     result->ids=ids;
     result->source=source;
@@ -259,7 +259,7 @@ PPageReader Page::readFromToPos(const IdArray &ids, storage::Flag source, storag
     return result;
 }
 
-PPageReader Page::readInterval(Time from, Time to) {
+PageReader_ptr Page::readInterval(Time from, Time to) {
     if(this->m_header->write_pos==0){
         return nullptr;
     }
@@ -267,7 +267,7 @@ PPageReader Page::readInterval(Time from, Time to) {
     return this->readInterval(emptyArray, 0, 0, from, to);
 }
 
-PPageReader Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
+PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
     // [from...minTime,maxTime...to]
     if(this->m_header->write_pos==0){
         return nullptr;
@@ -285,7 +285,7 @@ PPageReader Page::readInterval(const IdArray &ids, storage::Flag source, storage
     
     auto ppage=this->shared_from_this();
     auto preader=new PageReader(ppage);
-    auto result=PPageReader(preader);
+    auto result=PageReader_ptr(preader);
     result->ids = ids;
     result->source = source;
     result->flag = flag;
@@ -335,7 +335,7 @@ Meas::MeasList Page::readCurValues(IdSet&id_set) {
 	return result;
 }
 
-PageReader::PageReader(Page::PPage page):
+PageReader::PageReader(Page::Page_ptr page):
         ids(),
         source(0),
         flag(0),

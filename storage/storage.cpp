@@ -179,7 +179,7 @@ PStorageReader Storage::readInterval(const IdArray &ids,
   Meas::MeasList list_result;
   auto page_list = PageManager::get()->pageList();
   for (auto page : page_list) {
-    storage::Page::PPage page2read;
+    storage::Page::Page_ptr page2read;
     bool shouldClosed = false;
 	if (page == PageManager::get()->getCurPage()->fileName()) {
 		if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
@@ -218,7 +218,7 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
     // read page list and sort them by time;
 	auto page_list = PageManager::get()->pageList();
 	for (auto page : page_list) {
-		storage::Page::PPage page2read;
+		storage::Page::Page_ptr page2read;
 		if (page == PageManager::get()->getCurPage()->fileName()) {
 			if (HeaderIdIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
 				page_time_vector.push_back(std::make_pair(page, PageManager::get()->getCurPage()->maxTime()));
@@ -240,7 +240,7 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
 		if (id_set.size() == 0) {
 			break;
 		}
-		storage::Page::PPage page2read;
+		storage::Page::Page_ptr page2read;
 		auto page = kv.first;
 		bool shouldClosed = false;
 		if (page == PageManager::get()->getCurPage()->fileName()) {
@@ -327,6 +327,6 @@ void StorageReader::readNext(Meas::MeasList*output){
     reader=nullptr;
 }
 
-void StorageReader::addReader(PPageReader reader){
+void StorageReader::addReader(PageReader_ptr reader){
     this->m_readers.push_back(reader);
 }

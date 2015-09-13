@@ -178,7 +178,6 @@ PStorageReader Storage::readInterval(const IdArray &ids,
     auto page_list = PageManager::get()->pageList();
     for (auto page : page_list) {
         storage::Page::Page_ptr page2read;
-        bool shouldClosed = false;
         if (page == PageManager::get()->getCurPage()->fileName()) {
             if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
                 page2read = PageManager::get()->getCurPage();
@@ -187,7 +186,6 @@ PStorageReader Storage::readInterval(const IdArray &ids,
             storage::Page::Header hdr = storage::Page::ReadHeader(page);
             if (HeaderIntervalCheck(from, to, hdr)) {
                 page2read = storage::Page::Open(page, true);
-                shouldClosed = true;
             } else {
                 continue;
             }
@@ -197,7 +195,6 @@ PStorageReader Storage::readInterval(const IdArray &ids,
         }
 
         auto reader=page2read->readInterval(ids, source, flag, from, to);
-        reader->shouldClose=shouldClosed;
 
         result->addReader(reader);
     }
@@ -304,12 +301,16 @@ Meas::MeasList Storage::curValues(const IdArray&ids) {
 	return m_cur_values.readValue(ids);
 }
 
-StorageReader::StorageReader():m_readers(){
+StorageReader::StorageReader():m_readers(),m_current_reader(nullptr){
 
 }
 
 bool StorageReader::isEnd(){
-    return this->m_readers.size()==0;
+    if(this->m_readers.size()==0){
+        return m_current_reader==nullptr?true:m_current_reader->isEnd();
+    }else{
+        return false;
+    }
 }
 
 void StorageReader::readNext(Meas::MeasList*output){
@@ -317,14 +318,15 @@ void StorageReader::readNext(Meas::MeasList*output){
         return;
     }
 
-    auto reader=m_readers.back();
-    m_readers.pop_back();
-
-    while(!reader->isEnd()){
-        reader->readNext(output);
+    if(m_current_reader==nullptr){
+        m_current_reader=m_readers.back();
+        m_readers.pop_back();
     }
+    m_current_reader->readNext(output);
 
-    reader=nullptr;
+    if(m_current_reader->isEnd()){
+        m_current_reader=nullptr;
+    }
 }
 
 void StorageReader::addReader(PageReader_ptr reader){

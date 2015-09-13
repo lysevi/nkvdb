@@ -78,5 +78,6 @@ public:
     void addReader(PageReader_ptr reader);
 private:
     std::vector<PageReader_ptr> m_readers;
+    PageReader_ptr m_reader;
 };
 }

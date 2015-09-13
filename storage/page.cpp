@@ -226,12 +226,15 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
 
 void Page::readComplete(){
     std::lock_guard<std::mutex> _lock(m_lock);
-    this->m_header->ReadersCount--;
 
-    if(m_header->ReadersCount==0){
-        this->close();
+    if(m_header->ReadersCount!=0){
+
+        this->m_header->ReadersCount--;
+
+        if(m_header->ReadersCount==0){
+            this->close();
+        }
     }
-
 }
 PageReader_ptr  Page::readAll() {
     if(this->m_header->write_pos==0){
@@ -304,8 +307,7 @@ PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, stor
 }
 
 bool Page::isFull() const {
-  return (sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos) >=
-         m_header->size;
+  return (sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos) >= m_header->size;
 }
 
 size_t Page::capacity() const {
@@ -348,11 +350,10 @@ PageReader::PageReader(Page::Page_ptr page):
 {
     m_cur_pos_end=m_cur_pos_begin=0;
     m_page=page;
-    shouldClose=false;
 }
 
 PageReader::~PageReader(){
-    if((shouldClose) && (m_page!=nullptr)){
+    if(m_page!=nullptr){
         m_page->readComplete();
         m_page=nullptr;
     }

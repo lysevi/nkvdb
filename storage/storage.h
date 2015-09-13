@@ -14,25 +14,28 @@ const uint64_t defaultPageSize = 10 * 1024 * 1024; // 10Mb
 const size_t defaultcacheSize = 10000;
 const size_t defaultcachePoolSize = 100;
 
+class StorageReader;
+typedef std::shared_ptr<StorageReader> PStorageReader;
+
 /**
 * Main class of mdb storage.
 */
-class DataStorage {
+class Storage {
 public:
-  typedef std::shared_ptr<DataStorage> PDataStorage;
+  typedef std::shared_ptr<Storage> Storage_ptr;
 
 public:
-  static PDataStorage Create(const std::string &ds_path,
-                             uint64_t page_size = defaultPageSize);
-  static PDataStorage Open(const std::string &ds_path);
-  ~DataStorage();
+  static Storage_ptr Create(const std::string &ds_path, uint64_t page_size = defaultPageSize);
+  static Storage_ptr Open(const std::string &ds_path);
+  ~Storage();
   void Close();
+
   bool havePage2Write() const;
   append_result append(const Meas& m);
   append_result append(const Meas::PMeas begin, const size_t meas_count);
 
-  Meas::MeasList readInterval(Time from, Time to);
-  Meas::MeasList readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
+  PStorageReader readInterval(Time from, Time to);
+  PStorageReader readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   Meas::MeasList curValues(const IdArray&ids);
 
   /// get max time in past to write
@@ -52,7 +55,7 @@ public:
   /// load current values of ids. return array of not founded measurements.
   IdArray loadCurValues(const IdArray&ids);
 private:
-  DataStorage();
+  Storage();
   void writeCache();
 protected:
   std::string m_path;
@@ -65,5 +68,15 @@ protected:
   Time m_past_time;
   bool m_closed;
   friend class storage::Cache;
+};
+
+class StorageReader: public utils::NonCopy{
+public:
+    StorageReader();
+    bool isEnd();
+    void readNext(Meas::MeasList*output);
+    void addReader(PageReader_ptr reader);
+private:
+    std::vector<PageReader_ptr> m_readers;
 };
 }

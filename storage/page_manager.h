@@ -19,7 +19,7 @@ namespace storage {
 		static PageManager* get();
 
         /// get current openned page
-		Page::PPage getCurPage();
+		Page::Page_ptr getCurPage();
         void closeCurrentPage();
 		void createNewPage();
 
@@ -27,14 +27,14 @@ namespace storage {
 		std::string getNewPageUniqueName()const;
 
 		std::list<std::string> pageList() const;
-        Page::PPage open(std::string path);
+        Page::Page_ptr open(std::string path);
     protected:
         std::string getOldesPage(const std::list<std::string> &pages)const;
 	public:
 		uint64_t default_page_size;
 	protected:
 		std::string m_path;
-		Page::PPage m_curpage;
+		Page::Page_ptr m_curpage;
 		
 	};
 }

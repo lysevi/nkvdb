@@ -17,13 +17,13 @@ using namespace storage;
 
 BOOST_AUTO_TEST_CASE(PageCreateOpen) {
   {
-    Page::PPage created =
+    Page::Page_ptr created =
         Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
     BOOST_CHECK(!created->isFull());
     created->close();
   }
   {
-    Page::PPage openned = Page::Open(mdb_test::test_page_name);
+    Page::Page_ptr openned = Page::Open(mdb_test::test_page_name);
 
     BOOST_CHECK_EQUAL(openned->size(), mdb_test::sizeInMb10);
     BOOST_CHECK(!openned->isFull());
@@ -54,15 +54,14 @@ BOOST_AUTO_TEST_CASE(PageIO) {
   std::string index = "";
   {
     {
-      Page::PPage storage =
-          Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+      Page::Page_ptr storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
       storage->close();
     }
     const storage::Flag flagValue = 1;
     const storage::Flag srcValue = 2;
 
     for (size_t i = 0; i < TestableMeasCount; ++i) {
-      Page::PPage storage = Page::Open(mdb_test::test_page_name);
+      Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
       auto newMeas = storage::Meas::empty();
       newMeas.value = i;
       newMeas.id = i;
@@ -73,7 +72,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
       storage->close();
     }
 
-    Page::PPage storage = Page::Open(mdb_test::test_page_name);
+    Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
 
     BOOST_CHECK_EQUAL(storage->minTime(), storage::Time(0));
     BOOST_CHECK_EQUAL(storage->maxTime(), static_cast<storage::Time>(TestableMeasCount - 1));
@@ -107,7 +106,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 BOOST_AUTO_TEST_CASE(Capacity) {
   const size_t pageSize =
       sizeof(storage::Page::Header) + sizeof(storage::Meas) * 10;
-  Page::PPage page = Page::Create(mdb_test::test_page_name, pageSize);
+  Page::Page_ptr page = Page::Create(mdb_test::test_page_name, pageSize);
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)10);
 
   auto newMeas = storage::Meas::empty();
@@ -127,7 +126,7 @@ BOOST_AUTO_TEST_CASE(Capacity) {
 BOOST_AUTO_TEST_CASE(AppendMany) {
   const size_t pageSize =
       sizeof(storage::Page::Header) + sizeof(storage::Meas) * 10;
-  Page::PPage page = Page::Create(mdb_test::test_page_name, pageSize);
+  Page::Page_ptr page = Page::Create(mdb_test::test_page_name, pageSize);
 
   size_t arr_size = 15;
   storage::Meas::PMeas array = new storage::Meas[arr_size];
@@ -158,12 +157,12 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
   std::string index = "";
   {
     {
-      Page::PPage storage =
+      Page::Page_ptr storage =
           Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
       storage->close();
     }
 
-    Page::PPage storage = Page::Open(mdb_test::test_page_name);
+    Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
     for (int i = 0; i < TestableMeasCount; ++i) {
 
       auto newMeas = storage::Meas::empty();
@@ -178,7 +177,11 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
     {
       IdArray ids = {1, 2, 3};
 	  Meas::MeasList readRes;
-	  storage->readInterval(ids, 3, 3, 0, TestableMeasCount,readRes);
+	  auto reader=storage->readInterval(ids, 3, 3, 0, TestableMeasCount);
+          while(!reader->isEnd()){
+              reader->readNext(&readRes);
+          }
+          reader=nullptr;
 
       BOOST_CHECK(readRes.size() != 0);
       for (auto it = readRes.cbegin(); it != readRes.cend(); ++it) {
@@ -193,8 +196,11 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
     {
       IdArray ids = {1, 2, 3, 4, 5};
 	  Meas::MeasList readRes;
-      storage->readInterval(ids, 0, 0, 0, TestableMeasCount,readRes);
-
+      auto reader=storage->readInterval(ids, 0, 0, 0, TestableMeasCount);
+      while(!reader->isEnd()){
+              reader->readNext(&readRes);
+          }
+      reader=nullptr;
       BOOST_CHECK(readRes.size() != 0);
       bool haveFlag = false;
       bool haveSource = false;

@@ -29,7 +29,7 @@ void Cache::sync_begin() { m_sync = true; }
 
 void Cache::sync_complete() { m_sync = false; }
 
-void Cache::setStorage(DataStorage*ds) {
+void Cache::setStorage(Storage*ds) {
 	m_ds = ds;
 }
 

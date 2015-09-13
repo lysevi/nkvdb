@@ -8,51 +8,41 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 
-const uint8_t page_version = 1;
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 
-namespace ios = boost::iostreams;
+const uint8_t page_version = 1;
+uint64_t storage::PageReader::ReadSize=storage::PageReader::defaultReadSize;
 
 using namespace storage;
 
 const size_t oneMb = sizeof(char) * 1024 * 1024;
 
-int cmp_pred(const storage::Meas &r, const storage::Meas &l) {
-  if (r.time < l.time)
-    return -1;
-  if (r.time == l.time)
-    return 0;
-
-  return 1;
-}
-
-uint32_t delta_pred(const Meas &r, const Meas &l) 
-{
-	return r.time - l.time; 
-}
-
 Page::Page(std::string fname)
     : m_filename(new std::string(fname)),
-      m_file(new boost::iostreams::mapped_file) {
+      m_file(nullptr),
+      m_region(nullptr)
+{
 	
 	this->m_index.setFileName(this->index_fileName());
 }
 
 Page::~Page() {
   this->close();
-  delete m_file;
-  delete m_filename;
 }
 
 void Page::close() {
-  if (this->m_file->is_open()) {
-    this->m_header->isOpen = false;
-    m_file->close();
-  }
-
-  this->m_file->close();
+    if ((this->m_file!=nullptr) && (m_region!=nullptr)) {
+        this->m_header->isOpen = false;
+        this->m_header->ReadersCount = 0;
+        delete m_region;
+        delete m_file;
+        m_region=nullptr;
+        m_file=nullptr;
+    }
 }
 
-size_t Page::size() const { return m_file->size(); }
+size_t Page::size() const { return m_region->get_size(); }
 
 std::string Page::fileName() const { return std::string(*m_filename); }
 
@@ -64,52 +54,55 @@ Time Page::minTime() const { return m_header->minTime; }
 
 Time Page::maxTime() const { return m_header->maxTime; }
 
-Page::PPage Page::Open(std::string filename) {
-#ifdef CHECK_PAGE_OPEN
-  storage::Page::Header hdr = Page::ReadHeader(filename);
-  if (hdr.isOpen) {
-	  throw MAKE_EXCEPTION("page is already openned. ");
-  }
-#endif
-  PPage result(new Page(filename));
+Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
+    if(!readOnly){
+        storage::Page::Header hdr = Page::ReadHeader(filename);
+        if (hdr.isOpen) {
+            throw MAKE_EXCEPTION("page is already openned. ");
+        }
+    }
+    Page_ptr result(new Page(filename));
 
-  try {
-	  boost::iostreams::mapped_file_params params;
-	  params.path = filename;
-	  params.flags = result->m_file->readwrite;
-	  result->m_file->open(params);
-  } catch (std::runtime_error &ex) {
-	  std::string what = ex.what();
-	  throw MAKE_EXCEPTION(ex.what());
-  }
-  if (!result->m_file->is_open())
-	  throw MAKE_EXCEPTION("can`t create file ");
+    try {
+           result->m_file=new bi::file_mapping(filename.c_str(),bi::read_write);
+           result->m_region=new bi::mapped_region(*result->m_file, bi::read_write);
+    } catch (std::runtime_error &ex) {
+        std::string what = ex.what();
+        throw MAKE_EXCEPTION(ex.what());
+    }
 
-  char *data = result->m_file->data();
-  result->m_header = (Page::Header *)data;
-  result->m_data_begin = (Meas *)(data + sizeof(Page::Header));
-  result->m_header->isOpen = true;
-  return result;
+    char *data = static_cast<char*>(result->m_region->get_address());
+    result->m_header = (Page::Header *)data;
+    result->m_data_begin = (Meas *)(data + sizeof(Page::Header));
+
+    result->m_header->isOpen = true;
+    if(readOnly){
+        result->m_header->ReadersCount+=1;
+    }
+    return result;
 }
 
-Page::PPage Page::Create(std::string filename, uint64_t fsize) {
-  PPage result(new Page(filename));
+Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
+  Page_ptr result(new Page(filename));
 
   try {
-	  boost::iostreams::mapped_file_params params;
-	  params.new_file_size = fsize;
-	  params.path = filename;
-	  params.flags = result->m_file->readwrite;
-	  result->m_file->open(params);
+      {
+          bi::file_mapping::remove(filename.c_str());
+          std::filebuf fbuf;
+          fbuf.open(filename,
+                    std::ios_base::in | std::ios_base::out|std::ios_base::trunc | std::ios_base::binary);
+                   //Set the size
+          fbuf.pubseekoff(fsize-1, std::ios_base::beg);
+          fbuf.sputc(0);
+      }
+      result->m_file=new bi::file_mapping(filename.c_str(),bi::read_write);
+      result->m_region=new bi::mapped_region(*result->m_file, bi::read_write);
   } catch (std::runtime_error &ex) {
 	  std::string what = ex.what();
 	  throw MAKE_EXCEPTION(ex.what());
   }
 
-  if (!result->m_file->is_open())
-	  throw MAKE_EXCEPTION("can`t create file ");
-
-  char *data = result->m_file->data();
+  char *data = static_cast<char*>(result->m_region->get_address());
 
   result->initHeader(data);
   result->m_data_begin = (Meas *)(data + sizeof(Page::Header));
@@ -133,7 +126,7 @@ void Page::initHeader(char *data) {
   m_header = (Page::Header *)data;
   memset(m_header, 0, sizeof(Page::Header));
   m_header->version = page_version;
-  m_header->size = this->m_file->size();
+  m_header->size = this->size();
   m_header->minMaxInit = false;
 }
 
@@ -156,58 +149,60 @@ void Page::updateMinMax(const Meas& value) {
 }
 
 bool Page::append(const Meas& value) {
-  if (this->isFull()) {
-    return false;
-  }
+    assert(m_header->ReadersCount==0);
+    if (this->isFull()) {
+        return false;
+    }
 
-  updateMinMax(value);
+    updateMinMax(value);
 
-  memcpy(&m_data_begin[m_header->write_pos], &value, sizeof(Meas));
+    memcpy(&m_data_begin[m_header->write_pos], &value, sizeof(Meas));
 
-  Index::IndexRecord rec;
-  rec.minTime = value.time;
-  rec.maxTime = value.time;
-  rec.minId = value.id;
-  rec.maxId = value.id;
-  rec.count = 1;
-  rec.pos = m_header->write_pos;
+    Index::IndexRecord rec;
+    rec.minTime = value.time;
+    rec.maxTime = value.time;
+    rec.minId = value.id;
+    rec.maxId = value.id;
+    rec.count = 1;
+    rec.pos = m_header->write_pos;
 
-  this->m_index.writeIndexRec(rec);
+    this->m_index.writeIndexRec(rec);
 
-  m_header->write_pos++;
-  return true;
+    m_header->write_pos++;
+    return true;
 }
 
 size_t Page::append(const Meas::PMeas begin, const size_t size) {
-  size_t cap = this->capacity();
-  size_t to_write = 0;
-  if (cap == 0) {
-	  return 0;
-  }
-  if (cap > size) {
-    to_write = size;
-  } else if (cap == size) {
-	  to_write = size;
-  } else if (cap < size) {
-    to_write = cap;
-  }
-  memcpy(m_data_begin + m_header->write_pos, begin, to_write * sizeof(Meas));
+    assert(m_header->ReadersCount==0);
+    size_t cap = this->capacity();
+    size_t to_write = 0;
+    if (cap == 0) {
+        return 0;
+    }
+    if (cap > size) {
+        to_write = size;
+    } else if (cap == size) {
+        to_write = size;
+    } else if (cap < size) {
+        to_write = cap;
+    }
+    memcpy(m_data_begin + m_header->write_pos, begin, to_write * sizeof(Meas));
 
-  updateMinMax(begin[0]);
-  updateMinMax(begin[to_write-1]);
+    updateMinMax(begin[0]);
+    updateMinMax(begin[to_write-1]);
 
-  Index::IndexRecord rec;
-  rec.minTime = begin[0].time;
-  rec.maxTime = begin[to_write - 1].time;
-  rec.minId = begin[0].id;
-  rec.maxId = begin[to_write - 1].id;
-  rec.count = to_write;
-  rec.pos = m_header->write_pos;
+    Index::IndexRecord rec;
+    rec.minTime = begin[0].time;
+    rec.maxTime = begin[to_write - 1].time;
+    rec.minId = begin[0].id;
+    rec.maxId = begin[to_write - 1].id;
+    rec.count = to_write;
+    rec.pos = m_header->write_pos;
 
-  this->m_index.writeIndexRec(rec);
+    this->m_index.writeIndexRec(rec);
 
-  m_header->write_pos += to_write;
-  return to_write;
+    m_header->write_pos += to_write;
+    return to_write;
 }
 
 
@@ -229,87 +224,83 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
     return true;
 }
 
-void  Page::readAll(storage::Meas::MeasList *dest) {
-    if(this->m_header->write_pos==0){
-        return;
+void Page::readComplete(){
+    std::lock_guard<std::mutex> _lock(m_lock);
+    this->m_header->ReadersCount--;
+
+    if(m_header->ReadersCount==0){
+        this->close();
     }
-	std::copy(this->m_data_begin, this->m_data_begin + m_header->write_pos, std::back_inserter(*dest));
+
+}
+PageReader_ptr  Page::readAll() {
+    if(this->m_header->write_pos==0){
+        return nullptr;
+    }
+    auto ppage=this->shared_from_this();
+    auto preader=new PageReader(ppage);
+    auto result=PageReader_ptr(preader);
+    result->addReadPos(0,m_header->write_pos);
+    return result;
 }
 
 
-void Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end, storage::Meas::MeasList *dest){
+PageReader_ptr Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end){
     if(this->m_header->write_pos==0){
-        return;
+        return nullptr;
     }
-    storage::Meas readedValue;
-    //storage::Meas key;
-    //key.time = from;
-    //auto read_start = utils::find_begin(this->m_data_begin + begin, this->m_data_begin + end, key, cmp_pred, delta_pred);
 
-	for (size_t i = begin; i < end; ++i) {
-		//for (size_t i = std::distance(this->m_data_begin + begin, read_start); i < end; ++i) {
-		if (!read(&readedValue, i)) {
-			std::stringstream ss;
-			ss << "ReadIntervalError: "
-				<< " file name: " << m_filename
-				<< " writePos: " << m_header->write_pos
-				<< " size: " << m_header->size;
+    auto ppage=this->shared_from_this();
+    auto preader=new PageReader(ppage);
+    auto result=PageReader_ptr(preader);
+    result->addReadPos(begin,end);
+    result->ids=ids;
+    result->source=source;
+    result->flag=flag;
+    result->from=from;
+    result->to=to;
+    return result;
+}
 
-			throw MAKE_EXCEPTION(ss.str());
-		}
+PageReader_ptr Page::readInterval(Time from, Time to) {
+    if(this->m_header->write_pos==0){
+        return nullptr;
+    }
+    static IdArray emptyArray;
+    return this->readInterval(emptyArray, 0, 0, from, to);
+}
 
-		if (utils::inInterval(from, to, readedValue.time)) {
-			if (flag != 0) {
-				if (readedValue.flag != flag) {
-					continue;
-				}
-			}
-			if (source != 0) {
-				if (readedValue.source != source) {
-					continue;
-				}
-			}
-			if (ids.size() != 0) {
-				if (std::find(ids.cbegin(), ids.cend(), readedValue.id) ==
-					ids.end()) {
-					continue;
-				}
-			}
-
-			dest->push_back(readedValue);
+PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
+    // [from...minTime,maxTime...to]
+    if(this->m_header->write_pos==0){
+        return nullptr;
+    }
+    if ((from <= m_header->minTime) && (to >= m_header->maxTime)) {
+        if ((ids.size() == 0) && (source == 0) && (flag == 0)) {
+            auto result=this->readAll();
+            result->from=from;
+            result->to=to;
+            return result;
+        } else {
+            return this->readFromToPos(ids, source, flag, from, to, 0, m_header->write_pos);
         }
-	}
-}
-
-void Page::readInterval(Time from, Time to, storage::Meas::MeasList&result) {
-    if(this->m_header->write_pos==0){
-        return;
     }
-	static IdArray emptyArray;
-	this->readInterval(emptyArray, 0, 0, from, to,result);
-}
+    
+    auto ppage=this->shared_from_this();
+    auto preader=new PageReader(ppage);
+    auto result=PageReader_ptr(preader);
+    result->ids = ids;
+    result->source = source;
+    result->flag = flag;
+    result->from = from;
+    result->to = to;
 
-void Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, storage::Meas::MeasList&result) {
- //logger("Page::ReadInterval: from:"<<from<<" to:"<<to<<" min:"<<m_header->minTime<<" max:"<<m_header->maxTime);
-  // [from...minTime,maxTime...to]
-    if(this->m_header->write_pos==0){
-        return;
+    auto irecords = m_index.findInIndex(ids, from, to);
+    for (Index::IndexRecord &rec : irecords) {
+        auto max_pos = rec.pos + rec.count;
+        result->addReadPos(rec.pos,max_pos);
     }
-  if((from<=m_header->minTime) && (to>=m_header->maxTime)){
-        if((ids.size()==0) && (source==0) && (flag==0)){
-            this->readAll(&result);
-			return;
-        }else{
-            this->readFromToPos(ids,source,flag,from,to,0,m_header->write_pos,&result);
-			return;
-        }
-  }
-
-  auto irecords = m_index.findInIndex(ids, from, to);
-  for (Index::IndexRecord &rec : irecords) {
-    auto max_pos = rec.pos + rec.count;
-    this->readFromToPos(ids,source,flag,from,to, rec.pos,max_pos,&result);
-  }
+  return result;
 }
 
 bool Page::isFull() const {
@@ -345,4 +336,90 @@ Meas::MeasList Page::readCurValues(IdSet&id_set) {
         }
 	}
 	return result;
+}
+
+PageReader::PageReader(Page::Page_ptr page):
+    ids(),
+    source(0),
+    flag(0),
+    from(0),
+    to(0),
+    m_read_pos_list()
+{
+    m_cur_pos_end=m_cur_pos_begin=0;
+    m_page=page;
+    shouldClose=false;
+}
+
+PageReader::~PageReader(){
+    if((shouldClose) && (m_page!=nullptr)){
+        m_page->readComplete();
+        m_page=nullptr;
+    }
+}
+
+void PageReader::addReadPos(uint64_t begin,uint64_t end){
+    m_read_pos_list.push_back(std::make_pair(begin,end));
+}
+
+bool PageReader::isEnd() const{
+    if(m_read_pos_list.size()==0){
+        return m_cur_pos_begin==m_cur_pos_end;
+    }else{
+        return false;
+    }
+}
+
+void PageReader::readNext(Meas::MeasList*output){
+    if(isEnd()){
+        return;
+    }
+
+    if(m_cur_pos_begin==m_cur_pos_end){
+        /// get next read interval
+        auto pos=m_read_pos_list.front();
+        m_read_pos_list.pop_front();
+
+        m_cur_pos_begin=pos.first;
+        m_cur_pos_end=pos.second;
+    }
+    auto read_to=(m_cur_pos_begin+PageReader::ReadSize);
+    uint64_t i=0;
+    for (i = m_cur_pos_begin; i < read_to; ++i) {
+        if(i==m_cur_pos_end){
+            break;
+        }
+        storage::Meas readedValue;
+        if (!m_page->read(&readedValue, i)) {
+            std::stringstream ss;
+            ss << "PageReader::readNext: "
+               << " file name: " << m_page->fileName()
+               << " readPos: " << i
+               << " size: " << m_page->getHeader().size;
+
+            throw MAKE_EXCEPTION(ss.str());
+        }
+
+        if (utils::inInterval(from, to, readedValue.time)) {
+            if (flag != 0) {
+                if (readedValue.flag != flag) {
+                    continue;
+                }
+            }
+            if (source != 0) {
+                if (readedValue.source != source) {
+                    continue;
+                }
+            }
+            if (ids.size() != 0) {
+                if (std::find(ids.cbegin(), ids.cend(), readedValue.id) == ids.end()) {
+                    continue;
+                }
+            }
+
+            output->push_back(readedValue);
+        }
+        
+    }
+    m_cur_pos_begin=i;
 }

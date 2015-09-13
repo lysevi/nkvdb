@@ -22,7 +22,7 @@ const int meas2write = 10;
 const int write_iteration = 10;
 size_t arr_size = meas2write * write_iteration;
 
-void writer(storage::DataStorage::PDataStorage ds) {
+void writer(storage::Storage::Storage_ptr ds) {
 	threads_count++;
     storage::Meas meas = storage::Meas::empty();
 	for (size_t i = 0; i < arr_size; ++i) {
@@ -41,8 +41,8 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
   const std::string storage_path = mdb_test::storage_path + "storageIO";
 
   {
-    storage::DataStorage::PDataStorage ds =
-        storage::DataStorage::Create(storage_path, storage_size);
+    storage::Storage::Storage_ptr ds =
+        storage::Storage::Create(storage_path, storage_size);
 
     std::thread t1(writer, ds);
     std::thread t2(writer, ds);
@@ -56,7 +56,11 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
     t2.join();
     t1.join();
 
-    auto meases = ds->readInterval(0, arr_size);
+    Meas::MeasList meases {};
+    auto reader = ds->readInterval(0, arr_size);
+    while(!reader->isEnd()){
+        reader->readNext(&meases);
+    }
 
     BOOST_CHECK_EQUAL(meases.size(), arr_size * 5);
 

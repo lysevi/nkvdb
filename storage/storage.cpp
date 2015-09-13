@@ -11,7 +11,7 @@
 using namespace storage;
 namespace fs = boost::filesystem;
 
-DataStorage::DataStorage()
+Storage::Storage()
     : m_cache_pool(defaultcachePoolSize, defaultcacheSize) {
   m_cache = m_cache_pool.getCache();
   m_cache->setStorage(this);
@@ -21,13 +21,13 @@ DataStorage::DataStorage()
   m_closed = false;
 }
 
-DataStorage::~DataStorage() { 
+Storage::~Storage() { 
 	if (!m_closed) { 
 		this->Close(); 
     }
 }
 
-void DataStorage::Close() {
+void Storage::Close() {
   if (!m_cache_writer.stoped()) {
     this->writeCache();
     m_cache_writer.stop();
@@ -38,9 +38,9 @@ void DataStorage::Close() {
   m_closed = true;
 }
 
-DataStorage::PDataStorage DataStorage::Create(const std::string &ds_path,
+Storage::Storage_ptr Storage::Create(const std::string &ds_path,
                                               uint64_t page_size) {
-  DataStorage::PDataStorage result(new DataStorage);
+  Storage::Storage_ptr result(new Storage);
   
 
   if (fs::exists(ds_path)) {
@@ -58,9 +58,9 @@ DataStorage::PDataStorage DataStorage::Create(const std::string &ds_path,
   return result;
 }
 
-DataStorage::PDataStorage DataStorage::Open(const std::string &ds_path) {
+Storage::Storage_ptr Storage::Open(const std::string &ds_path) {
 
-  DataStorage::PDataStorage result(new DataStorage);
+  Storage::Storage_ptr result(new Storage);
 
   if (!fs::exists(ds_path)) {
     throw utils::Exception::CreateAndLog(POSITION, ds_path + " not exists.");
@@ -76,11 +76,11 @@ DataStorage::PDataStorage DataStorage::Open(const std::string &ds_path) {
   return result;
 }
 
-bool DataStorage::havePage2Write() const {
+bool Storage::havePage2Write() const {
     return (PageManager::get()->getCurPage() != nullptr) && (!PageManager::get()->getCurPage()->isFull());
 }
 
-append_result DataStorage::append(const Meas& m) {
+append_result Storage::append(const Meas& m) {
   std::lock_guard<std::mutex> guard(m_write_mutex);
   append_result res{};
   while (res.writed == 0) {
@@ -95,7 +95,7 @@ append_result DataStorage::append(const Meas& m) {
   return res;
 }
 
-append_result DataStorage::append(const Meas::PMeas begin,
+append_result Storage::append(const Meas::PMeas begin,
                                   const size_t meas_count) {
   std::lock_guard<std::mutex> guard(m_write_mutex);
   if (m_cache->isFull()) {
@@ -119,7 +119,7 @@ append_result DataStorage::append(const Meas::PMeas begin,
   return result;
 }
 
-void DataStorage::writeCache() {
+void Storage::writeCache() {
   if (m_cache->size() == 0) {
     return;
   }
@@ -155,72 +155,68 @@ bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
 }
 
 
-Meas::MeasList DataStorage::readInterval(Time from, Time to) {
+PStorageReader Storage::readInterval(Time from, Time to) {
 	static IdArray empty{};
 	return this->readInterval(empty, 0, 0, from, to);
 }
 
-Meas::MeasList DataStorage::readInterval(const IdArray &ids,
-                                         storage::Flag source,
-                                         storage::Flag flag, Time from,
-                                         Time to) {
-  this->writeCache();
-  while (true) {
-    if (!m_cache_writer.isBusy()) {
-      break;
-    }
-  }
-
-  this->m_cache_writer.pause_work();
-
-  Meas::MeasList list_result;
-  auto page_list = PageManager::get()->pageList();
-  for (auto page : page_list) {
-    storage::Page::PPage page2read;
-    bool shouldClosed = false;
-	if (page == PageManager::get()->getCurPage()->fileName()) {
-		if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
-			page2read = PageManager::get()->getCurPage();
-      }
-    } else {
-      storage::Page::Header hdr = storage::Page::ReadHeader(page);
-      if (HeaderIntervalCheck(from, to, hdr)) {
-        page2read = storage::Page::Open(page);
-        shouldClosed = true;
-      } else {
-        continue;
-      }
-    }
-    if (page2read == nullptr) {
-      continue;
+PStorageReader Storage::readInterval(const IdArray &ids,
+                                     storage::Flag source, storage::Flag flag,
+                                     Time from, Time to) {
+    this->writeCache();
+    while (true) {
+        if (!m_cache_writer.isBusy()) {
+            break;
+        }
     }
 
-    page2read->readInterval(ids, source, flag, from, to,list_result);
+    auto sr=new StorageReader();
+    PStorageReader result(sr);
 
-	if (shouldClosed) {
-      page2read->close();
+    this->m_cache_writer.pause_work();
+
+    auto page_list = PageManager::get()->pageList();
+    for (auto page : page_list) {
+        storage::Page::Page_ptr page2read;
+        bool shouldClosed = false;
+        if (page == PageManager::get()->getCurPage()->fileName()) {
+            if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
+                page2read = PageManager::get()->getCurPage();
+            }
+        } else {
+            storage::Page::Header hdr = storage::Page::ReadHeader(page);
+            if (HeaderIntervalCheck(from, to, hdr)) {
+                page2read = storage::Page::Open(page, true);
+                shouldClosed = true;
+            } else {
+                continue;
+            }
+        }
+        if (page2read == nullptr) {
+            continue;
+        }
+
+        auto reader=page2read->readInterval(ids, source, flag, from, to);
+        reader->shouldClose=shouldClosed;
+
+        result->addReader(reader);
     }
-  }
 
-  this->m_cache_writer.continue_work();
+    this->m_cache_writer.continue_work();
 
-  if (list_result.size() == 0) {
-    return Meas::MeasList{};
-  }
-  // Meas::MeasArray result{ list_result.begin(), list_result.end() };
-
-  return list_result;
+    return result;
 }
 
-IdArray DataStorage::loadCurValues(const IdArray&ids) {
+IdArray Storage::loadCurValues(const IdArray&ids) {
 	typedef std::pair<std::string, storage::Time> page_time;
 	auto from = *std::min_element(ids.begin(),ids.end());
 	auto to = *std::max_element(ids.begin(), ids.end());
 	std::vector<page_time> page_time_vector{};
 
+    // read page list and sort them by time;
 	auto page_list = PageManager::get()->pageList();
 	for (auto page : page_list) {
-		storage::Page::PPage page2read;
+		storage::Page::Page_ptr page2read;
 		if (page == PageManager::get()->getCurPage()->fileName()) {
 			if (HeaderIdIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
 				page_time_vector.push_back(std::make_pair(page, PageManager::get()->getCurPage()->maxTime()));
@@ -233,14 +229,16 @@ IdArray DataStorage::loadCurValues(const IdArray&ids) {
 		}
 	}
 
-	std::sort(page_time_vector.begin(), page_time_vector.end(), [](const page_time&a, const page_time&b){return a.second > b.second; });
+    std::sort(page_time_vector.begin(),
+              page_time_vector.end(),
+              [](const page_time&a, const page_time&b){return a.second > b.second; });
 	IdSet id_set(ids.begin(), ids.end());
 
 	for (auto kv : page_time_vector) {
 		if (id_set.size() == 0) {
 			break;
 		}
-		storage::Page::PPage page2read;
+		storage::Page::Page_ptr page2read;
 		auto page = kv.first;
 		bool shouldClosed = false;
 		if (page == PageManager::get()->getCurPage()->fileName()) {
@@ -258,43 +256,45 @@ IdArray DataStorage::loadCurValues(const IdArray&ids) {
 		}
 	}
     if(id_set.size()!=0){
-        logger("DataStorage::loadCurValues: not foun "<<id_set.size()<<" id");
+        for(auto id:id_set){
+            logger("DataStorage::loadCurValues: not found  "<<id);
+        }
     }
     IdArray result(id_set.begin(),id_set.end());
     return result;
 }
 
 
-Time DataStorage::pastTime() const { return m_past_time; }
+Time Storage::pastTime() const { return m_past_time; }
 
-void DataStorage::setPastTime(const Time &t) { m_past_time = t; }
+void Storage::setPastTime(const Time &t) { m_past_time = t; }
 
-void DataStorage::enableCacheDynamicSize(bool flg) {
+void Storage::enableCacheDynamicSize(bool flg) {
   m_cache_pool.enableDynamicSize(flg);
 }
 
-bool DataStorage::cacheDynamicSize() const {
+bool Storage::cacheDynamicSize() const {
   return m_cache_pool.dynamicSize();
 }
 
-size_t DataStorage::getPoolSize()const{
+size_t Storage::getPoolSize()const{
     return m_cache_pool.getPoolSize();
 }
 
-void DataStorage::setPoolSize(size_t sz){
+void Storage::setPoolSize(size_t sz){
     m_cache_pool.setPoolSize(sz);
 }
 
-size_t DataStorage::getCacheSize()const{
+size_t Storage::getCacheSize()const{
     return m_cache_pool.getCacheSize();
 }
 
-void DataStorage::setCacheSize(size_t sz){
+void Storage::setCacheSize(size_t sz){
     m_cache_pool.setCacheSize(sz);
 }
 
 
-Meas::MeasList DataStorage::curValues(const IdArray&ids) {
+Meas::MeasList Storage::curValues(const IdArray&ids) {
 	this->writeCache();
 	while (true) {
 		if (!m_cache_writer.isBusy()) {
@@ -302,4 +302,31 @@ Meas::MeasList DataStorage::curValues(const IdArray&ids) {
 		}
 	}
 	return m_cur_values.readValue(ids);
+}
+
+StorageReader::StorageReader():m_readers(){
+
+}
+
+bool StorageReader::isEnd(){
+    return this->m_readers.size()==0;
+}
+
+void StorageReader::readNext(Meas::MeasList*output){
+    if(isEnd()){
+        return;
+    }
+
+    auto reader=m_readers.back();
+    m_readers.pop_back();
+
+    while(!reader->isEnd()){
+        reader->readNext(output);
+    }
+
+    reader=nullptr;
+}
+
+void StorageReader::addReader(PageReader_ptr reader){
+    this->m_readers.push_back(reader);
 }

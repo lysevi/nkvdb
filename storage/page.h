@@ -6,25 +6,31 @@
 #include <memory>
 #include <string>
 #include <map>
-#include <boost/iostreams/device/mapped_file.hpp>
+#include <mutex>
+#include <boost/interprocess/file_mapping.hpp>
 
 #include "meas.h"
 #include "config.h"
 #include "index.h"
 
+namespace bi=boost::interprocess;
 namespace storage {
-
+    class PageReader;
+    typedef std::shared_ptr<PageReader> PageReader_ptr;
 /**
 * Page class.
 * Header + [meas_0...meas_i]
 */
-class Page : public utils::NonCopy {
+class Page : public utils::NonCopy, public std::enable_shared_from_this<Page> {
 public:
   struct Header {
     /// format version
     uint8_t version;
-    /// is page already openned.
+    /// is page already openned to read/write.
     bool isOpen;
+    /// is page already openned to read.
+    size_t ReadersCount;
+
     /// fields min* max* is init or empty.
     bool minMaxInit;
     /// min-max of time
@@ -39,11 +45,11 @@ public:
     uint64_t size;
   };
 
-  typedef std::shared_ptr<Page> PPage;
+  typedef std::shared_ptr<Page> Page_ptr;
 
 public:
-  static PPage Open(std::string filename);
-  static PPage Create(std::string filename, uint64_t fsize);
+  static Page_ptr Open(std::string filename, bool readOnly=false);
+  static Page_ptr Create(std::string filename, uint64_t fsize);
   /// read only header from page file.
   static Page::Header ReadHeader(std::string filename);
   ~Page();
@@ -65,17 +71,16 @@ public:
   bool append(const Meas& value);
   size_t append(const Meas::PMeas begin, const size_t size);
   bool read(Meas::PMeas result, uint64_t position);
-  void readInterval(Time from, Time to, storage::Meas::MeasList&result);
-  void readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, storage::Meas::MeasList&result);
+  PageReader_ptr readInterval(Time from, Time to);
+  PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   
   Meas::MeasList readCurValues(IdSet&id_set);
+  /// if page openned to read, after read must call this method.
+  /// if count of reader is zero, page automaticaly closed;
+  void readComplete();
 private:
-  void readAll(storage::Meas::MeasList *dest);
-  void readFromToPos(const IdArray &ids,
-                                        storage::Flag source,
-                                        storage::Flag flag, Time from,
-										Time to, size_t begin, size_t end, 
-										storage::Meas::MeasList *dest);
+  PageReader_ptr readAll();
+  PageReader_ptr readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);
   Page(std::string fname);
   /// write empty header.
   void initHeader(char *data);
@@ -85,14 +90,42 @@ private:
 protected:
   std::string *m_filename;
 
-  boost::iostreams::mapped_file *m_file;
-
+  bi::file_mapping *m_file;
+  bi::mapped_region*m_region;
   Meas *m_data_begin;
 
   Header *m_header;
   Index  m_index;
+
+  std::mutex m_lock;
 };
 
 
+class PageReader: public utils::NonCopy
+{
+    typedef std::pair<uint64_t,uint64_t> from_to_pos;
+public:
+    static const  uint64_t defaultReadSize=1024;
+    /// max count of measurements readed in on call of readNext
+    static uint64_t ReadSize;
 
+    PageReader(Page::Page_ptr page);
+    ~PageReader();
+    bool isEnd() const;
+    void readNext(Meas::MeasList*output);
+    /// add {from,to} position to read.
+    void addReadPos(uint64_t begin,uint64_t end);
+public:
+    IdArray ids;
+    storage::Flag source;
+    storage::Flag flag;
+    Time from;
+    Time to;
+    bool shouldClose;
+private:
+    Page::Page_ptr m_page;
+    std::list<from_to_pos> m_read_pos_list;
+    uint64_t m_cur_pos_begin;
+    uint64_t m_cur_pos_end;
+};
 }

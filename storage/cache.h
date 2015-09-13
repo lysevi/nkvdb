@@ -7,7 +7,7 @@
 #include "common.h"
 
 namespace storage {
-class DataStorage;
+class Storage;
 
 /**
   * Cache of values. after  fulled, cache write to page.
@@ -32,7 +32,7 @@ public:
     void sync_begin();
     void sync_complete();
 
-    void setStorage(DataStorage*ds);
+    void setStorage(Storage*ds);
 private:
     // typedef std::map<storage::Time, std::list<size_t>> time2meas;
 
@@ -42,7 +42,7 @@ private:
     size_t m_size;
     size_t m_index;
     bool m_sync;
-    DataStorage*m_ds;
+    Storage*m_ds;
 };
 
 /**

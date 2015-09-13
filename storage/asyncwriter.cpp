@@ -11,7 +11,7 @@ struct MeasCmpByTime {
 
 AsyncWriter::AsyncWriter() {}
 
-void AsyncWriter::setStorage(DataStorage *storage) { m_storage = storage; }
+void AsyncWriter::setStorage(Storage *storage) { m_storage = storage; }
 
 void AsyncWriter::call(const Cache::PCache data) {
   assert(m_storage != nullptr);

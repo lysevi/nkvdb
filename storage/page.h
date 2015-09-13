@@ -91,17 +91,18 @@ protected:
 };
 
 
-class PageReader: public utils::NonCopy{
-    
-public:
+class PageReader: public utils::NonCopy
+{
     typedef std::pair<uint64_t,uint64_t> from_to_pos;
-    const uint64_t defaultReadSize=1024;
+public:
+    static const  uint64_t defaultReadSize=1024;
     static uint64_t ReadSize;
+
     PageReader(Page::PPage page);
     ~PageReader();
     bool isEnd() const;
     void readNext(Meas::MeasList*output);
-    void addReadPos(from_to_pos pos);
+    void addReadPos(uint64_t begin,uint64_t end);
     IdArray ids;
     storage::Flag source;
     storage::Flag flag;

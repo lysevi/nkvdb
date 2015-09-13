@@ -22,7 +22,7 @@ bool dont_remove = false;
 bool enable_dyn_cache = false;
 size_t cache_size = storage::defaultcacheSize;
 size_t cache_pool_size = storage::defaultcachePoolSize;
-storage::DataStorage::PDataStorage ds = nullptr;
+storage::Storage::Storage_ptr ds = nullptr;
 
 std::atomic_long append_count{ 0 };
 bool stop_info = false;
@@ -33,7 +33,7 @@ void makeStorage() {
 	const uint64_t storage_size =
 		sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
 
-	ds = storage::DataStorage::Create(storage_path, storage_size);
+	ds = storage::Storage::Create(storage_path, storage_size);
 
 	ds->enableCacheDynamicSize(enable_dyn_cache);
 	ds->setPoolSize(cache_pool_size);

@@ -9,7 +9,7 @@
 #include <boost/filesystem.hpp>
 
 const uint8_t page_version = 1;
-static uint64_t ReadSize=PageReader::defaultReadSize;
+uint64_t storage::PageReader::ReadSize=storage::PageReader::defaultReadSize;
 
 namespace ios = boost::iostreams;
 
@@ -237,7 +237,7 @@ PPageReader  Page::readAll() {
     auto ppage=this->shared_from_this();
     auto preader=new PageReader(ppage);
     auto result=PPageReader(preader);
-    result->addReadPos(std::make_pair(0,m_header->write_pos));
+    result->addReadPos(0,m_header->write_pos);
     return result;
 }
 
@@ -250,7 +250,7 @@ PPageReader Page::readFromToPos(const IdArray &ids, storage::Flag source, storag
     auto ppage=this->shared_from_this();
     auto preader=new PageReader(ppage);
     auto result=PPageReader(preader);
-    result->addReadPos(std::make_pair(begin,end));
+    result->addReadPos(begin,end);
     result->ids=ids;
     result->source=source;
     result->flag=flag;
@@ -295,8 +295,8 @@ PPageReader Page::readInterval(const IdArray &ids, storage::Flag source, storage
     auto irecords = m_index.findInIndex(ids, from, to);
     for (Index::IndexRecord &rec : irecords) {
         auto max_pos = rec.pos + rec.count;
-        result->addReadPos(std::make_pair(rec.pos,max_pos));
-  }
+        result->addReadPos(rec.pos,max_pos);
+    }
   return result;
 }
 
@@ -355,8 +355,8 @@ PageReader::~PageReader(){
     }
 }
 
-void PageReader::addReadPos(from_to_pos pos){
-    m_read_pos_list.push_back(pos);
+void PageReader::addReadPos(uint64_t begin,uint64_t end){
+    m_read_pos_list.push_back(std::make_pair(begin,end));
 }
 
 bool PageReader::isEnd() const{

@@ -26,8 +26,8 @@ void makeAndWrite(int mc, int ic) {
   const uint64_t storage_size =
       sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
 
-  storage::DataStorage::PDataStorage ds =
-      storage::DataStorage::Create(storage_path, storage_size);
+  storage::Storage::Storage_ptr ds =
+      storage::Storage::Create(storage_path, storage_size);
 
   ds->enableCacheDynamicSize(enable_dyn_cache);
   ds->setPoolSize(cache_pool_size);
@@ -52,7 +52,7 @@ void makeAndWrite(int mc, int ic) {
   utils::rm(storage_path);
 }
 
-void readIntervalBench(storage::DataStorage::PDataStorage ds,
+void readIntervalBench(storage::Storage::Storage_ptr ds,
                        storage::Time from, storage::Time to,
                        std::string message) {
   clock_t read_t0 = clock();
@@ -68,7 +68,7 @@ void readIntervalBench(storage::DataStorage::PDataStorage ds,
 
 void readIntervalBenchFltr(storage::IdArray ids, storage::Flag src,
                            storage::Flag flag,
-                           storage::DataStorage::PDataStorage ds,
+                           storage::Storage::Storage_ptr ds,
                            storage::Time from, storage::Time to,
                            std::string message) {
   clock_t read_t0 = clock();
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
 	  const uint64_t storage_size =
 		  sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
 
-    storage::DataStorage::PDataStorage ds = storage::DataStorage::Create(storage_path, storage_size);
+    storage::Storage::Storage_ptr ds = storage::Storage::Create(storage_path, storage_size);
     storage::Meas meas = storage::Meas::empty();
 
     ds->enableCacheDynamicSize(enable_dyn_cache);

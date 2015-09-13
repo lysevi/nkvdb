@@ -19,16 +19,16 @@ typedef std::shared_ptr<StorageReader> PStorageReader;
 /**
 * Main class of mdb storage.
 */
-class DataStorage {
+class Storage {
 public:
-  typedef std::shared_ptr<DataStorage> PDataStorage;
+  typedef std::shared_ptr<Storage> Storage_ptr;
 
 public:
-  static PDataStorage Create(const std::string &ds_path,
-                             uint64_t page_size = defaultPageSize);
-  static PDataStorage Open(const std::string &ds_path);
-  ~DataStorage();
+  static Storage_ptr Create(const std::string &ds_path, uint64_t page_size = defaultPageSize);
+  static Storage_ptr Open(const std::string &ds_path);
+  ~Storage();
   void Close();
+
   bool havePage2Write() const;
   append_result append(const Meas& m);
   append_result append(const Meas::PMeas begin, const size_t meas_count);
@@ -54,7 +54,7 @@ public:
   /// load current values of ids. return array of not founded measurements.
   IdArray loadCurValues(const IdArray&ids);
 private:
-  DataStorage();
+  Storage();
   void writeCache();
 protected:
   std::string m_path;

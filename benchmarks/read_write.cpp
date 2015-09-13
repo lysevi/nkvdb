@@ -72,7 +72,11 @@ void readIntervalBenchFltr(storage::IdArray ids, storage::Flag src,
                            storage::Time from, storage::Time to,
                            std::string message) {
   clock_t read_t0 = clock();
+  storage::Meas::MeasList output;
   auto meases = ds->readInterval(ids, src, flag, from, to);
+  while(!meases->isEnd()){
+    meases->readNext(&output);
+  }
   clock_t read_t1 = clock();
 
   logger("=> :" << message

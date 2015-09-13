@@ -295,3 +295,46 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
     }
 	utils::rm(storage_path);
 }
+
+
+BOOST_AUTO_TEST_CASE(StorageReadTwoTimes) {
+    const int meas2write = 10;
+    const size_t write_iteration = 10;
+    const uint64_t storage_size =
+            sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+    const std::string storage_path = mdb_test::storage_path + "storageIO";
+
+    {
+        storage::Storage::Storage_ptr ds =
+                storage::Storage::Create(storage_path, storage_size);
+
+        size_t arr_size = meas2write * write_iteration;
+        storage::Meas::PMeas array = new storage::Meas[arr_size];
+        for (size_t i = 0; i < arr_size; ++i) {
+            array[i].id = i;
+            array[i].time = i;
+        }
+        ds->append(array, arr_size);
+        delete[] array;
+
+        Meas::MeasList interval{};
+        auto reader = ds->readInterval(0, arr_size);
+
+
+        Meas::MeasList interval2{};
+        auto reader2 = ds->readInterval(0, arr_size);
+
+        while(!reader->isEnd()){
+            reader->readNext(&interval);
+        }
+
+        while(!reader2->isEnd()){
+            reader2->readNext(&interval2);
+        }
+
+        BOOST_CHECK_EQUAL(interval.size(), arr_size);
+        BOOST_CHECK_EQUAL(interval2.size(), arr_size);
+
+    }
+    utils::rm(storage_path);
+}

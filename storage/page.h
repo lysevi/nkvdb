@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <mutex>
 #include <boost/iostreams/device/mapped_file.hpp>
 
 #include "meas.h"
@@ -24,8 +25,11 @@ public:
   struct Header {
     /// format version
     uint8_t version;
-    /// is page already openned.
+    /// is page already openned to read/write.
     bool isOpen;
+    /// is page already openned to read.
+    size_t ReadersCount;
+
     /// fields min* max* is init or empty.
     bool minMaxInit;
     /// min-max of time
@@ -43,7 +47,7 @@ public:
   typedef std::shared_ptr<Page> Page_ptr;
 
 public:
-  static Page_ptr Open(std::string filename);
+  static Page_ptr Open(std::string filename, bool readOnly=false);
   static Page_ptr Create(std::string filename, uint64_t fsize);
   /// read only header from page file.
   static Page::Header ReadHeader(std::string filename);
@@ -70,6 +74,9 @@ public:
   PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   
   Meas::MeasList readCurValues(IdSet&id_set);
+  /// if page openned to read, after read must call this method.
+  /// if count of reader is zero, page automaticaly closed;
+  void readComplete();
 private:
   PageReader_ptr readAll();
   PageReader_ptr readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);
@@ -88,6 +95,8 @@ protected:
 
   Header *m_header;
   Index  m_index;
+
+  std::mutex m_lock;
 };
 
 

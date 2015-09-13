@@ -161,52 +161,50 @@ PStorageReader Storage::readInterval(Time from, Time to) {
 }
 
 PStorageReader Storage::readInterval(const IdArray &ids,
-                                         storage::Flag source,
-                                         storage::Flag flag, Time from,
-                                         Time to) {
-  this->writeCache();
-  while (true) {
-    if (!m_cache_writer.isBusy()) {
-      break;
-    }
-  }
-
-  auto sr=new StorageReader();
-  PStorageReader result(sr);
-
-  this->m_cache_writer.pause_work();
-
-  Meas::MeasList list_result;
-  auto page_list = PageManager::get()->pageList();
-  for (auto page : page_list) {
-    storage::Page::Page_ptr page2read;
-    bool shouldClosed = false;
-	if (page == PageManager::get()->getCurPage()->fileName()) {
-		if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
-			page2read = PageManager::get()->getCurPage();
-      }
-    } else {
-      storage::Page::Header hdr = storage::Page::ReadHeader(page);
-      if (HeaderIntervalCheck(from, to, hdr)) {
-        page2read = storage::Page::Open(page);
-        shouldClosed = true;
-      } else {
-        continue;
-      }
-    }
-    if (page2read == nullptr) {
-      continue;
+                                     storage::Flag source, storage::Flag flag,
+                                     Time from, Time to) {
+    this->writeCache();
+    while (true) {
+        if (!m_cache_writer.isBusy()) {
+            break;
+        }
     }
 
-    auto reader=page2read->readInterval(ids, source, flag, from, to);
-    reader->shouldClose=shouldClosed;
+    auto sr=new StorageReader();
+    PStorageReader result(sr);
 
-    result->addReader(reader);
-  }
+    this->m_cache_writer.pause_work();
 
-  this->m_cache_writer.continue_work();
+    auto page_list = PageManager::get()->pageList();
+    for (auto page : page_list) {
+        storage::Page::Page_ptr page2read;
+        bool shouldClosed = false;
+        if (page == PageManager::get()->getCurPage()->fileName()) {
+            if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
+                page2read = PageManager::get()->getCurPage();
+            }
+        } else {
+            storage::Page::Header hdr = storage::Page::ReadHeader(page);
+            if (HeaderIntervalCheck(from, to, hdr)) {
+                page2read = storage::Page::Open(page, true);
+                shouldClosed = true;
+            } else {
+                continue;
+            }
+        }
+        if (page2read == nullptr) {
+            continue;
+        }
 
-  return result;
+        auto reader=page2read->readInterval(ids, source, flag, from, to);
+        reader->shouldClose=shouldClosed;
+
+        result->addReader(reader);
+    }
+
+    this->m_cache_writer.continue_work();
+
+    return result;
 }
 
 IdArray Storage::loadCurValues(const IdArray&ids) {
@@ -258,7 +256,9 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
 		}
 	}
     if(id_set.size()!=0){
-        logger("DataStorage::loadCurValues: not foun "<<id_set.size()<<" id");
+        for(auto id:id_set){
+            logger("DataStorage::loadCurValues: not found  "<<id);
+        }
     }
     IdArray result(id_set.begin(),id_set.end());
     return result;

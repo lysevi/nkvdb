@@ -7,12 +7,13 @@
 #include <string>
 #include <map>
 #include <mutex>
-#include <boost/iostreams/device/mapped_file.hpp>
+#include <boost/interprocess/file_mapping.hpp>
 
 #include "meas.h"
 #include "config.h"
 #include "index.h"
 
+namespace bi=boost::interprocess;
 namespace storage {
     class PageReader;
     typedef std::shared_ptr<PageReader> PageReader_ptr;
@@ -89,8 +90,8 @@ private:
 protected:
   std::string *m_filename;
 
-  boost::iostreams::mapped_file *m_file;
-
+  bi::file_mapping *m_file;
+  bi::mapped_region*m_region;
   Meas *m_data_begin;
 
   Header *m_header;

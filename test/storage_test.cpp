@@ -297,7 +297,7 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 }
 
 
-BOOST_AUTO_TEST_CASE(StorageReadTwoTimes) {
+BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
     const int meas2write = 10;
     const size_t write_iteration = 10;
     const uint64_t storage_size =

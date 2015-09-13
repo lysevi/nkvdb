@@ -8,53 +8,41 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+
 const uint8_t page_version = 1;
 uint64_t storage::PageReader::ReadSize=storage::PageReader::defaultReadSize;
-
-namespace ios = boost::iostreams;
 
 using namespace storage;
 
 const size_t oneMb = sizeof(char) * 1024 * 1024;
 
-int cmp_pred(const storage::Meas &r, const storage::Meas &l) {
-  if (r.time < l.time)
-    return -1;
-  if (r.time == l.time)
-    return 0;
-
-  return 1;
-}
-
-uint32_t delta_pred(const Meas &r, const Meas &l) 
-{
-	return r.time - l.time; 
-}
-
 Page::Page(std::string fname)
     : m_filename(new std::string(fname)),
-      m_file(new boost::iostreams::mapped_file) {
+      m_file(nullptr),
+      m_region(nullptr)
+{
 	
 	this->m_index.setFileName(this->index_fileName());
 }
 
 Page::~Page() {
   this->close();
-  delete m_file;
-  delete m_filename;
 }
 
 void Page::close() {
-    if (this->m_file->is_open()) {
+    if ((this->m_file!=nullptr) && (m_region!=nullptr)) {
         this->m_header->isOpen = false;
         this->m_header->ReadersCount = 0;
-        m_file->close();
+        delete m_region;
+        delete m_file;
+        m_region=nullptr;
+        m_file=nullptr;
     }
-
-    this->m_file->close();
 }
 
-size_t Page::size() const { return m_file->size(); }
+size_t Page::size() const { return m_region->get_size(); }
 
 std::string Page::fileName() const { return std::string(*m_filename); }
 
@@ -76,19 +64,14 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
     Page_ptr result(new Page(filename));
 
     try {
-        boost::iostreams::mapped_file_params params;
-        params.path = filename;
-        params.flags = result->m_file->readwrite;
-        result->m_file->open(params);
-
+           result->m_file=new bi::file_mapping(filename.c_str(),bi::read_write);
+           result->m_region=new bi::mapped_region(*result->m_file, bi::read_write);
     } catch (std::runtime_error &ex) {
         std::string what = ex.what();
         throw MAKE_EXCEPTION(ex.what());
     }
-    if (!result->m_file->is_open())
-        throw MAKE_EXCEPTION("can`t create file ");
 
-    char *data = result->m_file->data();
+    char *data = static_cast<char*>(result->m_region->get_address());
     result->m_header = (Page::Header *)data;
     result->m_data_begin = (Meas *)(data + sizeof(Page::Header));
 
@@ -103,20 +86,23 @@ Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
   Page_ptr result(new Page(filename));
 
   try {
-	  boost::iostreams::mapped_file_params params;
-	  params.new_file_size = fsize;
-	  params.path = filename;
-	  params.flags = result->m_file->readwrite;
-	  result->m_file->open(params);
+      {
+          bi::file_mapping::remove(filename.c_str());
+          std::filebuf fbuf;
+          fbuf.open(filename,
+                    std::ios_base::in | std::ios_base::out|std::ios_base::trunc | std::ios_base::binary);
+                   //Set the size
+          fbuf.pubseekoff(fsize-1, std::ios_base::beg);
+          fbuf.sputc(0);
+      }
+      result->m_file=new bi::file_mapping(filename.c_str(),bi::read_write);
+      result->m_region=new bi::mapped_region(*result->m_file, bi::read_write);
   } catch (std::runtime_error &ex) {
 	  std::string what = ex.what();
 	  throw MAKE_EXCEPTION(ex.what());
   }
 
-  if (!result->m_file->is_open())
-	  throw MAKE_EXCEPTION("can`t create file ");
-
-  char *data = result->m_file->data();
+  char *data = static_cast<char*>(result->m_region->get_address());
 
   result->initHeader(data);
   result->m_data_begin = (Meas *)(data + sizeof(Page::Header));
@@ -140,7 +126,7 @@ void Page::initHeader(char *data) {
   m_header = (Page::Header *)data;
   memset(m_header, 0, sizeof(Page::Header));
   m_header->version = page_version;
-  m_header->size = this->m_file->size();
+  m_header->size = this->size();
   m_header->minMaxInit = false;
 }
 

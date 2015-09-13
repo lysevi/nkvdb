@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 #include <storage/storage.h>
-#include <utils/logger.h>
+#include "storage/utils/logger.h"
 
 #include <boost/program_options.hpp>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/utils.h>
+#include "utils/utils.h"
 
 #include <cstdint>
 #include <memory>
@@ -13,16 +13,18 @@
 #include "config.h"
 #include "index.h"
 
-namespace bi=boost::interprocess;
 namespace storage {
-    class PageReader;
-    typedef std::shared_ptr<PageReader> PageReader_ptr;
+
+class PageReader;
+typedef std::shared_ptr<PageReader> PageReader_ptr;
+
 /**
 * Page class.
 * Header + [meas_0...meas_i]
 */
 class Page : public utils::NonCopy, public std::enable_shared_from_this<Page> {
 public:
+    static const uint8_t page_version = 1;
   struct Header {
     /// format version
     uint8_t version;
@@ -90,8 +92,8 @@ private:
 protected:
   std::string *m_filename;
 
-  bi::file_mapping *m_file;
-  bi::mapped_region*m_region;
+  boost::interprocess::file_mapping *m_file;
+  boost::interprocess::mapped_region*m_region;
   Meas *m_data_begin;
 
   Header *m_header;

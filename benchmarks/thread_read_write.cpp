@@ -5,7 +5,7 @@
 #include <atomic>
 
 #include <storage/storage.h>
-#include <utils/logger.h>
+#include "storage/utils/logger.h"
 
 #include <boost/program_options.hpp>
 
@@ -106,6 +106,8 @@ int main(int argc, char *argv[]) {
 
 	makeStorage();
 	std::thread info_thred(show_info);
+
+    logger("threads count: "<<thread_count);
 
 	std::vector<std::thread> writers(thread_count);
 	size_t pos = 0;

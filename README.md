@@ -1,4 +1,4 @@
-nkvd - not key-value database
+mdb - not key-value database
 
 *build on windows
 

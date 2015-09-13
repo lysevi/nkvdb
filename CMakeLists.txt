@@ -70,9 +70,8 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 
 enable_testing()
 
-add_subdirectory (utils)
 add_subdirectory (storage)
 add_subdirectory (test)
 add_subdirectory (benchmarks)
 add_executable (Ladybird main.cpp)
-TARGET_LINK_LIBRARIES(Ladybird utils storage ${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(Ladybird storage ${Boost_LIBRARIES})

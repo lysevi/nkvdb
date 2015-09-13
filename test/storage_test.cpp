@@ -7,8 +7,8 @@
 #include <storage/storage.h>
 #include <storage/config.h>
 #include <storage/time.h>
-#include <utils/logger.h>
-#include <utils/utils.h>
+#include "storage/utils/logger.h"
+#include "storage/utils/utils.h"
 
 #include <iterator>
 #include <list>

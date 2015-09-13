@@ -7,9 +7,9 @@
 #include <storage/page.h>
 #include <storage/storage.h>
 #include <storage/config.h>
-#include <utils/logger.h>
-#include <utils/utils.h>
-#include <utils/exception.h>
+#include "storage/utils/logger.h"
+#include "storage/utils/utils.h"
+#include "storage/utils/exception.h"
 
 #include <iterator>
 #include <list>

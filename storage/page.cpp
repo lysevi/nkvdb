@@ -1,6 +1,7 @@
 #include "page.h"
-#include <utils/exception.h>
-#include <utils/search.h>
+#include "utils/exception.h"
+#include "utils/search.h"
+
 #include <algorithm>
 #include <sstream>
 #include <cstdlib>
@@ -11,8 +12,8 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
-const uint8_t page_version = 1;
 uint64_t storage::PageReader::ReadSize=storage::PageReader::defaultReadSize;
+namespace bi=boost::interprocess;
 
 using namespace storage;
 

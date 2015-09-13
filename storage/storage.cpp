@@ -1,15 +1,17 @@
 #include "storage.h"
 #include "page_manager.h"
-#include <boost/filesystem.hpp>
-#include <utils/exception.h>
+#include "utils/exception.h"
+
 #include <ctime>
 #include <cmath>
 #include <sstream>
-
 #include <iterator>
 
-using namespace storage;
+#include <boost/filesystem.hpp>
+
 namespace fs = boost::filesystem;
+
+using namespace storage;
 
 Storage::Storage()
     : m_cache_pool(defaultcachePoolSize, defaultcacheSize) {
@@ -301,7 +303,9 @@ Meas::MeasList Storage::curValues(const IdArray&ids) {
 	return m_cur_values.readValue(ids);
 }
 
-StorageReader::StorageReader():m_readers(),m_current_reader(nullptr){
+StorageReader::StorageReader():
+    m_readers(),
+    m_current_reader(nullptr){
 
 }
 

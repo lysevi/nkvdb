@@ -5,8 +5,8 @@
 #include "test_common.h"
 #include <storage/page.h>
 #include <storage/storage.h>
-#include <utils/logger.h>
-#include <utils/utils.h>
+#include "storage/utils/logger.h"
+#include "storage/utils/utils.h"
 
 #include <iterator>
 #include <list>

@@ -4,10 +4,9 @@
 #include <boost/filesystem.hpp>
 #include "test_common.h"
 #include <storage/meas.h>
-#include <utils/utils.h>
+#include "storage/utils/utils.h"
 #include <storage/cache.h>
-#include <utils/logger.h>
-#include <utils/utils.h>
+#include "storage/utils/logger.h"
 
 #include <iterator>
 #include <list>

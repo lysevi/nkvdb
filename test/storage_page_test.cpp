@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(PageCreateOpen) {
     BOOST_CHECK(!created->isFull());
     created->close();
   }
-  {
+ {
     Page::Page_ptr openned = Page::Open(mdb_test::test_page_name);
 
     BOOST_CHECK_EQUAL(openned->size(), mdb_test::sizeInMb10);
@@ -31,26 +31,24 @@ BOOST_AUTO_TEST_CASE(PageCreateOpen) {
   }
 }
 
-#ifdef CHECK_PAGE_OPEN
 BOOST_AUTO_TEST_CASE(PageOpenTwice) {
-  {
-    Page::PPage created =
-        Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+  
+	Page::Page_ptr created =  Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
     BOOST_CHECK(!created->isFull());
-    created->close();
-  }
+	created->close();
+  
   {
-    Page::PPage openned = Page::Open(mdb_test::test_page_name);
+    Page::Page_ptr openned = Page::Open(mdb_test::test_page_name);
 
     BOOST_CHECK_THROW(Page::Open(mdb_test::test_page_name), utils::Exception);
 
     openned->close();
   }
+ 
 }
-#endif
 
 BOOST_AUTO_TEST_CASE(PageIO) {
-  const size_t TestableMeasCount = 10000;
+  const size_t TestableMeasCount = 100;
   std::string index = "";
   {
     {

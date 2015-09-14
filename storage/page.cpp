@@ -29,7 +29,8 @@ Page::Page(std::string fname)
 }
 
 Page::~Page() {
-  this->close();
+	delete m_filename;
+    this->close();
 }
 
 void Page::close() {
@@ -80,6 +81,8 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
     if(readOnly){
         result->m_header->ReadersCount+=1;
     }
+	result->m_region->flush(0, sizeof(result->m_header), false);
+	
     return result;
 }
 
@@ -191,6 +194,7 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
 
     updateMinMax(begin[0]);
     updateMinMax(begin[to_write-1]);
+	//m_region->flush(0, this->size(), false);
 
     Index::IndexRecord rec;
     rec.minTime = begin[0].time;
@@ -201,7 +205,7 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
     rec.pos = m_header->write_pos;
 
     this->m_index.writeIndexRec(rec);
-
+	
     m_header->write_pos += to_write;
     return to_write;
 }
@@ -289,7 +293,7 @@ PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, stor
             return this->readFromToPos(ids, source, flag, from, to, 0, m_header->write_pos);
         }
     }
-    
+	m_region->flush(0, this->size(), false);
     auto ppage=this->shared_from_this();
     auto preader=new PageReader(ppage);
     auto result=PageReader_ptr(preader);

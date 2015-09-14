@@ -180,18 +180,13 @@ PStorageReader Storage::readInterval(const IdArray &ids,
     auto page_list = PageManager::get()->pageList();
     for (auto page : page_list) {
         storage::Page::Page_ptr page2read;
-        if (page == PageManager::get()->getCurPage()->fileName()) {
-            if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
-                page2read = PageManager::get()->getCurPage();
-            }
+        storage::Page::Header hdr = storage::Page::ReadHeader(page);
+        if (HeaderIntervalCheck(from, to, hdr)) {
+            page2read = storage::Page::Open(page, true);
         } else {
-            storage::Page::Header hdr = storage::Page::ReadHeader(page);
-            if (HeaderIntervalCheck(from, to, hdr)) {
-                page2read = storage::Page::Open(page, true);
-            } else {
-                continue;
-            }
+            continue;
         }
+
         if (page2read == nullptr) {
             continue;
         }

@@ -111,6 +111,7 @@ Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
   result->initHeader(data);
   result->m_data_begin = (Meas *)(data + sizeof(Page::Header));
   result->m_header->isOpen = true;
+  result->m_region->flush(0, sizeof(result->m_header), false);
   return result;
 }
 

@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 	ds->Close();
     ds = nullptr;
     auto pages = utils::ls(storage_path);
-    BOOST_CHECK_EQUAL(pages.size(), (size_t)(write_iteration * 2));
+    BOOST_CHECK_EQUAL(pages.size(), (size_t)(write_iteration * 3));
   }
   {
     storage::Storage::Storage_ptr ds =
@@ -202,7 +202,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
     ds->Close();
 
     auto pages = utils::ls(storage_path);
-    BOOST_CHECK_EQUAL(pages.size(), write_iteration * 2);
+    BOOST_CHECK_EQUAL(pages.size(), write_iteration * 3);
   }
   utils::rm(storage_path);
 }
@@ -357,7 +357,6 @@ BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
         Meas::MeasList interval{};
         auto reader = ds->readInterval(0, arr_size);
 
-
         Meas::MeasList interval2{};
         auto reader2 = ds->readInterval(0, arr_size);
 
@@ -371,7 +370,6 @@ BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
 
         BOOST_CHECK_EQUAL(interval.size(), arr_size);
         BOOST_CHECK_EQUAL(interval2.size(), arr_size);
-
     }
     utils::rm(storage_path);
 }

@@ -45,8 +45,8 @@ Page::Page(std::string fname)
 }
 
 Page::~Page() {
-	delete m_filename;
     this->close();
+    delete m_filename;
 }
 
 void Page::close() {
@@ -64,32 +64,37 @@ void Page::close() {
 }
 
 void Page::flushWriteWindow(){
-    return;
     this->m_header->WriteWindowSize=m_writewindow.size();
     if(this->m_header->WriteWindowSize!=0){
-        size_t offset=(this->m_header->size-m_writewindow.size()*sizeof(Meas));
-        auto data=(Meas*)((char*)this->m_region->get_address()+offset);
-        size_t i=0;
+        std::ofstream ofs;
+        ofs.open(this->fileName()+"w",std::ofstream::binary | std::ofstream::out | std::ofstream::trunc);
+        assert(ofs.is_open());
+
         for(auto kv:m_writewindow){
-            data[i]=kv.second;
-            i++;
+            ofs.write((char*)&kv.second,sizeof(Meas));
         }
+
+        ofs.close();
     }
 }
 
 void Page::loadWriteWindow(){
-    return;
-    auto window_size=this->m_header->WriteWindowSize;
-    if(window_size!=0){
-        size_t wwindow_size=window_size*sizeof(Meas);
-        size_t offset=(this->m_header->size-wwindow_size);
 
-        auto data=(Meas*)((char*)this->m_region->get_address()+offset);
-        for(size_t i=0;i<window_size;i++){
-            auto value=data[i];
+    std::ifstream ifs(this->fileName()+"w",std::ifstream::binary|std::ifstream::in);
+    if(!ifs.is_open()){
+        return;
+    }
+
+    while(true){
+        Meas value;
+        if(!ifs.read((char*)&value,sizeof(value))){
+            this->m_writewindow[value.id]=value;
+            break;
+        }else{
             this->m_writewindow[value.id]=value;
         }
     }
+
 }
 
 size_t Page::size() const { return m_region->get_size(); }

@@ -75,7 +75,7 @@ public:
   bool read(Meas::PMeas result, uint64_t position);
   PageReader_ptr readInterval(Time from, Time to);
   PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
-  PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, Time past_time);
+  /*PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, Time past_time);*/
 
   Meas::MeasList readCurValues(IdSet&id_set);
   /// if page openned to read, after read must call this method.

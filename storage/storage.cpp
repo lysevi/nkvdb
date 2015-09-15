@@ -176,7 +176,7 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 				continue;
 		}
 
-		if ((this->pastTime()>0) &&(ids.size()!=0)) {
+	/*	if ((this->pastTime()>0) &&(ids.size()!=0)) {
 			if (hdr.minTime > from) {
 				if ((i > 0) && (pages[i - 1].header.maxTime <= from)) {
 					storage::Page::Page_ptr page2read = storage::Page::Open(pages[i-1].name, true);
@@ -187,7 +187,7 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 					continue;
 				}
 			}
-		}
+		}*/
 		
 		if ((hdr.minTime >= from) && (hdr.maxTime <= to)) {
 			pages_to_read.push_back(page_name);

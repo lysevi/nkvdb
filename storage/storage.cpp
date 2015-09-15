@@ -13,6 +13,7 @@ namespace fs = boost::filesystem;
 
 using namespace storage;
 
+
 Storage::Storage()
     : m_cache_pool(defaultcachePoolSize, defaultcacheSize) {
   m_cache = m_cache_pool.getCache();
@@ -140,23 +141,6 @@ void Storage::writeCache() {
   m_cache->setStorage(this);
 }
 
-bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
-	if (utils::inInterval(from, to, hdr.minTime) || utils::inInterval(from, to, hdr.maxTime)) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
-	if (hdr.minId >= from || hdr.maxId <= to) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-
 PStorageReader Storage::readInterval(Time from, Time to) {
 	static IdArray empty{};
 	return this->readInterval(empty, 0, 0, from, to);
@@ -206,31 +190,19 @@ PStorageReader Storage::readInterval(const IdArray &ids,
     return result;
 }
 
+
 IdArray Storage::loadCurValues(const IdArray&ids) {
-	typedef std::pair<std::string, storage::Time> page_time;
 	auto from = *std::min_element(ids.begin(),ids.end());
 	auto to = *std::max_element(ids.begin(), ids.end());
-	std::vector<page_time> page_time_vector{};
-
-    // read page list and sort them by time;
-	auto page_list = PageManager::get()->pageList();
-	for (auto page : page_list) {
-		storage::Page::Page_ptr page2read;
-		if (page == PageManager::get()->getCurPage()->fileName()) {
-			if (HeaderIdIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
-				page_time_vector.push_back(std::make_pair(page, PageManager::get()->getCurPage()->maxTime()));
-			}
-		} else {
-			storage::Page::Header hdr = storage::Page::ReadHeader(page);
-			if (HeaderIdIntervalCheck(from, to, hdr)) {
-				page_time_vector.push_back(std::make_pair(page, hdr.maxTime));
-			}
+	std::vector<PageManager::PageInfo> pages_vector = PageManager::get()->pagesByTime();
+	std::vector<PageManager::PageInfo> page_time_vector{};
+	
+	for (auto p : pages_vector) {
+		if (HeaderIdIntervalCheck(from, to, p.header)) {
+			page_time_vector.push_back(p);
 		}
 	}
 
-    std::sort(page_time_vector.begin(),
-              page_time_vector.end(),
-              [](const page_time&a, const page_time&b){return a.second > b.second; });
 	IdSet id_set(ids.begin(), ids.end());
 
 	for (auto kv : page_time_vector) {
@@ -238,7 +210,7 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
 			break;
 		}
 		storage::Page::Page_ptr page2read;
-		auto page = kv.first;
+		auto page = kv.name;
 		bool shouldClosed = false;
 		if (page == PageManager::get()->getCurPage()->fileName()) {
 			page2read = PageManager::get()->getCurPage();

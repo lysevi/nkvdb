@@ -129,4 +129,7 @@ private:
     uint64_t m_cur_pos_begin;
     uint64_t m_cur_pos_end;
 };
+
+bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr);
+bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr);
 }

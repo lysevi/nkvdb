@@ -19,6 +19,22 @@ using namespace storage;
 
 const size_t oneMb = sizeof(char) * 1024 * 1024;
 
+bool storage::HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
+	if (utils::inInterval(from, to, hdr.minTime) || utils::inInterval(from, to, hdr.maxTime)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool storage::HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
+	if (hdr.minId >= from || hdr.maxId <= to) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 Page::Page(std::string fname)
     : m_filename(new std::string(fname)),
       m_file(nullptr),

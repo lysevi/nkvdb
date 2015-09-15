@@ -14,6 +14,13 @@ namespace storage {
 		static PageManager *m_instance;
 		PageManager() = default;
 	public:
+		struct PageInfo
+		{
+			Page::Header header;
+			std::string  name;
+		};
+
+	public:
 		static void start(std::string path);
 		static void stop();
 		static PageManager* get();
@@ -28,6 +35,8 @@ namespace storage {
 
 		std::list<std::string> pageList() const;
         Page::Page_ptr open(std::string path);
+
+		std::vector<PageManager::PageInfo> pagesByTime()const;
     protected:
         std::string getOldesPage(const std::list<std::string> &pages)const;
 	public:

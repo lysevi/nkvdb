@@ -1,4 +1,6 @@
 #include "page_manager.h"
+#include "common.h"
+
 #include "utils/exception.h"
 
 #include <boost/filesystem.hpp>
@@ -104,4 +106,21 @@ std::list<std::string> PageManager::pageList() const {
 Page::Page_ptr PageManager::open(std::string path) {
 	m_curpage = Page::Open(path);
     return m_curpage;
+}
+
+std::vector<PageManager::PageInfo> PageManager::pagesByTime()const {
+	std::vector<PageManager::PageInfo> page_time_vector{};
+
+	// read page list and sort them by time;
+	auto page_list = PageManager::get()->pageList();
+	for (auto page : page_list) {
+		storage::Page::Header hdr = storage::Page::ReadHeader(page);
+		page_time_vector.push_back(PageManager::PageInfo{ hdr, page });
+	}
+
+	std::sort(page_time_vector.begin(),
+			  page_time_vector.end(),
+			  [](const PageManager::PageInfo&a, const PageManager::PageInfo&b){return a.header.maxTime > b.header.maxTime; });
+	
+	return page_time_vector;
 }

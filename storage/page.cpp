@@ -328,6 +328,9 @@ PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, stor
   return result;
 }
 
+PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, Time past_time) {
+	return this->readInterval(ids, source, flag, from, to);
+}
 bool Page::isFull() const {
   return (sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos) >= m_header->size;
 }

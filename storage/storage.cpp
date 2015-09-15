@@ -161,29 +161,51 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 
     this->m_cache_writer.pause_work();
 
-    auto page_list = PageManager::get()->pageList();
-    for (auto page : page_list) {
-        storage::Page::Page_ptr page2read;
-        if (page == PageManager::get()->getCurPage()->fileName()) {
-            if (HeaderIntervalCheck(from, to, PageManager::get()->getCurPage()->getHeader())) {
-                page2read = PageManager::get()->getCurPage();
-            }
-        } else {
-            storage::Page::Header hdr = storage::Page::ReadHeader(page);
-            if (HeaderIntervalCheck(from, to, hdr)) {
-                page2read = storage::Page::Open(page, true);
-            } else {
-                continue;
-            }
-        }
-        if (page2read == nullptr) {
-            continue;
-        }
+    auto pages = PageManager::get()->pagesByTime();
+	std::reverse(std::begin(pages), std::end(pages));
 
-        auto reader=page2read->readInterval(ids, source, flag, from, to);
+	std::list<std::string> pages_to_read{};
+    for (size_t i=0;i<pages.size();i++) {
+		auto pinfo = pages[i];
+		auto page_name = pinfo.name;
+		auto hdr = pinfo.header;
+		
+        
+		if ((hdr.minTime <= from) & (hdr.maxTime >= from)) {
+				pages_to_read.push_back(page_name);
+				continue;
+		}
 
-        result->addReader(reader);
+		if ((this->pastTime()>0) &&(ids.size()!=0)) {
+			if (hdr.minTime > from) {
+				if ((i > 0) && (pages[i - 1].header.maxTime <= from)) {
+					storage::Page::Page_ptr page2read = storage::Page::Open(pages[i-1].name, true);
+					auto reader = page2read->readInterval(ids, source, flag, from, to,this->pastTime());
+					result->addReader(reader);
+
+					pages_to_read.push_back(page_name);
+					continue;
+				}
+			}
+		}
+		
+		if ((hdr.minTime >= from) && (hdr.maxTime <= to)) {
+			pages_to_read.push_back(page_name);
+			continue;
+		}
+		
+		if (((from >= hdr.minTime) && (hdr.maxTime >= from)) || (to <= hdr.maxTime)) {
+			pages_to_read.push_back(page_name);
+			continue;
+		}
+        
     }
+
+	for (auto page_name : pages_to_read) {
+		storage::Page::Page_ptr page2read = storage::Page::Open(page_name, true);
+		auto reader = page2read->readInterval(ids, source, flag, from, to);
+		result->addReader(reader);
+	}
 
     this->m_cache_writer.continue_work();
 

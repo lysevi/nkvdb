@@ -18,7 +18,7 @@
 #include <thread>
 
 using namespace storage;
-
+/*
 BOOST_AUTO_TEST_CASE(MeasEmpty) {
   storage::Meas pm = storage::Meas::empty();
 
@@ -54,14 +54,14 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
   }
   utils::rm(mdb_test::storage_path);
 }
-
+*/
 BOOST_AUTO_TEST_CASE(StorageIO) {
   const int meas2write = 10;
   const int write_iteration = 10;
   const uint64_t storage_size =
       sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
   const std::string storage_path = mdb_test::storage_path + "storageIO";
-  {
+  /*{
     storage::Storage::Storage_ptr ds =
         storage::Storage::Create(storage_path, storage_size);
 
@@ -118,7 +118,43 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       }
     }
   }
-  utils::rm(storage_path);
+  utils::rm(storage_path);*/
+  {
+	  storage::Storage::Storage_ptr ds =
+		  storage::Storage::Create(storage_path, storage_size);
+
+	  storage::Meas meas = storage::Meas::empty();
+	  storage::Time end_it = (meas2write * write_iteration);
+	  storage::Time queryFrom = 20;
+	  storage::Id   Id = 1;
+	  for (storage::Time i = 0; i < end_it; ++i) {
+		  if (i == queryFrom) {
+			  Id = 2;
+			  continue;
+		  }
+
+		  meas.value = i;
+		  meas.id = Id;
+		  meas.source = meas.flag = i % meas2write;
+		  meas.time = i;
+		  ds->append(meas);
+	  }
+	  ds->setPastTime(end_it);
+
+	  Meas::MeasList meases{};
+	  auto queryIds = IdArray{ 1, 2 };
+	  
+	  auto reader = ds->readInterval(queryIds,0,0,queryFrom, end_it);
+	  while (!reader->isEnd()) {
+		  reader->readNext(&meases);
+	  }
+
+	  meases.erase(std::remove_if(meases.begin(), meases.end(), [](const storage::Meas&m){return m.time > 20; }), meases.end());
+	  
+	  BOOST_CHECK(meases.size() > 0);
+
+	  utils::rm(storage_path);
+  }
 }
 
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {

@@ -51,12 +51,44 @@ Page::~Page() {
 
 void Page::close() {
     if ((this->m_file!=nullptr) && (m_region!=nullptr)) {
+        //logger("write_window.size="<<m_writewindow.size());
+        this->flushWriteWindow();
         this->m_header->isOpen = false;
         this->m_header->ReadersCount = 0;
         delete m_region;
         delete m_file;
         m_region=nullptr;
         m_file=nullptr;
+
+    }
+}
+
+void Page::flushWriteWindow(){
+    return;
+    this->m_header->WriteWindowSize=m_writewindow.size();
+    if(this->m_header->WriteWindowSize!=0){
+        size_t offset=(this->m_header->size-m_writewindow.size()*sizeof(Meas));
+        auto data=(Meas*)((char*)this->m_region->get_address()+offset);
+        size_t i=0;
+        for(auto kv:m_writewindow){
+            data[i]=kv.second;
+            i++;
+        }
+    }
+}
+
+void Page::loadWriteWindow(){
+    return;
+    auto window_size=this->m_header->WriteWindowSize;
+    if(window_size!=0){
+        size_t wwindow_size=window_size*sizeof(Meas);
+        size_t offset=(this->m_header->size-wwindow_size);
+
+        auto data=(Meas*)((char*)this->m_region->get_address()+offset);
+        for(size_t i=0;i<window_size;i++){
+            auto value=data[i];
+            this->m_writewindow[value.id]=value;
+        }
     }
 }
 
@@ -98,7 +130,9 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
         result->m_header->ReadersCount+=1;
     }
 	result->m_region->flush(0, sizeof(result->m_header), false);
-	
+
+    result->loadWriteWindow();
+
     return result;
 }
 
@@ -177,6 +211,10 @@ bool Page::append(const Meas& value) {
 
     updateMinMax(value);
 
+    m_writewindow[value.id]=value;
+    m_header->WriteWindowSize=m_writewindow.size();
+
+
     memcpy(&m_data_begin[m_header->write_pos], &value, sizeof(Meas));
 
     Index::IndexRecord rec;
@@ -208,6 +246,11 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
         to_write = cap;
     }
     memcpy(m_data_begin + m_header->write_pos, begin, to_write * sizeof(Meas));
+
+    for(auto it=begin;it!=begin+to_write;it++){
+        m_writewindow[it->id]=*it;
+    }
+    m_header->WriteWindowSize=m_writewindow.size();
 
     updateMinMax(begin[0]);
     updateMinMax(begin[to_write-1]);
@@ -258,6 +301,15 @@ void Page::readComplete(){
         }
     }
 }
+
+Page::WriteWindow Page::getWriteWindow(){
+    return Page::WriteWindow(m_writewindow.begin(),m_writewindow.end());
+}
+
+void Page::setWriteWindow(const Page::WriteWindow&other){
+    m_writewindow=Page::WriteWindow{other.begin(),other.end()};
+}
+
 PageReader_ptr  Page::readAll() {
     if(this->m_header->write_pos==0){
         return nullptr;

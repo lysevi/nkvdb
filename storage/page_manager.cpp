@@ -39,7 +39,11 @@ void PageManager::closeCurrentPage() {
 }
 
 void PageManager::createNewPage() {
+    Page::WriteWindow wwindow;
+    bool loaded=false;
 	if (m_curpage != nullptr) {
+        wwindow=m_curpage->getWriteWindow();
+        loaded=true;
 		m_curpage->close();
 		m_curpage = nullptr;
 	}
@@ -47,6 +51,9 @@ void PageManager::createNewPage() {
 	std::string page_path = getNewPageUniqueName();
 
 	m_curpage = Page::Create(page_path, this->default_page_size);
+    if(loaded){
+        m_curpage->setWriteWindow(wwindow);
+    }
 }
 
 std::string PageManager::getOldesPage()const {

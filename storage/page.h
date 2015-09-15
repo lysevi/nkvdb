@@ -45,9 +45,11 @@ public:
     uint64_t write_pos;
     /// size in bytes
     uint64_t size;
+    uint64_t WriteWindowSize;
   };
 
   typedef std::shared_ptr<Page> Page_ptr;
+  typedef std::map<storage::Id,Meas> WriteWindow;
 
 public:
   static Page_ptr Open(std::string filename, bool readOnly=false);
@@ -81,6 +83,8 @@ public:
   /// if page openned to read, after read must call this method.
   /// if count of reader is zero, page automaticaly closed;
   void readComplete();
+  WriteWindow getWriteWindow();
+  void        setWriteWindow(const Page::WriteWindow&other);
 private:
   PageReader_ptr readAll();
   PageReader_ptr readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);
@@ -88,8 +92,8 @@ private:
   /// write empty header.
   void initHeader(char *data);
   void updateMinMax(const Meas& value);
-  
-  
+  void flushWriteWindow();
+  void loadWriteWindow();
 protected:
   std::string *m_filename;
 
@@ -101,6 +105,7 @@ protected:
   Index  m_index;
 
   std::mutex m_lock;
+  WriteWindow m_writewindow;
 };
 
 

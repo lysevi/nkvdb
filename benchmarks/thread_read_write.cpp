@@ -17,6 +17,7 @@ int meas2write = 10;
 int pagesize = 1000000;
 int thread_count = 5;
 int iteration_count = 1000000;
+int read_iteration_count=10;
 bool verbose = false;
 bool dont_remove = false;
 bool enable_dyn_cache = false;
@@ -25,6 +26,7 @@ size_t cache_pool_size = storage::defaultcachePoolSize;
 storage::Storage::Storage_ptr ds = nullptr;
 
 std::atomic_long append_count{ 0 };
+std::atomic_long reads_count{ 0 };
 bool stop_info = false;
 
 void makeStorage() {
@@ -54,6 +56,20 @@ void writer(int writeCount) {
 	}
 }
 
+void reader(int num,storage::Time from, storage::Time to) {
+	auto read_window = (to - from) / read_iteration_count;
+
+	for (size_t i = 0; i < read_iteration_count; i++) {
+		auto reader = ds->readInterval(read_window*(i+1), read_window*(i+2));
+		storage::Meas::MeasList output;
+		while (!reader->isEnd()) {
+			reader->readNext(&output);
+			output.clear();
+		}
+		reads_count++;
+	}
+}
+
 void show_info() {
 	clock_t t0 = clock();
 	auto all_writes = thread_count*iteration_count;
@@ -62,7 +78,25 @@ void show_info() {
 
 		clock_t t1 = clock();
 		auto writes_per_sec = append_count.load() / double((t1 - t0) / CLOCKS_PER_SEC);
-		std::cout << "\r>> " << writes_per_sec << "/sec progress:" << (100 * append_count) / all_writes << '%';
+		std::cout << "\rwrites: " << writes_per_sec << "/sec progress:" << (100 * append_count) / all_writes << "%             ";
+		std::cout.flush();
+		if (stop_info) {
+			break;
+		}
+	}
+	std::cout << "\n";
+}
+
+
+void show_reads_info() {
+	clock_t t0 = clock();
+	float all_reads = thread_count*read_iteration_count;
+	while (true) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+		clock_t t1 = clock();
+		auto reads_per_sec = reads_count.load() / double((t1 - t0) / CLOCKS_PER_SEC);
+		std::cout << "\rreads: " << reads_per_sec << "/sec progress:" << (100 * reads_count) / all_reads << "%             ";
 		std::cout.flush();
 		if (stop_info) {
 			break;
@@ -105,10 +139,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	makeStorage();
-	std::thread info_thred(show_info);
+	std::thread info_thread(show_info);
 
     logger("threads count: "<<thread_count);
-
+	/// writers
 	std::vector<std::thread> writers(thread_count);
 	size_t pos = 0;
 	for (int i = 0; i < thread_count; i++) {
@@ -123,7 +157,26 @@ int main(int argc, char *argv[]) {
 	}
 
 	stop_info = true;
-	info_thred.join();
+	info_thread.join();
+
+	/// readers
+	stop_info = false;
+	std::thread read_info_thread(show_reads_info);
+	std::vector<std::thread> readers(thread_count);
+	pos = 0;
+	auto reads_per_thread = (iteration_count / ((float)thread_count));
+	for (int i = 0; i < thread_count; i++) {
+		std::thread t{ reader,i, reads_per_thread*i, reads_per_thread*(i+1) };
+		readers[pos++] = std::move(t);
+	}
+
+	pos = 0;
+	for (int i = 0; i < thread_count; i++) {
+		std::thread t = std::move(readers[pos++]);
+		t.join();
+	}
+	stop_info = true;
+	read_info_thread.join();
 
 	ds->Close();
 	if (!dont_remove) {

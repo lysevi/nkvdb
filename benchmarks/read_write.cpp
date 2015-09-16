@@ -11,8 +11,8 @@ namespace po = boost::program_options;
 
 const std::string storage_path = "benchmarkStorage";
 
-int meas2write = 10;
-int pagesize = 1000000;
+size_t meas2write = 10;
+size_t pagesize = 1000000;
 bool write_only = false;
 bool verbose = false;
 bool dont_remove = false;
@@ -86,11 +86,11 @@ void readIntervalBenchFltr(storage::IdArray ids, storage::Flag src,
 int main(int argc, char *argv[]) {
   po::options_description desc("IO benchmark.\n Allowed options");
   desc.add_options()("help", "produce help message")(
-      "mc", po::value<int>(&meas2write)->default_value(meas2write), "measurment count")
+      "mc", po::value<size_t>(&meas2write)->default_value(meas2write), "measurment count")
       ("dyncache",po::value<bool>(&enable_dyn_cache)->default_value(enable_dyn_cache),"enable dynamic cache")
       ("cache-size",po::value<size_t>(&cache_size)->default_value(cache_size),"cache size")
       ("cache-pool-size",po::value<size_t>(&cache_pool_size)->default_value(cache_pool_size),"cache pool size")
-      ("page-size",po::value<int>(&pagesize)->default_value(pagesize),"page size")
+      ("page-size",po::value<size_t>(&pagesize)->default_value(pagesize),"page size")
       ("write-only", "don`t run readInterval")
       ("verbose", "verbose ouput")
       ("dont-remove", "dont remove created storage");

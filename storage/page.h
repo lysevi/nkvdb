@@ -93,6 +93,7 @@ private:
   void updateMinMax(const Meas& value);
   void flushWriteWindow();
   void loadWriteWindow();
+  void updateWriteWindow(const Meas&m);
 protected:
   std::string *m_filename;
 

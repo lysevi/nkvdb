@@ -217,6 +217,13 @@ void Page::updateMinMax(const Meas& value) {
   }
 }
 
+void Page::updateWriteWindow(const Meas&m) {
+	auto old_value = m_writewindow.find(m.id);
+	if ((old_value == m_writewindow.end()) || (old_value->second.time<m.time)) {
+		m_writewindow[m.id] = m;
+	}
+}
+
 bool Page::append(const Meas& value) {
     assert(m_header->ReadersCount==0);
     if (this->isFull()) {
@@ -225,7 +232,7 @@ bool Page::append(const Meas& value) {
 
     updateMinMax(value);
 
-    m_writewindow[value.id]=value;
+	updateWriteWindow(value);
     m_header->WriteWindowSize=m_writewindow.size();
 
 
@@ -262,7 +269,7 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
     memcpy(m_data_begin + m_header->write_pos, begin, to_write * sizeof(Meas));
 
     for(auto it=begin;it!=begin+to_write;it++){
-        m_writewindow[it->id]=*it;
+		updateWriteWindow(*it);
     }
     m_header->WriteWindowSize=m_writewindow.size();
 

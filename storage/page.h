@@ -49,7 +49,7 @@ public:
   };
 
   typedef std::shared_ptr<Page> Page_ptr;
-  typedef std::map<storage::Id,Meas> WriteWindow;
+  typedef std::vector<Meas> WriteWindow;
 
 public:
   static Page_ptr Open(std::string filename, bool readOnly=false);

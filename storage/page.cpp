@@ -71,7 +71,7 @@ void Page::flushWriteWindow(){
         assert(ofs.is_open());
 
         for(auto kv:m_writewindow){
-            ofs.write((char*)&kv.second,sizeof(Meas));
+            ofs.write((char*)&kv,sizeof(Meas));
         }
 
         ofs.close();
@@ -89,10 +89,10 @@ void Page::loadWriteWindow(){
     while(true){
         Meas value;
         if(!ifs.read((char*)&value,sizeof(value))){
-            this->m_writewindow[value.id]=value;
+			this->updateWriteWindow(value);
             break;
         }else{
-            this->m_writewindow[value.id]=value;
+			this->updateWriteWindow(value);
         }
     }
 
@@ -218,9 +218,14 @@ void Page::updateMinMax(const Meas& value) {
 }
 
 void Page::updateWriteWindow(const Meas&m) {
-	auto old_value = m_writewindow.find(m.id);
-	if ((old_value == m_writewindow.end()) || (old_value->second.time<m.time)) {
+	if (m_writewindow.size() <= m.id) {
+		m_writewindow.resize(m.id+1);
 		m_writewindow[m.id] = m;
+	} else {
+		auto old_value = m_writewindow[m.id];
+		if (old_value.time<m.time) {
+			m_writewindow[m.id] = m;
+		}
 	}
 }
 
@@ -469,7 +474,7 @@ void PageReader::readNext(Meas::MeasList*output){
 
 	if (this->from > this->m_page->getHeader().maxTime) {
 		for (auto wwIt : this->m_page->getWriteWindow()) {
-			auto readedValue = wwIt.second;
+			auto readedValue = wwIt;
 			if (checkValueFlags(readedValue)) {
 				output->push_back(readedValue);
 			}

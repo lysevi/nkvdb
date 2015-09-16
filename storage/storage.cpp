@@ -226,8 +226,8 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
 	storage::Page::Page_ptr page2read = storage::Page::Open(page_time_vector.front().name, true);
 	Page::WriteWindow ww = page2read->getWriteWindow();
 	for (auto m : ww) {
-		m_cur_values.writeValue(m.second);
-		id_set.erase(m.first);
+		m_cur_values.writeValue(m);
+		id_set.erase(m.id);
 	}
 	page2read->readComplete();
     if(id_set.size()!=0){

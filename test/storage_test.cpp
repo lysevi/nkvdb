@@ -127,12 +127,18 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 	  storage::Meas meas = storage::Meas::empty();
 	  storage::Time end_it = (meas2write * write_iteration);
 	  storage::Time queryFrom = 20;
+      storage::Time queryFrom2 = 22;
 	  storage::Id   Id = 1;
 	  for (storage::Time i = 0; i < end_it; ++i) {
 		  if (i == queryFrom) {
 			  Id = 2;
 			  continue;
 		  }
+
+          if (i == queryFrom2) {
+              Id = 3;
+              continue;
+          }
 
 		  meas.value = i;
 		  meas.id = Id;
@@ -150,10 +156,22 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 		  reader->readNext(&meases);
 	  }
 
-	  meases.erase(std::remove_if(meases.begin(), meases.end(), [](const storage::Meas&m){return m.time > 20; }), meases.end());
+      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom](const storage::Meas&m){return m.time > queryFrom; }), meases.end());
 	  
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
       BOOST_CHECK_EQUAL(meases.front().id, storage::Id(1));
+
+      /*meases.clear();
+      reader = ds->readInterval(queryFrom2, end_it);
+      while (!reader->isEnd()) {
+          reader->readNext(&meases);
+      }
+
+      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom2](const storage::Meas&m){return m.time > queryFrom2; }), meases.end());
+
+      BOOST_CHECK_EQUAL(meases.size(), size_t(1));
+      BOOST_CHECK_EQUAL(meases.front().id, storage::Id(1));
+    */
 	  ds->Close();
 	  utils::rm(storage_path);
   }

@@ -67,7 +67,7 @@ void Page::flushWriteWindow(){
     this->m_header->WriteWindowSize=m_writewindow.size();
     if(this->m_header->WriteWindowSize!=0){
         std::ofstream ofs;
-        ofs.open(this->fileName()+"w",std::ofstream::binary | std::ofstream::out | std::ofstream::trunc);
+        ofs.open(this->writewindow_fileName(),std::ofstream::binary | std::ofstream::out | std::ofstream::trunc);
         assert(ofs.is_open());
 
         for(auto kv:m_writewindow){
@@ -80,8 +80,9 @@ void Page::flushWriteWindow(){
 
 void Page::loadWriteWindow(){
 
-    std::ifstream ifs(this->fileName()+"w",std::ifstream::binary|std::ifstream::in);
+	std::ifstream ifs(this->writewindow_fileName(), std::ifstream::binary | std::ifstream::in);
     if(!ifs.is_open()){
+		/// this is not error. write window file is no exists, when openned empty page without data.
         return;
     }
 
@@ -105,9 +106,17 @@ std::string Page::index_fileName() const {
   return std::string(*m_filename) + "i";
 }
 
-Time Page::minTime() const { return m_header->minTime; }
+std::string Page::writewindow_fileName() const {
+	return std::string(*m_filename) + "w";
+}
 
-Time Page::maxTime() const { return m_header->maxTime; }
+Time Page::minTime() const { 
+	return m_header->minTime; 
+}
+
+Time Page::maxTime() const { 
+	return m_header->maxTime; 
+}
 
 Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
     if(!readOnly){
@@ -397,10 +406,7 @@ PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, stor
     }
   return result;
 }
-//
-//PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, Time past_time) {
-//	return this->readInterval(ids, source, flag, from, to);
-//}
+
 bool Page::isFull() const {
   return (sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos) >= m_header->size;
 }

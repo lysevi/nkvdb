@@ -2,6 +2,7 @@
 *.idx
 *_export.h
 *.db
+*.dbw
 *.dbi
 *.page
 *.pagei

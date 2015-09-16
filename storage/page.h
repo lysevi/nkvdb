@@ -62,6 +62,7 @@ public:
   size_t size() const;
   std::string fileName() const;
   std::string index_fileName() const;
+  std::string writewindow_fileName() const;
   /// min time of writed meas
   Time minTime() const;
   /// max time of writed meas
@@ -77,7 +78,6 @@ public:
   bool read(Meas::PMeas result, uint64_t position);
   PageReader_ptr readInterval(Time from, Time to);
   PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
-  /*PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, Time past_time);*/
 
   /// if page openned to read, after read must call this method.
   /// if count of reader is zero, page automaticaly closed;

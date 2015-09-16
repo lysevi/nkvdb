@@ -75,9 +75,15 @@ public:
     StorageReader();
     bool isEnd();
     void readNext(Meas::MeasList*output);
-    void addReader(PageReader_ptr reader);
+    void addPage(std::string page_name);
+
+    IdArray ids;
+    storage::Flag source;
+    storage::Flag flag;
+    storage::Time from;
+    storage::Time to;
 private:
-    std::vector<PageReader_ptr> m_readers;
+    std::vector<std::string> m_pages;
     PageReader_ptr m_current_reader;
 };
 }

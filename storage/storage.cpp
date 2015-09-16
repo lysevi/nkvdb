@@ -170,8 +170,8 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 		auto page_name = pinfo.name;
 		auto hdr = pinfo.header;
 		
-        
-		if ((hdr.minTime <= from) & (hdr.maxTime >= from)) {
+
+        if ((hdr.minTime <= from) && (hdr.maxTime >= to)) {
 				pages_to_read.push_back(page_name);
 				continue;
 		}
@@ -196,11 +196,13 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 		}
         
     }
-
+    result->ids=ids;
+    result->from=from;
+    result->to=to;
+    result->source=source;
+    result->flag=flag;
 	for (auto page_name : pages_to_read) {
-		storage::Page::Page_ptr page2read = storage::Page::Open(page_name, true);
-		auto reader = page2read->readInterval(ids, source, flag, from, to);
-		result->addReader(reader);
+        result->addPage(page_name);
 	}
 
     this->m_cache_writer.continue_work();
@@ -280,13 +282,13 @@ Meas::MeasList Storage::curValues(const IdArray&ids) {
 }
 
 StorageReader::StorageReader():
-    m_readers(),
+    m_pages(),
     m_current_reader(nullptr){
 
 }
 
 bool StorageReader::isEnd(){
-    if(this->m_readers.size()==0){
+    if(this->m_pages.size()==0){
         return m_current_reader==nullptr?true:m_current_reader->isEnd();
     }else{
         return false;
@@ -299,8 +301,11 @@ void StorageReader::readNext(Meas::MeasList*output){
     }
 
     if(m_current_reader==nullptr){
-        m_current_reader=m_readers.back();
-        m_readers.pop_back();
+        auto page_name=m_pages.back();
+        m_pages.pop_back();
+        storage::Page::Page_ptr page2read = storage::Page::Open(page_name, true);
+        m_current_reader = page2read->readInterval(ids, source, flag, from, to);
+
     }
 	
     m_current_reader->readNext(output);
@@ -310,6 +315,6 @@ void StorageReader::readNext(Meas::MeasList*output){
     }
 }
 
-void StorageReader::addReader(PageReader_ptr reader){
-    this->m_readers.push_back(reader);
+void StorageReader::addPage(std::string page_name){
+    this->m_pages.push_back(page_name);
 }

@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 	ds->Close();
   }
   utils::rm(storage_path);
- /* {
+ {
 	  storage::Storage::Storage_ptr ds =
 		  storage::Storage::Create(storage_path, storage_size);
 
@@ -152,10 +152,11 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
 	  meases.erase(std::remove_if(meases.begin(), meases.end(), [](const storage::Meas&m){return m.time > 20; }), meases.end());
 	  
-	  BOOST_CHECK(meases.size() > 0);
-
+	  BOOST_CHECK_EQUAL(meases.size(), 1);
+	  BOOST_CHECK_EQUAL(meases.front().id, 1);
+	  ds->Close();
 	  utils::rm(storage_path);
-  }*/
+  }
 }
 
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {

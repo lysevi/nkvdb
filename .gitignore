@@ -5,6 +5,7 @@
 *.dbi
 *.page
 *.pagei
+*.pagew
 *.a
 Makefile
 mdb

@@ -128,11 +128,17 @@ public:
     storage::Flag flag;
     Time from;
     Time to;
+	bool isWindowReader;
+private:
+	bool checkValueInterval(const Meas&m)const;
+	bool checkValueFlags(const Meas&m)const;
 private:
     Page::Page_ptr m_page;
     std::list<from_to_pos> m_read_pos_list;
     uint64_t m_cur_pos_begin;
     uint64_t m_cur_pos_end;
+	
+	bool m_wwWindowReader_read_end;
 };
 
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr);

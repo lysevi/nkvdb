@@ -176,18 +176,14 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 				continue;
 		}
 
-	/*	if ((this->pastTime()>0) &&(ids.size()!=0)) {
-			if (hdr.minTime > from) {
-				if ((i > 0) && (pages[i - 1].header.maxTime <= from)) {
-					storage::Page::Page_ptr page2read = storage::Page::Open(pages[i-1].name, true);
-					auto reader = page2read->readInterval(ids, source, flag, from, to,this->pastTime());
-					result->addReader(reader);
-
-					pages_to_read.push_back(page_name);
-					continue;
-				}
+		if (hdr.minTime > from) {
+			if ((i > 0) && (pages[i - 1].header.maxTime <= from)) {
+				pages_to_read.push_back(pages[i - 1].name);
+				pages_to_read.push_back(page_name);
+				continue;
 			}
-		}*/
+		}
+		
 		
 		if ((hdr.minTime >= from) && (hdr.maxTime <= to)) {
 			pages_to_read.push_back(page_name);
@@ -306,6 +302,7 @@ void StorageReader::readNext(Meas::MeasList*output){
         m_current_reader=m_readers.back();
         m_readers.pop_back();
     }
+	
     m_current_reader->readNext(output);
 
     if(m_current_reader->isEnd()){

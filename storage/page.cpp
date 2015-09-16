@@ -357,6 +357,19 @@ PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, stor
     if(this->m_header->write_pos==0){
         return nullptr;
     }
+	if (from > this->m_header->maxTime) {
+		/// read from write window
+		auto ppage = this->shared_from_this();
+		auto preader = new PageReader(ppage);
+		auto result = PageReader_ptr(preader);
+		result->ids = ids;
+		result->source = source;
+		result->flag = flag;
+		result->from = from;
+		result->to = to;
+		result->isWindowReader = true;
+		return result;
+	}
     if ((from <= m_header->minTime) && (to >= m_header->maxTime)) {
         if ((ids.size() == 0) && (source == 0) && (flag == 0)) {
             auto result=this->readAll();
@@ -410,6 +423,8 @@ PageReader::PageReader(Page::Page_ptr page):
 {
     m_cur_pos_end=m_cur_pos_begin=0;
     m_page=page;
+	isWindowReader = false;
+	m_wwWindowReader_read_end = false;
 }
 
 PageReader::~PageReader(){
@@ -424,6 +439,9 @@ void PageReader::addReadPos(uint64_t begin,uint64_t end){
 }
 
 bool PageReader::isEnd() const{
+	if (isWindowReader) {
+		return m_wwWindowReader_read_end;
+	}
     if(m_read_pos_list.size()==0){
         return m_cur_pos_begin==m_cur_pos_end;
     }else{
@@ -432,9 +450,20 @@ bool PageReader::isEnd() const{
 }
 
 void PageReader::readNext(Meas::MeasList*output){
-    if(isEnd()){
-        return;
-    }
+	if (isEnd()) {
+		return;
+	}
+
+	if (this->from > this->m_page->getHeader().maxTime) {
+		for (auto wwIt : this->m_page->getWriteWindow()) {
+			auto readedValue = wwIt.second;
+			if (checkValueFlags(readedValue)) {
+				output->push_back(readedValue);
+			}
+		}
+		m_wwWindowReader_read_end = true;
+		return;
+	}
 
     if(m_cur_pos_begin==m_cur_pos_end){
         /// get next read interval
@@ -461,26 +490,37 @@ void PageReader::readNext(Meas::MeasList*output){
             throw MAKE_EXCEPTION(ss.str());
         }
 
-        if (utils::inInterval(from, to, readedValue.time)) {
-            if (flag != 0) {
-                if (readedValue.flag != flag) {
-                    continue;
-                }
-            }
-            if (source != 0) {
-                if (readedValue.source != source) {
-                    continue;
-                }
-            }
-            if (ids.size() != 0) {
-                if (std::find(ids.cbegin(), ids.cend(), readedValue.id) == ids.end()) {
-                    continue;
-                }
-            }
-
+		if ((checkValueInterval(readedValue)) && checkValueFlags(readedValue)){
             output->push_back(readedValue);
         }
         
     }
     m_cur_pos_begin=i;
+}
+
+bool PageReader::checkValueInterval(const Meas&m)const {
+	if (utils::inInterval(from, to, m.time)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool PageReader::checkValueFlags(const Meas&m)const {
+	if (flag != 0) {
+		if (m.flag != flag) {
+			return false;
+		}
+	}
+	if (source != 0) {
+		if (m.source != source) {
+			return false;
+		}
+	}
+	if (ids.size() != 0) {
+		if (std::find(ids.cbegin(), ids.cend(), m.id) == ids.end()) {
+			return false;
+		}
+	}
+	return true;
 }

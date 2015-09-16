@@ -165,17 +165,19 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 	std::reverse(std::begin(pages), std::end(pages));
 
 	std::list<std::string> pages_to_read{};
+
     for (size_t i=0;i<pages.size();i++) {
 		auto pinfo = pages[i];
 		auto page_name = pinfo.name;
 		auto hdr = pinfo.header;
 		
-
+        // [min from to max]
         if ((hdr.minTime <= from) && (hdr.maxTime >= to)) {
 				pages_to_read.push_back(page_name);
 				continue;
 		}
 
+        // [...max] from [min...]
 		if (hdr.minTime > from) {
 			if ((i > 0) && (pages[i - 1].header.maxTime <= from)) {
 				pages_to_read.push_back(pages[i - 1].name);
@@ -183,18 +185,28 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 				continue;
 			}
 		}
-		
-		
+
+        // [min from max] to
 		if ((hdr.minTime >= from) && (hdr.maxTime <= to)) {
 			pages_to_read.push_back(page_name);
 			continue;
 		}
 		
-		if (((from >= hdr.minTime) && (hdr.maxTime >= from)) || (to <= hdr.maxTime)) {
+        // min from  max
+        // to max
+        if ((from >= hdr.minTime) && (hdr.maxTime >= from)){
 			pages_to_read.push_back(page_name);
+            if(i>0){
+                pages_to_read.push_back(page_name);
+            }
 			continue;
 		}
-        
+
+        if (to <= hdr.maxTime) {
+            pages_to_read.push_back(page_name);
+            continue;
+        }
+
     }
     result->ids=ids;
     result->from=from;

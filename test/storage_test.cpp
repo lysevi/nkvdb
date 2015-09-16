@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 	  ds->setPastTime(end_it);
 
 	  Meas::MeasList meases{};
-	  auto queryIds = IdArray{ 1, 2 };
+      auto queryIds = IdArray{ 1, 2, 3 };
 	  
 	  auto reader = ds->readInterval(queryIds,0,0,queryFrom, end_it);
 	  while (!reader->isEnd()) {
@@ -161,8 +161,8 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
       BOOST_CHECK_EQUAL(meases.front().id, storage::Id(1));
 
-      /*meases.clear();
-      reader = ds->readInterval(queryFrom2, end_it);
+      meases.clear();
+      reader = ds->readInterval(queryIds, 0, 0, queryFrom2, end_it);
       while (!reader->isEnd()) {
           reader->readNext(&meases);
       }
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
       BOOST_CHECK_EQUAL(meases.front().id, storage::Id(1));
-    */
+
 	  ds->Close();
 	  utils::rm(storage_path);
   }

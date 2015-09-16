@@ -37,14 +37,14 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
       BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
 
       std::list<boost::filesystem::path> pages = utils::ls(mdb_test::storage_path);
-      BOOST_CHECK_EQUAL(pages.size(), (size_t)1);
+      BOOST_CHECK_EQUAL(pages.size(), (size_t)2);
       ds->Close();
 
       ds = storage::Storage::Create(mdb_test::storage_path);
       BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
       BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
       pages = utils::ls(mdb_test::storage_path);
-      BOOST_CHECK_EQUAL(pages.size(), (size_t)1);
+      BOOST_CHECK_EQUAL(pages.size(), (size_t)2);
       ds->Close();
     }
     {

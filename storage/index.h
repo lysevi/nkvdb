@@ -4,7 +4,7 @@
 #include <list>
 namespace storage
 {
-
+	const uint16_t index_file_format=1;
     /**
     * Implement index for page.
     */
@@ -19,6 +19,10 @@ namespace storage
 			Time maxTime;
 			Id minId;
 			Id maxId;
+		};
+		struct IndexHeader
+		{
+			uint16_t format;
 		};
 	public:
 		Index();

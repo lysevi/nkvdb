@@ -20,6 +20,14 @@ Index::~Index() {
 
 void Index::setFileName(const std::string& fname) {
 	m_fname = fname;
+	if (!boost::filesystem::exists(fname)) {
+		IndexHeader ih;
+		ih.format = index_file_format;
+
+		FILE *pFile = std::fopen(this->fileName().c_str(), "ab");
+		fwrite(&ih, sizeof(IndexHeader), 1, pFile);
+		fclose(pFile);
+	}
 }
 
 std::string Index::fileName()const {
@@ -48,7 +56,7 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 		bi::mapped_region region(i_file, bi::read_write);
 
 		
-		IndexRecord *i_data = (IndexRecord *)region.get_address();
+		IndexRecord *i_data = (IndexRecord *)((char*)region.get_address()+sizeof(Index::IndexHeader));
 		auto fsize = region.get_size();
 
 		bool index_filter = false;

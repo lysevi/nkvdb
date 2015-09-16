@@ -227,27 +227,13 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
 
 	IdSet id_set(ids.begin(), ids.end());
 
-	for (auto kv : page_time_vector) {
-		if (id_set.size() == 0) {
-			break;
-		}
-		storage::Page::Page_ptr page2read;
-		auto page = kv.name;
-		bool shouldClosed = false;
-		if (page == PageManager::get()->getCurPage()->fileName()) {
-			page2read = PageManager::get()->getCurPage();
-		} else {
-			page2read = storage::Page::Open(page);
-			shouldClosed = true;
-		}
-		auto sub_result=page2read->readCurValues(id_set);
-		for(auto m:sub_result) {
-			m_cur_values.writeValue(m);
-		}
-		if (shouldClosed) {
-			page2read->close();
-		}
+	storage::Page::Page_ptr page2read = storage::Page::Open(page_time_vector.front().name, true);
+	Page::WriteWindow ww = page2read->getWriteWindow();
+	for (auto m : ww) {
+		m_cur_values.writeValue(m.second);
+		id_set.erase(m.first);
 	}
+	page2read->readComplete();
     if(id_set.size()!=0){
         for(auto id:id_set){
             logger("DataStorage::loadCurValues: not found  "<<id);

@@ -54,10 +54,10 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
         ds->append(m);
         m.id=5;m.time=10;
         ds->append(m);
-        m.id=55;m.time=10;
+        m.id=6;m.time=10;
         ds->append(m);
 
-        auto reader=ds->readInterval(8,10);
+        auto reader=ds->readInterval(IdArray{1,2,4,5,55},0,0,8,10);
         storage::Meas::MeasList output{};
         reader->readAll(&output);
         BOOST_CHECK_EQUAL(output.size(),size_t(5));

@@ -358,6 +358,7 @@ void StorageReader::addPage(std::string page_name){
 void StorageReader::readNotIntervalData(Meas::MeasList*output) {
 	std::map<Id, Meas> not_found;
 
+	// load write window of prev page
 	auto prev_page = PageManager::get()->open(this->prev_interval_page, true);
 	auto ww = prev_page->getWriteWindow();
 	prev_page->readComplete();
@@ -371,8 +372,7 @@ void StorageReader::readNotIntervalData(Meas::MeasList*output) {
 		not_found[value.id] = value;
 	}
 
-	/// find meas not in founded interval [from,to]
-	
+	/// iafter it not_found  contain meases writewindow - founded in  [... from max]
 	for (auto m : localResult) {
 		auto it=not_found.find(m.id);
 		if ((it!=not_found.end()) && (it->second.time<m.time)) {
@@ -384,9 +384,7 @@ void StorageReader::readNotIntervalData(Meas::MeasList*output) {
 		return;
 	}
 
-	//localResult.clear();
-
-	/// search not founded values in [page.minTime, min founded time]
+	/// search not founded values in [page.minTime, from - 1]
 	IdArray new_ids(not_found.size());
 	int i = 0;
 	for (auto kv : not_found) {
@@ -404,6 +402,7 @@ void StorageReader::readNotIntervalData(Meas::MeasList*output) {
 	/// put to output and erase from not_found set.
 	for (auto it = subResult.begin(); it != subResult.end(); it++) {
 		bool find = false;
+		// if already readed in readNext
 		for (auto local_it = localResult.begin(); local_it != localResult.end();++local_it){
 			find = true;
 			break;

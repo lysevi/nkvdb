@@ -110,8 +110,8 @@ std::list<std::string> PageManager::pageList() const {
 	return result;
 }
 
-Page::Page_ptr PageManager::open(std::string path) {
-	m_curpage = Page::Open(path);
+Page::Page_ptr PageManager::open(std::string path,bool readOnly) {
+	m_curpage = Page::Open(path, readOnly);
     return m_curpage;
 }
 

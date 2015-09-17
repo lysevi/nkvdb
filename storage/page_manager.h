@@ -34,7 +34,7 @@ namespace storage {
 		std::string getNewPageUniqueName()const;
 
 		std::list<std::string> pageList() const;
-        Page::Page_ptr open(std::string path);
+        Page::Page_ptr open(std::string path, bool readOnly=false);
 
 		std::vector<PageManager::PageInfo> pagesByTime()const;
     protected:

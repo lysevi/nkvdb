@@ -98,8 +98,7 @@ append_result Storage::append(const Meas& m) {
   return res;
 }
 
-append_result Storage::append(const Meas::PMeas begin,
-                                  const size_t meas_count) {
+append_result Storage::append(const Meas::PMeas begin, const size_t meas_count) {
   std::lock_guard<std::mutex> guard(m_write_mutex);
   if (m_cache->isFull()) {
     this->writeCache();
@@ -149,6 +148,7 @@ PStorageReader Storage::readInterval(Time from, Time to) {
 PStorageReader Storage::readInterval(const IdArray &ids,
                                      storage::Flag source, storage::Flag flag,
                                      Time from, Time to) {
+	std::lock_guard<std::mutex> guard(m_write_mutex);
     this->writeCache();
     while (true) {
         if (!m_cache_writer.isBusy()) {
@@ -324,76 +324,94 @@ void StorageReader::readNext(Meas::MeasList*output){
     }
 
 	if ((m_current_reader->m_page->getHeader().minTime <= this->from) && (prev_interval_page!="")) {
-		Meas::MeasList localResult;
-		while (!m_current_reader->isEnd()) {
-			m_current_reader->readNext(&localResult);
-		}
+		Meas::MeasList sub_result;
+		
+		m_current_reader->readNext(&sub_result);
+		std::copy(sub_result.begin(), sub_result.end(), std::back_inserter(*output));
 
-		std::set<Id> not_found{};
-		Time min_time;
-		bool min_time_set=false;
-		for (auto m : localResult) {
-			if (m.time > from) {
-				not_found.insert(m.id);
-				if (min_time_set) {
-					min_time = std::min(min_time, m.time);
-				} else {
-					min_time = m.time;
-					min_time_set = true;
-				}
-			}
-		}
-
-		std::copy(localResult.begin(), localResult.end(), std::back_inserter(*output)); 
-
-		if (not_found.size() != 0) {
-			localResult.clear();
-
-			IdArray new_ids{ not_found.begin(), not_found.end() };
-			auto page_dup = PageManager::get()->open(m_current_reader->m_page->fileName(), true);
-			auto new_reader = page_dup->readInterval(new_ids, source, flag, m_current_reader->m_page->getHeader().minTime, min_time-1);
-
-			while (!new_reader->isEnd()) {
-				new_reader->readNext(&localResult);
-			}
-			new_reader = nullptr;
-
-			if (localResult.size() == 0) {
-				auto prev_page = PageManager::get()->open(this->prev_interval_page, true);
-				auto ww=prev_page->getWriteWindow();
-				prev_page->readComplete();
-				
-				for (auto nf_id : not_found) {
-					for (auto value : ww) {
-						if ((value.id == nf_id) && (value.time!=0)) {
-							localResult.push_back(value);
-							break;
-						}
-					}
-				}
-			} else {
-				for (auto it = localResult.rbegin(); it != localResult.rend(); it++) {
-					auto search_res = not_found.find(it->id);
-					if ((search_res!=not_found.end()) && (it->time<=from)) {
-						not_found.erase(it->id);
-						output->push_front(*it);
-					}
-					if (not_found.size() == 0) {
-						break;
-					}
-				}
-			}
-			//std::copy(localResult.begin(), localResult.end(), std::back_inserter(*output));
-		}
+		std::copy(sub_result.begin(), sub_result.end(), std::back_inserter(localResult));
 	} else {
 		m_current_reader->readNext(output);
 	}
 
     if(m_current_reader->isEnd()){
+		if ((m_current_reader->m_page->getHeader().minTime <= this->from) && (prev_interval_page != "")) {
+			/// read data not in interval if needed
+			this->readNotIntervalData(output);
+			localResult.clear();
+		}
         m_current_reader=nullptr;
     }
+	
 }
 
 void StorageReader::addPage(std::string page_name){
     this->m_pages.push_back(page_name);
+}
+
+void StorageReader::readNotIntervalData(Meas::MeasList*output) {
+	/// find meas not in founded interval [from,to]
+	std::set<Id> not_found{ids.begin(),ids.end()};
+	Time max_time=0;
+	bool max_time_set = false;
+	for (auto m : localResult) {
+		if (m.time > from) {
+			not_found.insert(m.id);
+			if (max_time_set) {
+				max_time = std::max(max_time, m.time);
+			} else {
+				max_time = m.time;
+				max_time_set = true;
+			}
+		} else {
+			not_found.erase(m.id);
+		}
+	}
+
+	if (not_found.size() == 0) {
+		return;
+	}
+
+	localResult.clear();
+
+	/// search not founded values in [page.minTime, min founded time]
+	IdArray new_ids{ not_found.begin(), not_found.end() };
+	auto page_dup = PageManager::get()->open(m_current_reader->m_page->fileName(), true);
+	auto new_reader = page_dup->readInterval(new_ids, source, flag, m_current_reader->m_page->getHeader().minTime, max_time - 1);
+
+	while (!new_reader->isEnd()) {
+		new_reader->readNext(&localResult);
+	}
+	new_reader = nullptr;
+
+	/// put to output(lol) and erase from not_found set.
+	for (auto it = localResult.rbegin(); it != localResult.rend(); it++) {
+		auto search_res = not_found.find(it->id);
+		if ((search_res != not_found.end()) && (it->time <= from)) {
+			not_found.erase(it->id);
+			output->push_front(*it);
+		}
+		if (not_found.size() == 0) {
+			break;
+		}
+	}
+
+	/// search in write window of prev. by time page.
+	/// [ prevMax] [curmin]
+	if ((localResult.size() == 0) || (not_found.size() != 0)) {
+		auto prev_page = PageManager::get()->open(this->prev_interval_page, true);
+		auto ww = prev_page->getWriteWindow();
+		prev_page->readComplete();
+
+		for (auto nf_id : not_found) {
+			for (auto value : ww) {
+				if (value.id == nf_id) {
+					if (m_current_reader->checkValueFlags(value)) {
+						output->push_front(value);
+					}
+					break;
+				}
+			}
+		}
+	}
 }

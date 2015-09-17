@@ -83,8 +83,11 @@ public:
     storage::Time from;
     storage::Time to;
 	std::string prev_interval_page;
+protected:
+	void readNotIntervalData(Meas::MeasList*output);
 private:
 	std::deque<std::string> m_pages;
     PageReader_ptr m_current_reader;
+	Meas::MeasList localResult;
 };
 }

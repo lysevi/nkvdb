@@ -18,7 +18,7 @@
 #include <thread>
 
 using namespace storage;
-/*
+
 BOOST_AUTO_TEST_CASE(MeasEmpty) {
   storage::Meas pm = storage::Meas::empty();
 
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
   }
   utils::rm(mdb_test::storage_path);
 }
-*/
+
 BOOST_AUTO_TEST_CASE(StorageIO) {
   const int meas2write = 10;
   const int write_iteration = 10;
@@ -152,28 +152,30 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 	  while (!reader->isEnd()) {
 		  reader->readNext(&meases);
 	  }
-
+	  // [..max] from [min]
       meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom](const storage::Meas&m){return m.time > queryFrom; }), meases.end());
 	  
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
       BOOST_CHECK_EQUAL(meases.front().id, storage::Id(1));
 
+	  // [..max] [min..from]
       meases.clear();
-      reader = ds->readInterval(queryFrom2, end_it);
+	  reader = ds->readInterval(IdArray{1,2},0,0,queryFrom2, end_it);
       while (!reader->isEnd()) {
           reader->readNext(&meases);
       }
 
       meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom2](const storage::Meas&m){return m.time > queryFrom2; }), meases.end());
-
-      BOOST_CHECK_EQUAL(meases.size(), size_t(1));
-      BOOST_CHECK_EQUAL(meases.front().id, storage::Id(2));
+	  
+      BOOST_CHECK_EQUAL(meases.size(), size_t(2));
+      BOOST_CHECK_EQUAL(meases.front().id, storage::Id(1));
+	  BOOST_CHECK_EQUAL(meases.back().id, storage::Id(2));
 
 	  ds->Close();
 	  utils::rm(storage_path);
   }
 }
-/*
+
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {
   const int meas2write = 10;
   const size_t write_iteration = 10;
@@ -389,4 +391,3 @@ BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
     }
     utils::rm(storage_path);
 }
-*/

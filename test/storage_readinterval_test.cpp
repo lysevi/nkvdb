@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
         auto reader=ds->readInterval(8,10);
         storage::Meas::MeasList output{};
         reader->readAll(&output);
-        BOOST_CHECK_EQUAL(output.size(),size_t(3));
+        BOOST_CHECK_EQUAL(output.size(),size_t(5));
     }
     ds->Close();
     utils::rm(storage_path);

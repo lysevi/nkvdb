@@ -372,7 +372,7 @@ void StorageReader::readNotIntervalData(Meas::MeasList*output) {
 		not_found[value.id] = value;
 	}
 
-	/// iafter it not_found  contain meases writewindow - founded in  [... from max]
+	/// after it not_found  contain meases writewindow - founded in  [... from max]
 	for (auto m : localResult) {
 		auto it=not_found.find(m.id);
 		if ((it!=not_found.end()) && (it->second.time<m.time)) {

@@ -15,10 +15,10 @@ IF(WIN32)
   MESSAGE(STATUS "+ boost root: " ${BOOST_ROOT})
 
   if(MSVC)
-	find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread filesystem log )
+	find_package(Boost 1.57.0 REQUIRED unit_test_framework system  filesystem log )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /EHsc")
   else(MSVC)
-        find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread filesystem log program_options)
+        find_package(Boost 1.57.0 REQUIRED unit_test_framework system  filesystem log program_options)
   endif(MSVC)
 
   include (GenerateExportHeader)
@@ -39,7 +39,7 @@ else(WIN32)
 
   set(BoostUSESTATIC_LIBS OFF)
   
-  find_package(Boost 1.57.0 REQUIRED unit_test_framework system thread filesystem log program_options)
+  find_package(Boost 1.57.0 REQUIRED unit_test_framework system  filesystem log program_options)
 ENDIF(WIN32)
 
 IF(Boost_FOUND)

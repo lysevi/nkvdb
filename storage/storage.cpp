@@ -295,11 +295,9 @@ Meas::MeasList Storage::curValues(const IdArray&ids) {
 	return m_cur_values.readValue(ids);
 }
 
-StorageReader::StorageReader():
-    m_pages(),
-	m_current_reader(nullptr), 
-	prev_interval_page(""){
-
+StorageReader::StorageReader():m_pages(){
+    m_current_reader=nullptr;
+    prev_interval_page="";
 }
 
 bool StorageReader::isEnd(){

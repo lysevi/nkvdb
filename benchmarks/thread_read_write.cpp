@@ -62,10 +62,7 @@ void reader(int num,storage::Time from, storage::Time to) {
 	for (size_t i = 0; i < read_iteration_count; i++) {
 		auto reader = ds->readInterval(read_window*(i+1), read_window*(i+2));
 		storage::Meas::MeasList output;
-		while (!reader->isEnd()) {
-			reader->readNext(&output);
-			output.clear();
-		}
+		reader->readAll(&output);
 		reads_count++;
 	}
 }

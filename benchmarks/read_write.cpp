@@ -58,9 +58,9 @@ void readIntervalBench(storage::Storage::Storage_ptr ds,
   clock_t read_t0 = clock();
   storage::Meas::MeasList meases {};
   auto reader = ds->readInterval(from, to);
-  while(!reader->isEnd()){
-      reader->readNext(&meases);
-  }
+
+  reader->readAll(&meases);
+
   clock_t read_t1 = clock();
 
   logger("=> : " << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
@@ -72,15 +72,14 @@ void readIntervalBenchFltr(storage::IdArray ids, storage::Flag src,
                            storage::Time from, storage::Time to,
                            std::string message) {
   clock_t read_t0 = clock();
+  
   storage::Meas::MeasList output;
-  auto meases = ds->readInterval(ids, src, flag, from, to);
-  while(!meases->isEnd()){
-    meases->readNext(&output);
-  }
+  auto reader = ds->readInterval(ids, src, flag, from, to);
+  reader->readAll(&output);
+
   clock_t read_t1 = clock();
 
-  logger("=> :" << message
-         << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
+  logger("=> :" << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
 }
 
 int main(int argc, char *argv[]) {

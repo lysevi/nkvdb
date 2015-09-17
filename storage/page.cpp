@@ -419,6 +419,53 @@ PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, stor
   return result;
 }
 
+Meas::MeasList Page::backwardRead(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
+	Meas::MeasList result;
+	std::set<Id> id_set{ ids.begin(), ids.end() };
+
+	auto irecords=m_index.findInIndex(ids, from, to);
+	irecords.reverse();
+	
+	for (Index::IndexRecord &rec : irecords) {
+		if (id_set.size() == 0) {
+			break;
+		}
+		for (auto pos = (rec.pos + rec.count)-1; ; pos--) {
+			if (id_set.size() == 0) {
+				break;
+			}
+
+			Meas m;
+			if (!this->read(&m, pos)) {
+				throw MAKE_EXCEPTION("Page::backwardRead read error");
+			}
+
+			bool flag_check = true;
+			if (flag != 0) {
+				if (m.flag != flag) {
+					flag_check = false;
+				}
+			}
+			bool source_check = true;
+			if (source != 0) {
+				if (m.source != source) {
+					source_check = false;
+				}
+			}
+			if (flag_check && source_check && std::find(id_set.cbegin(), id_set.cend(), m.id) != id_set.end()) {
+				result.push_back(m);
+				id_set.erase(m.id);
+			}
+			
+
+			if (pos == rec.pos) {
+				break;
+			}
+		}
+	}
+	return result;
+}
+
 bool Page::isFull() const {
   return (sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos) >= m_header->size;
 }

@@ -79,6 +79,8 @@ public:
   PageReader_ptr readInterval(Time from, Time to);
   PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
 
+  // read from end to start while not find all meases in ids;
+  Meas::MeasList backwardRead(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   /// if page openned to read, after read must call this method.
   /// if count of reader is zero, page automaticaly closed;
   void readComplete();

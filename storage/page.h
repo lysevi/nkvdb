@@ -140,6 +140,7 @@ private:
     uint64_t m_cur_pos_end;
 	
 	bool m_wwWindowReader_read_end;
+	friend class StorageReader;
 };
 
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr);

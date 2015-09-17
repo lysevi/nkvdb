@@ -82,8 +82,9 @@ public:
     storage::Flag flag;
     storage::Time from;
     storage::Time to;
+	std::string prev_interval_page;
 private:
-    std::vector<std::string> m_pages;
+	std::deque<std::string> m_pages;
     PageReader_ptr m_current_reader;
 };
 }

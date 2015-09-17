@@ -166,6 +166,7 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 
 	std::list<std::string> pages_to_read{};
 
+	
     for (size_t i=0;i<pages.size();i++) {
 		auto pinfo = pages[i];
 		auto page_name = pinfo.name;
@@ -197,7 +198,7 @@ PStorageReader Storage::readInterval(const IdArray &ids,
         if ((from >= hdr.minTime) && (hdr.maxTime >= from)){
 			pages_to_read.push_back(page_name);
             if(i>0){
-                pages_to_read.push_back(page_name);
+				result->prev_interval_page=pages[i-1].name;
             }
 			continue;
 		}
@@ -208,6 +209,7 @@ PStorageReader Storage::readInterval(const IdArray &ids,
         }
 
     }
+	
     result->ids=ids;
     result->from=from;
     result->to=to;
@@ -295,7 +297,8 @@ Meas::MeasList Storage::curValues(const IdArray&ids) {
 
 StorageReader::StorageReader():
     m_pages(),
-    m_current_reader(nullptr){
+	m_current_reader(nullptr), 
+	prev_interval_page(""){
 
 }
 
@@ -308,19 +311,83 @@ bool StorageReader::isEnd(){
 }
 
 void StorageReader::readNext(Meas::MeasList*output){
+	assert(output != nullptr);
     if(isEnd()){
         return;
     }
 
     if(m_current_reader==nullptr){
-        auto page_name=m_pages.back();
-        m_pages.pop_back();
+        auto page_name=m_pages.front();
+        m_pages.pop_front();
         storage::Page::Page_ptr page2read = storage::Page::Open(page_name, true);
         m_current_reader = page2read->readInterval(ids, source, flag, from, to);
-
     }
-	
-    m_current_reader->readNext(output);
+
+	if ((m_current_reader->m_page->getHeader().minTime <= this->from) && (prev_interval_page!="")) {
+		Meas::MeasList localResult;
+		while (!m_current_reader->isEnd()) {
+			m_current_reader->readNext(&localResult);
+		}
+
+		std::set<Id> not_found{};
+		Time min_time;
+		bool min_time_set=false;
+		for (auto m : localResult) {
+			if (m.time > from) {
+				not_found.insert(m.id);
+				if (min_time_set) {
+					min_time = std::min(min_time, m.time);
+				} else {
+					min_time = m.time;
+					min_time_set = true;
+				}
+			}
+		}
+
+		std::copy(localResult.begin(), localResult.end(), std::back_inserter(*output)); 
+
+		if (not_found.size() != 0) {
+			localResult.clear();
+
+			IdArray new_ids{ not_found.begin(), not_found.end() };
+			auto page_dup = PageManager::get()->open(m_current_reader->m_page->fileName(), true);
+			auto new_reader = page_dup->readInterval(new_ids, source, flag, m_current_reader->m_page->getHeader().minTime, min_time-1);
+
+			while (!new_reader->isEnd()) {
+				new_reader->readNext(&localResult);
+			}
+			new_reader = nullptr;
+
+			if (localResult.size() == 0) {
+				auto prev_page = PageManager::get()->open(this->prev_interval_page, true);
+				auto ww=prev_page->getWriteWindow();
+				prev_page->readComplete();
+				
+				for (auto nf_id : not_found) {
+					for (auto value : ww) {
+						if ((value.id == nf_id) && (value.time!=0)) {
+							localResult.push_back(value);
+							break;
+						}
+					}
+				}
+			} else {
+				for (auto it = localResult.rbegin(); it != localResult.rend(); it++) {
+					auto search_res = not_found.find(it->id);
+					if ((search_res!=not_found.end()) && (it->time<=from)) {
+						not_found.erase(it->id);
+						output->push_front(*it);
+					}
+					if (not_found.size() == 0) {
+						break;
+					}
+				}
+			}
+			//std::copy(localResult.begin(), localResult.end(), std::back_inserter(*output));
+		}
+	} else {
+		m_current_reader->readNext(output);
+	}
 
     if(m_current_reader->isEnd()){
         m_current_reader=nullptr;

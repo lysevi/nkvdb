@@ -121,6 +121,7 @@ public:
     ~PageReader();
     bool isEnd() const;
     void readNext(Meas::MeasList*output);
+	void readAll(Meas::MeasList*output);
     /// add {from,to} position to read.
     void addReadPos(uint64_t begin,uint64_t end);
 public:

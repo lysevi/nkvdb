@@ -75,6 +75,7 @@ public:
     StorageReader();
     bool isEnd();
     void readNext(Meas::MeasList*output);
+	void readAll(Meas::MeasList*output);
     void addPage(std::string page_name);
 
     IdArray ids;

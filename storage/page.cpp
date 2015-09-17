@@ -516,6 +516,12 @@ void PageReader::readNext(Meas::MeasList*output){
     m_cur_pos_begin=i;
 }
 
+void PageReader::readAll(Meas::MeasList*output) {
+	while (!isEnd()) {
+		this->readNext(output);
+	}
+}
+
 bool PageReader::checkValueInterval(const Meas&m)const {
 	if (utils::inInterval(from, to, m.time)) {
 		return true;

@@ -75,9 +75,8 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
       Meas::MeasList meases{};
       auto reader = ds->readInterval(0, end_it);
-      while(!reader->isEnd()){
-          reader->readNext(&meases);
-      }
+      reader->readAll(&meases);
+
 
       for (storage::Time j = 0; j < i; ++j) {
         bool isExists = false;
@@ -104,9 +103,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
       Meas::MeasList meases{};
       auto reader = ds->readInterval(0, to);
-      while(!reader->isEnd()){
-          reader->readNext(&meases);
-      }
+      reader->readAll(&meases);
 
       BOOST_CHECK_EQUAL(meases.size(), (size_t)(to + 1));
 
@@ -149,9 +146,8 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       auto queryIds = IdArray{ 1, 2, 3 };
 	  
 	  auto reader = ds->readInterval(queryIds,0,0,queryFrom, end_it);
-	  while (!reader->isEnd()) {
-		  reader->readNext(&meases);
-	  }
+	  reader->readAll(&meases);
+
 	  // [..max] from [min]
       meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom](const storage::Meas&m){return m.time > queryFrom; }), meases.end());
 	  
@@ -161,9 +157,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 	  // [..max] [min..from]
       meases.clear();
 	  reader = ds->readInterval(IdArray{1,2},0,0,queryFrom2, end_it);
-      while (!reader->isEnd()) {
-          reader->readNext(&meases);
-      }
+      reader->readAll(&meases);
 
       meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom2](const storage::Meas&m){return m.time > queryFrom2; }), meases.end());
 	  
@@ -198,9 +192,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 
     Meas::MeasList interval{};
     auto reader = ds->readInterval(0, arr_size);
-    while(!reader->isEnd()){
-        reader->readNext(&interval);
-    }
+    reader->readAll(&interval);
 
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {
@@ -253,9 +245,7 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
     Meas::MeasList interval {};
     auto reader = ds->readInterval(array[0].time, array[arr_size - 1].time);
-    while(!reader->isEnd()){
-        reader->readNext(&interval);
-    }
+    reader->readAll(&interval);
 
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {

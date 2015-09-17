@@ -310,6 +310,12 @@ bool StorageReader::isEnd(){
     }
 }
 
+void StorageReader::readAll(Meas::MeasList*output) {
+	while (!isEnd()) {
+		this->readNext(output);
+	}
+}
+
 void StorageReader::readNext(Meas::MeasList*output){
 	assert(output != nullptr);
     if(isEnd()){
@@ -378,10 +384,8 @@ void StorageReader::readNotIntervalData(Meas::MeasList*output) {
 	IdArray new_ids{ not_found.begin(), not_found.end() };
 	auto page_dup = PageManager::get()->open(m_current_reader->m_page->fileName(), true);
 	auto new_reader = page_dup->readInterval(new_ids, source, flag, m_current_reader->m_page->getHeader().minTime, max_time - 1);
+	new_reader->readAll(&localResult);
 
-	while (!new_reader->isEnd()) {
-		new_reader->readNext(&localResult);
-	}
 	new_reader = nullptr;
 
 	/// put to output(lol) and erase from not_found set.

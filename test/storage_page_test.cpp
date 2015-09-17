@@ -176,10 +176,8 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
       IdArray ids = {1, 2, 3};
 	  Meas::MeasList readRes;
 	  auto reader=storage->readInterval(ids, 3, 3, 0, TestableMeasCount);
-          while(!reader->isEnd()){
-              reader->readNext(&readRes);
-          }
-          reader=nullptr;
+	  reader->readAll(&readRes);
+      reader=nullptr;
 
       BOOST_CHECK(readRes.size() != 0);
       for (auto it = readRes.cbegin(); it != readRes.cend(); ++it) {
@@ -195,9 +193,8 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
       IdArray ids = {1, 2, 3, 4, 5};
 	  Meas::MeasList readRes;
       auto reader=storage->readInterval(ids, 0, 0, 0, TestableMeasCount);
-      while(!reader->isEnd()){
-              reader->readNext(&readRes);
-          }
+	  reader->readAll(&readRes);
+
       reader=nullptr;
       BOOST_CHECK(readRes.size() != 0);
       bool haveFlag = false;

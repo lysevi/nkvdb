@@ -9,7 +9,7 @@
 
 # build dependencies
 ---
-* Boost 1.57.0 or higher: system, thread,filesystem,log, unit_test_framework(to build tests)
+* Boost 1.57.0 or higher: system, filesystem, log, interprocess, unit_test_framework(to build tests)
 * cmake
 * c++ 11 compiler
 

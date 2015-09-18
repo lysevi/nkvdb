@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
   }
  
   utils::rm(storage_path);
-  /*
+  
  {/// readinterval with not exists data. reading from WriteWindow.
 	  storage::Storage::Storage_ptr ds = storage::Storage::Create(storage_path, storage_size);
 
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
 	  ds->Close();
 	  utils::rm(storage_path);
-  }*/
+  }
 }
 
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {

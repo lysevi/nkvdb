@@ -520,6 +520,7 @@ PageReader::PageReader(Page::Page_ptr page):
 	isWindowReader = false;
 	m_wwWindowReader_read_end = false;
 	time_point = 0;
+	values_in_point_reader = false;
 }
 
 PageReader::~PageReader(){
@@ -550,7 +551,7 @@ void PageReader::readNext(Meas::MeasList*output){
 	}
 
 	if (this->time_point != 0) {
-		this->timePointRead(output);
+		this->timePointRead(time_point,output);
 		m_wwWindowReader_read_end = true;
 		return;
 	}
@@ -566,6 +567,12 @@ void PageReader::readNext(Meas::MeasList*output){
 		return;
 	}
 
+	if (from > this->m_page->getHeader().minTime) {
+		if (!values_in_point_reader) {
+			this->timePointRead(from, output);
+			values_in_point_reader = true;
+		}
+	}
 
     if(m_cur_pos_begin==m_cur_pos_end){
         /// get next read interval
@@ -600,8 +607,8 @@ void PageReader::readNext(Meas::MeasList*output){
     m_cur_pos_begin=i;
 }
 
-void PageReader::timePointRead(Meas::MeasList*output) {
-	if (time_point > this->m_page->getHeader().maxTime) {
+void PageReader::timePointRead(Time tp,Meas::MeasList*output) {
+	if (tp > this->m_page->getHeader().maxTime) {
 		for (auto wwIt : this->m_page->getWriteWindow()) {
 			if (wwIt.time == 0) {
 				continue;
@@ -612,7 +619,7 @@ void PageReader::timePointRead(Meas::MeasList*output) {
 			}
 		}
 	} else {
-		auto sub_result = this->m_page->backwardRead(this->ids, source, flag, time_point);
+		auto sub_result = this->m_page->backwardRead(this->ids, source, flag, tp);
 		
 		for (auto wwIt : prev_ww) {
 			if (wwIt.time == 0) {

@@ -145,7 +145,7 @@ public:
 private:
 	bool checkValueInterval(const Meas&m)const;
 	bool checkValueFlags(const Meas&m)const;
-	void timePointRead(Meas::MeasList*output);
+	void timePointRead(Time tp, Meas::MeasList*output);
 private:
     Page::Page_ptr m_page;
     std::list<from_to_pos> m_read_pos_list;
@@ -153,6 +153,7 @@ private:
     uint64_t m_cur_pos_end;
 	
 	bool m_wwWindowReader_read_end;
+	bool values_in_point_reader;
 	friend class StorageReader;
 };
 

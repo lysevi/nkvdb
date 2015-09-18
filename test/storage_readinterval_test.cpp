@@ -74,6 +74,17 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
         ds->append(m);
         m.id=6;m.time=10;
         ds->append(m);
+		{
+
+			auto tp_reader = ds->readInTimePoint(8);
+			storage::Meas::MeasList output_in_point{};
+			tp_reader->readAll(&output_in_point);
+
+			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(5));
+			for (auto v : output_in_point) {
+				BOOST_CHECK(v.time <= 8);
+			}
+		}
 
         auto reader=ds->readInterval(IdArray{1,2,4,5,55},0,0,8,10);
         storage::Meas::MeasList output{};

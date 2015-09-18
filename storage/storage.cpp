@@ -167,12 +167,6 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 		auto pinfo = pages[i];
 		auto page_name = pinfo.name;
 		auto hdr = pinfo.header;
-		
-		//// [min=from  to=max]
-		//if ((hdr.minTime == from) && (hdr.maxTime == to)) {
-		//	pages_to_read.push_back(page_name);
-		//	break;
-		//}
 
 		// [min from to max]
 		if ((hdr.minTime <= from) && (hdr.maxTime >= to)) {
@@ -214,21 +208,6 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 			pages_to_read.push_back(page_name);
 			continue;
 		}
-
-  //      // min from  max to max
-  //      if ((from >= hdr.minTime) && (hdr.maxTime >= from)){
-		//	pages_to_read.push_back(page_name);
-  //          if(i>0){
-		//		result->prev_interval_page=pages[i-1].name;
-  //          }
-		//	continue;
-		//}
-
-       /* if (to <= hdr.maxTime) {
-            pages_to_read.push_back(page_name);
-            continue;
-        }*/
-
     }
 	
     result->ids=ids;
@@ -267,7 +246,6 @@ PStorageReader Storage::readInTimePoint(const IdArray &ids, storage::Flag source
 		auto pinfo = pages[i];
 		auto page_name = pinfo.name;
 		auto hdr = pinfo.header;
-
 
 		// [min  max] tp, pages.size==1
 		if ((hdr.minTime <= time_point) && (hdr.maxTime <= time_point)) {
@@ -416,8 +394,17 @@ void StorageReader::readNext(Meas::MeasList*output){
         auto page_name=m_pages.front();
         m_pages.pop_front();
         storage::Page::Page_ptr page2read = storage::Page::Open(page_name, true);
+
 		if (this->time_point != 0) {
+			WriteWindow prev_ww{};
+			if (prev_interval_page != "") {
+				storage::Page::Page_ptr prev_page2read = storage::Page::Open(prev_interval_page, true);
+				prev_ww = prev_page2read->getWriteWindow();
+				prev_page2read->readComplete();
+			}
 			m_current_reader = page2read->readInTimePoint(ids, source, flag, time_point);
+			m_current_reader->prev_ww = prev_ww;
+
 		}
 		else {
 			WriteWindow prev_ww{};

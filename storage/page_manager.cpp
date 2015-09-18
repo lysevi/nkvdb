@@ -54,6 +54,7 @@ void PageManager::createNewPage() {
     if(loaded){
         m_curpage->setWriteWindow(wwindow);
     }
+	m_page_list.push_back(page_path);
 }
 
 std::string PageManager::getOldesPage()const {
@@ -100,14 +101,14 @@ std::string PageManager::getNewPageUniqueName()const {
 }
 
 std::list<std::string> PageManager::pageList() const {
-	auto page_list = utils::ls(m_path, ".page");
+	if (m_page_list.size() == 0) {
+		auto page_list = utils::ls(m_path, ".page");
 
-	std::list<std::string> result;
-	for (auto it = page_list.begin(); it != page_list.end(); ++it) {
-		result.push_back(it->string());
+		for (auto it = page_list.begin(); it != page_list.end(); ++it) {
+			m_page_list.push_back(it->string());
+		}
 	}
-
-	return result;
+	return m_page_list;
 }
 
 Page::Page_ptr PageManager::open(std::string path,bool readOnly) {
@@ -120,9 +121,13 @@ std::vector<PageManager::PageInfo> PageManager::pagesByTime()const {
 
 	// read page list and sort them by time;
 	auto page_list = PageManager::get()->pageList();
+	
+	page_time_vector.resize(page_list.size());
+	int pos = 0;
 	for (auto page : page_list) {
 		storage::Page::Header hdr = storage::Page::ReadHeader(page);
-		page_time_vector.push_back(PageManager::PageInfo{ hdr, page });
+		page_time_vector[pos]=PageManager::PageInfo{ hdr, page };
+		pos++;
 	}
 
 	std::sort(page_time_vector.begin(),

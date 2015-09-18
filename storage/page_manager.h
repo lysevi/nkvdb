@@ -44,6 +44,7 @@ namespace storage {
 	protected:
 		std::string m_path;
 		Page::Page_ptr m_curpage;
+		mutable std::list<std::string> m_page_list;
 		
 	};
 }

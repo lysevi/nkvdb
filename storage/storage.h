@@ -15,7 +15,7 @@ const size_t defaultcacheSize = 10000;
 const size_t defaultcachePoolSize = 100;
 
 class StorageReader;
-typedef std::shared_ptr<StorageReader> PStorageReader;
+typedef std::shared_ptr<StorageReader> StorageReader_ptr;
 
 /**
 * Main class of mdb storage.
@@ -34,12 +34,12 @@ public:
   append_result append(const Meas& m);
   append_result append(const Meas::PMeas begin, const size_t meas_count);
 
-  PStorageReader readInterval(Time from, Time to);
-  PStorageReader readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
+  StorageReader_ptr readInterval(Time from, Time to);
+  StorageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   Meas::MeasList curValues(const IdArray&ids);
 
-  PStorageReader readInTimePoint(Time time_point);
-  PStorageReader readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point);
+  StorageReader_ptr readInTimePoint(Time time_point);
+  StorageReader_ptr readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point);
 
   /// get max time in past to write
   Time pastTime() const;

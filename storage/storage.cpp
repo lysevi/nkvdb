@@ -141,19 +141,19 @@ void Storage::writeCache() {
   m_cache->setStorage(this);
 }
 
-PStorageReader Storage::readInterval(Time from, Time to) {
+StorageReader_ptr Storage::readInterval(Time from, Time to) {
 	static IdArray empty{};
 	return this->readInterval(empty, 0, 0, from, to);
 }
 
-PStorageReader Storage::readInterval(const IdArray &ids,
+StorageReader_ptr Storage::readInterval(const IdArray &ids,
                                      storage::Flag source, storage::Flag flag,
                                      Time from, Time to) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
 	this->flush_and_stop();
 
     auto sr=new StorageReader();
-    PStorageReader result(sr);
+    StorageReader_ptr result(sr);
 
     this->m_cache_writer.pause_work();
 
@@ -224,15 +224,15 @@ PStorageReader Storage::readInterval(const IdArray &ids,
     return result;
 }
 
-PStorageReader Storage::readInTimePoint(Time time_point) {
+StorageReader_ptr Storage::readInTimePoint(Time time_point) {
 	return this->readInTimePoint(IdArray{}, 0, 0, time_point);
 }
 
-PStorageReader Storage::readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point) {
+StorageReader_ptr Storage::readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
 	this->flush_and_stop();
 	auto sr = new StorageReader();
-	PStorageReader result(sr);
+	StorageReader_ptr result(sr);
 
 	this->m_cache_writer.pause_work();
 

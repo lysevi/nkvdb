@@ -621,6 +621,7 @@ void PageReader::timePointRead(Time tp,Meas::MeasList*output) {
 	} else {
 		auto sub_result = this->m_page->backwardRead(this->ids, source, flag, tp);
 		
+		// более новые значения надо удалить.
 		for (auto wwIt : prev_ww) {
 			if (wwIt.time == 0) {
 				continue;

@@ -178,9 +178,11 @@ PStorageReader Storage::readInterval(const IdArray &ids,
 		if ((hdr.minTime <= from) && (hdr.maxTime >= to)) {
 			pages_to_read.push_back(page_name);
 			if (i>0) {
-				result->prev_interval_page = pages[i - 1].name;
+				if ((result->prev_interval_page == "") && (pages_to_read.size()==1)) {
+					result->prev_interval_page = pages[i - 1].name;
+				}
 			}
-			break;
+			continue;
 		}
 
         // [min from max]

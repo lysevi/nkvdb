@@ -31,6 +31,7 @@ void AsyncWriter::call(const Cache::PCache data) {
     }
     to_write -= writed;
   }
+  PageManager::get()->getCurPage()->flushWriteWindow();
   data->clear();
   data->sync_complete();
 }

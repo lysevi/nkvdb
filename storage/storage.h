@@ -38,6 +38,9 @@ public:
   PStorageReader readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
   Meas::MeasList curValues(const IdArray&ids);
 
+  PStorageReader readInTimePoint(Time time_point);
+  PStorageReader readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point);
+
   /// get max time in past to write
   Time pastTime() const;
   /// set max time in past to write
@@ -57,6 +60,7 @@ public:
 private:
   Storage();
   void writeCache();
+  void flush_and_stop();
 protected:
   std::string m_path;
 
@@ -83,12 +87,10 @@ public:
     storage::Flag flag;
     storage::Time from;
     storage::Time to;
+	storage::Time time_point;
 	std::string prev_interval_page;
-protected:
-	void readNotIntervalData(Meas::MeasList*output);
 private:
 	std::deque<std::string> m_pages;
     PageReader_ptr m_current_reader;
-	Meas::MeasList localResult;
 };
 }

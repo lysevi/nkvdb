@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
   }
  
   utils::rm(storage_path);
-
+  /*
  {/// readinterval with not exists data. reading from WriteWindow.
 	  storage::Storage::Storage_ptr ds = storage::Storage::Create(storage_path, storage_size);
 
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
 	  ds->Close();
 	  utils::rm(storage_path);
-  }
+  }*/
 }
 
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {
@@ -239,7 +239,6 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
     auto cur_utc_time=storage::TimeWork::CurrentUtcTime();
     for (size_t i = 0; i < arr_size; ++i) {
-
       array[i].id = i;
       array[i].time = cur_utc_time;
     }
@@ -252,8 +251,7 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {
-      BOOST_CHECK(utils::inInterval<storage::Time>(
-          array[0].time, array[arr_size - 1].time, m.time));
+      BOOST_CHECK(utils::inInterval<storage::Time>(array[0].time, array[arr_size - 1].time, m.time));
     }
 
     for (size_t i = 0; i < arr_size; ++i) {

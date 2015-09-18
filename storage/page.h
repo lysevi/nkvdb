@@ -79,13 +79,18 @@ public:
   PageReader_ptr readInterval(Time from, Time to);
   PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
 
+  PageReader_ptr readInTimePoint(Time time_point);
+  PageReader_ptr readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point);
+
   // read from end to start while not find all meases in ids;
-  Meas::MeasList backwardRead(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
+  Meas::MeasList backwardRead(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point);
   /// if page openned to read, after read must call this method.
   /// if count of reader is zero, page automaticaly closed;
   void readComplete();
   WriteWindow getWriteWindow();
   void        setWriteWindow(const WriteWindow&other);
+
+  void flushWriteWindow();
 private:
   PageReader_ptr readAll();
   PageReader_ptr readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);
@@ -93,7 +98,7 @@ private:
   /// write empty header.
   void initHeader(char *data);
   void updateMinMax(const Meas& value);
-  void flushWriteWindow();
+  
   void loadWriteWindow();
   void updateWriteWindow(const Meas&m);
 protected:
@@ -122,6 +127,7 @@ public:
     PageReader(Page::Page_ptr page);
     ~PageReader();
     bool isEnd() const;
+
     void readNext(Meas::MeasList*output);
 	void readAll(Meas::MeasList*output);
     /// add {from,to} position to read.
@@ -132,10 +138,14 @@ public:
     storage::Flag flag;
     Time from;
     Time to;
+	Time time_point;
 	bool isWindowReader;
+
+	WriteWindow prev_ww;
 private:
 	bool checkValueInterval(const Meas&m)const;
 	bool checkValueFlags(const Meas&m)const;
+	void timePointRead(Meas::MeasList*output);
 private:
     Page::Page_ptr m_page;
     std::list<from_to_pos> m_read_pos_list;

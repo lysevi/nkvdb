@@ -18,7 +18,7 @@
 #include <thread>
 
 using namespace storage;
-/*
+
 BOOST_AUTO_TEST_CASE(StorageReadInterval) {
     const int meas2write = 5;
     const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
@@ -37,9 +37,27 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
         m.id=5;m.time=5;
         ds->append(m);
         m.id=55;m.time=5;
-        ds->append(m);
+		ds->append(m);
 
-        auto reader=ds->readInterval(3,5);
+		{
+			auto tp_reader = ds->readInTimePoint(6);
+			storage::Meas::MeasList output_in_point{};
+			tp_reader->readAll(&output_in_point);
+
+			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(5));
+		}
+		{
+			
+			auto tp_reader = ds->readInTimePoint(3);
+			storage::Meas::MeasList output_in_point{};
+			tp_reader->readAll(&output_in_point);
+
+			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(2));
+			for (auto v : output_in_point) {
+				BOOST_CHECK(v.time<=3);
+			}
+		}
+		auto reader=ds->readInterval(3,5);
         storage::Meas::MeasList output{};
         reader->readAll(&output);
         BOOST_CHECK_EQUAL(output.size(),size_t(3));
@@ -65,4 +83,3 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
     ds->Close();
     utils::rm(storage_path);
 }
-*/

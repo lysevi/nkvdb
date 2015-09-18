@@ -18,7 +18,7 @@
 #include <thread>
 
 using namespace storage;
-
+/*
 BOOST_AUTO_TEST_CASE(StorageReadInterval) {
     const int meas2write = 5;
     const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
@@ -65,3 +65,4 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
     ds->Close();
     utils::rm(storage_path);
 }
+*/

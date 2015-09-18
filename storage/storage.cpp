@@ -240,7 +240,7 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
 	IdSet id_set(ids.begin(), ids.end());
 
 	storage::Page::Page_ptr page2read = storage::Page::Open(page_time_vector.front().name, true);
-	Page::WriteWindow ww = page2read->getWriteWindow();
+	WriteWindow ww = page2read->getWriteWindow();
 	for (auto m : ww) {
 		m_cur_values.writeValue(m);
 		id_set.erase(m.id);

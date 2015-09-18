@@ -12,6 +12,7 @@
 #include "meas.h"
 #include "config.h"
 #include "index.h"
+#include "writewindow.h"
 
 namespace storage {
 
@@ -49,7 +50,6 @@ public:
   };
 
   typedef std::shared_ptr<Page> Page_ptr;
-  typedef std::vector<Meas> WriteWindow;
 
 public:
   static Page_ptr Open(std::string filename, bool readOnly=false);
@@ -85,7 +85,7 @@ public:
   /// if count of reader is zero, page automaticaly closed;
   void readComplete();
   WriteWindow getWriteWindow();
-  void        setWriteWindow(const Page::WriteWindow&other);
+  void        setWriteWindow(const WriteWindow&other);
 private:
   PageReader_ptr readAll();
   PageReader_ptr readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);

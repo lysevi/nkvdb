@@ -39,7 +39,7 @@ void PageManager::closeCurrentPage() {
 }
 
 void PageManager::createNewPage() {
-    Page::WriteWindow wwindow;
+    WriteWindow wwindow;
     bool loaded=false;
 	if (m_curpage != nullptr) {
         wwindow=m_curpage->getWriteWindow();

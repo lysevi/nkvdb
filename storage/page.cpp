@@ -328,12 +328,12 @@ void Page::readComplete(){
     }
 }
 
-Page::WriteWindow Page::getWriteWindow(){
-    return Page::WriteWindow(m_writewindow.begin(),m_writewindow.end());
+WriteWindow Page::getWriteWindow(){
+    return WriteWindow(m_writewindow.begin(),m_writewindow.end());
 }
 
-void Page::setWriteWindow(const Page::WriteWindow&other){
-    m_writewindow=Page::WriteWindow{other.begin(),other.end()};
+void Page::setWriteWindow(const WriteWindow&other){
+    m_writewindow=WriteWindow{other.begin(),other.end()};
 }
 
 PageReader_ptr  Page::readAll() {

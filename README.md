@@ -7,12 +7,49 @@
 * Proprietary storage format 
 * Implemented as C++ library.
 
-# build dependencies
+# Dependencies
 ---
 * Boost 1.57.0 or higher: system, filesystem, log, interprocess, unit_test_framework(to build tests), program_options (to build benchmarks)
 * cmake
 * c++ 11 compiler
 
+# Example
+---
+## Open, read, write
+```C++
+#include <libmdb/storage.h>
+
+int main(int argc, char *argv[]) {
+    
+    const uint64_t storage_page_size = 1024*1024*100;
+    
+    auto ds =  mdb::Storage::Create("path/to/storage", storage_page_size);
+    
+    auto writes_count = 3000000;
+    mdb::Meas meas = mdb::Meas::empty();
+    
+    for (int i = 0; i < 3000000; ++i) {
+        meas.value = i;
+        meas.id = i % 10;
+        meas.source = meas.flag = 0;
+        meas.time = i;
+        
+        ds->append(meas);
+    }
+    
+    //reading
+    mdb::Meas::MeasList output;
+    auto reader = ds->readInterval(0, writes_count);
+    
+    // or meases->readAll(&output);
+    while (!reader->isEnd()) {
+        reader->readNext(&output);
+    }
+    ds->Close();
+}
+```
+
+# Build
 ## build on linux
 ---
 ```shell

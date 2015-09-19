@@ -7,7 +7,7 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
-using namespace storage;
+using namespace mdb;
 
 namespace bi = boost::interprocess;
 

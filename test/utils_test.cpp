@@ -2,9 +2,9 @@
 #define BOOST_TEST_MODULE Main
 #include <boost/test/unit_test.hpp>
 
-#include "storage/utils/utils.h"
-#include "storage/utils/asyncworker.h"
-#include "storage/utils/search.h"
+#include <libmdb/utils/utils.h>
+#include <libmdb/utils/asyncworker.h>
+#include <libmdb/utils/search.h>
 
 BOOST_AUTO_TEST_CASE(UtilsEmpty) {
   BOOST_CHECK(utils::inInterval(1, 5, 1));

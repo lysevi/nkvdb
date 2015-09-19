@@ -8,7 +8,7 @@
 #include "cache.h"
 #include "asyncwriter.h"
 
-namespace storage {
+namespace mdb {
 
 const uint64_t defaultPageSize = 10 * 1024 * 1024; // 10Mb
 const size_t defaultcacheSize = 10000;
@@ -35,11 +35,11 @@ public:
   append_result append(const Meas::PMeas begin, const size_t meas_count);
 
   StorageReader_ptr readInterval(Time from, Time to);
-  StorageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
+  StorageReader_ptr readInterval(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time from, Time to);
   Meas::MeasList curValues(const IdArray&ids);
 
   StorageReader_ptr readInTimePoint(Time time_point);
-  StorageReader_ptr readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point);
+  StorageReader_ptr readInTimePoint(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time time_point);
 
   /// get max time in past to write
   Time pastTime() const;
@@ -65,13 +65,13 @@ protected:
   std::string m_path;
 
   std::mutex m_write_mutex;
-  storage::Cache::PCache m_cache;
+  mdb::Cache::PCache m_cache;
   AsyncWriter m_cache_writer;
   CachePool m_cache_pool;
   CurValuesCache m_cur_values;
   Time m_past_time;
   bool m_closed;
-  friend class storage::Cache;
+  friend class mdb::Cache;
 };
 
 class StorageReader: public utils::NonCopy{
@@ -83,11 +83,11 @@ public:
     void addPage(std::string page_name);
 
     IdArray ids;
-    storage::Flag source;
-    storage::Flag flag;
-    storage::Time from;
-    storage::Time to;
-	storage::Time time_point;
+    mdb::Flag source;
+    mdb::Flag flag;
+    mdb::Time from;
+    mdb::Time to;
+	mdb::Time time_point;
 	std::string prev_interval_page;
 private:
 	std::deque<std::string> m_pages;

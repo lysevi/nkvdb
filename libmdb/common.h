@@ -1,6 +1,6 @@
 #pragma once
 
-namespace storage
+namespace mdb
 {
 	struct append_result
 	{

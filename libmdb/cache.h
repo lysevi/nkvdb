@@ -6,7 +6,7 @@
 #include "meas.h"
 #include "common.h"
 
-namespace storage {
+namespace mdb {
 class Storage;
 
 /**
@@ -21,7 +21,7 @@ public:
     append_result append(const Meas &value, const Time past_time);
     append_result append(const Meas::PMeas begin, const size_t size,
                          const Time past_time);
-    storage::Meas::MeasList readInterval(Time from, Time to) const;
+    mdb::Meas::MeasList readInterval(Time from, Time to) const;
     Meas::PMeas asArray() const;
     size_t size() const { return m_size; }
     void setSize(const size_t sz);
@@ -85,10 +85,10 @@ class CurValuesCache
 {
 public:
     CurValuesCache();
-    void writeValue(const storage::Meas&v);
-    storage::Meas::MeasList readValue(const storage::IdArray&ids)const;
+    void writeValue(const mdb::Meas&v);
+    mdb::Meas::MeasList readValue(const mdb::IdArray&ids)const;
 private:
-    std::map<storage::Id, storage::Meas> m_values;
+    std::map<mdb::Id, mdb::Meas> m_values;
 };
 
 }

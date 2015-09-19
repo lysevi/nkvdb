@@ -2,8 +2,8 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <storage/storage.h>
-#include "storage/utils/logger.h"
+#include <libmdb/storage.h>
+#include <libmdb/utils/logger.h>
 
 #include <boost/program_options.hpp>
 
@@ -17,24 +17,24 @@ bool write_only = false;
 bool verbose = false;
 bool dont_remove = false;
 bool enable_dyn_cache = false;
-size_t cache_size=storage::defaultcacheSize;
-size_t cache_pool_size=storage::defaultcachePoolSize;
+size_t cache_size=mdb::defaultcacheSize;
+size_t cache_pool_size=mdb::defaultcachePoolSize;
 
 void makeAndWrite(int mc, int ic) {
   logger("makeAndWrite mc:" << mc << " ic:" << ic << " dyn_cache: " << (enable_dyn_cache ? "true" : "false"));
 
   const uint64_t storage_size =
-      sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
+      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * pagesize);
 
-  storage::Storage::Storage_ptr ds =
-      storage::Storage::Create(storage_path, storage_size);
+  mdb::Storage::Storage_ptr ds =
+      mdb::Storage::Create(storage_path, storage_size);
 
   ds->enableCacheDynamicSize(enable_dyn_cache);
   ds->setPoolSize(cache_pool_size);
   ds->setCacheSize(cache_size);
   
   clock_t write_t0 = clock();
-  storage::Meas meas = storage::Meas::empty();
+  mdb::Meas meas = mdb::Meas::empty();
 
   for (int i = 0; i < ic; ++i) {
     meas.value = i % mc;
@@ -52,11 +52,11 @@ void makeAndWrite(int mc, int ic) {
   utils::rm(storage_path);
 }
 
-void readIntervalBench(storage::Storage::Storage_ptr ds,
-                       storage::Time from, storage::Time to,
+void readIntervalBench(mdb::Storage::Storage_ptr ds,
+                       mdb::Time from, mdb::Time to,
                        std::string message) {
   clock_t read_t0 = clock();
-  storage::Meas::MeasList meases {};
+  mdb::Meas::MeasList meases {};
   auto reader = ds->readInterval(from, to);
 
   reader->readAll(&meases);
@@ -66,14 +66,14 @@ void readIntervalBench(storage::Storage::Storage_ptr ds,
   logger("=> : " << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
 }
 
-void readIntervalBenchFltr(storage::IdArray ids, storage::Flag src,
-                           storage::Flag flag,
-                           storage::Storage::Storage_ptr ds,
-                           storage::Time from, storage::Time to,
+void readIntervalBenchFltr(mdb::IdArray ids, mdb::Flag src,
+                           mdb::Flag flag,
+                           mdb::Storage::Storage_ptr ds,
+                           mdb::Time from, mdb::Time to,
                            std::string message) {
   clock_t read_t0 = clock();
   
-  storage::Meas::MeasList output;
+  mdb::Meas::MeasList output;
   auto reader = ds->readInterval(ids, src, flag, from, to);
   reader->readAll(&output);
 
@@ -129,10 +129,10 @@ int main(int argc, char *argv[]) {
   if (!write_only) {
 	  int pagesize = 1000000;
 	  const uint64_t storage_size =
-		  sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
+          sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * pagesize);
 
-    storage::Storage::Storage_ptr ds = storage::Storage::Create(storage_path, storage_size);
-    storage::Meas meas = storage::Meas::empty();
+    mdb::Storage::Storage_ptr ds = mdb::Storage::Create(storage_path, storage_size);
+    mdb::Meas meas = mdb::Meas::empty();
 
     ds->enableCacheDynamicSize(enable_dyn_cache);
     ds->setPoolSize(cache_pool_size);
@@ -170,26 +170,26 @@ int main(int argc, char *argv[]) {
     readIntervalBench(ds, 6 * pagesize * 0.3, 7 * pagesize * 0.7, "[6.3-7.7]");
 
     logger("fltr big readers");
-    readIntervalBenchFltr(storage::IdArray{0, 1, 2, 3, 4, 5}, 1, 1, ds, 0,
+    readIntervalBenchFltr(mdb::IdArray{0, 1, 2, 3, 4, 5}, 1, 1, ds, 0,
                           pagesize / 2, "Id: {0- 5}, src:1, flag:1; [0-0.5]");
 
-    readIntervalBenchFltr(storage::IdArray{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, 1, 0,
+    readIntervalBenchFltr(mdb::IdArray{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, 1, 0,
                           ds, 3 * pagesize + pagesize / 2, 3 * pagesize * 2,
                           "Id: {0- 9}, src:1, flag:0; [3.5-6]");
 
     readIntervalBenchFltr(
-        storage::IdArray{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, 1, 1, ds,
+        mdb::IdArray{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, 1, 1, ds,
         7 * pagesize, 8 * pagesize + pagesize * 1.5,
         "Id: {0-12}, src:1, flag:1; [7-9.5]");
 
     logger("fltr small readers");
-    readIntervalBenchFltr(storage::IdArray{0, 1}, 1, 1, ds,
+    readIntervalBenchFltr(mdb::IdArray{0, 1}, 1, 1, ds,
                           5 * pagesize + pagesize / 3, 6 * pagesize,
                           "Id: {0,1},   src:1,  flag:1; [5.3-6.0]");
-    readIntervalBenchFltr(storage::IdArray{0, 1, 3}, 1, 1, ds, 2 * pagesize,
+    readIntervalBenchFltr(mdb::IdArray{0, 1, 3}, 1, 1, ds, 2 * pagesize,
                           2 * pagesize + pagesize * 1.5,
                           "Id: {0,1,3}, src:1,  flag:1; [2.0-3.5]");
-    readIntervalBenchFltr(storage::IdArray{0}, 1, 1, ds, 6 * pagesize * 0.3,
+    readIntervalBenchFltr(mdb::IdArray{0}, 1, 1, ds, 6 * pagesize * 0.3,
                           7 * pagesize * 0.7,
                           "Id: {0},     src:1,  flag:1; [6.3-7.7]");
     ds->Close();

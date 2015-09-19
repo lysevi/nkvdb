@@ -3,10 +3,10 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/page.h>
-#include <storage/storage.h>
-#include "storage/utils/logger.h"
-#include "storage/utils/utils.h"
+#include <libmdb/page.h>
+#include <libmdb/storage.h>
+#include <libmdb/utils/logger.h>
+#include <libmdb/utils/utils.h>
 
 #include <iterator>
 #include <list>
@@ -15,16 +15,16 @@
 #include <chrono>
 #include <atomic>
 
-using namespace storage;
+using namespace mdb;
 
 std::atomic<int> threads_count(0);
 const int meas2write = 10;
 const int write_iteration = 10;
 size_t arr_size = meas2write * write_iteration;
 
-void writer(storage::Storage::Storage_ptr ds) {
+void writer(mdb::Storage::Storage_ptr ds) {
 	threads_count++;
-    storage::Meas meas = storage::Meas::empty();
+    mdb::Meas meas = mdb::Meas::empty();
 	for (size_t i = 0; i < arr_size; ++i) {
         meas.value = i;
         meas.id = i;
@@ -37,12 +37,12 @@ void writer(storage::Storage::Storage_ptr ds) {
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 
   const uint64_t storage_size =
-      sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
   const std::string storage_path = mdb_test::storage_path + "storageIO";
 
   {
-    storage::Storage::Storage_ptr ds =
-        storage::Storage::Create(storage_path, storage_size);
+    mdb::Storage::Storage_ptr ds =
+        mdb::Storage::Create(storage_path, storage_size);
 
     std::thread t1(writer, ds);
     std::thread t2(writer, ds);

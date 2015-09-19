@@ -5,7 +5,7 @@
 #include <string>
 #include <list>
 
-namespace storage {
+namespace mdb {
     /**
     * Manage of pages.
     */

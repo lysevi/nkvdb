@@ -3,24 +3,24 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/meas.h>
-#include "storage/utils/utils.h"
-#include <storage/cache.h>
-#include "storage/utils/logger.h"
+#include <libmdb/meas.h>
+#include <libmdb/utils/utils.h>
+#include <libmdb/cache.h>
+#include <libmdb/utils/logger.h>
 
 #include <iterator>
 #include <list>
-using namespace storage;
+using namespace mdb;
 
 BOOST_AUTO_TEST_CASE(CacheIO) {
   const size_t TestableMeasCount = 10000;
   {
     const int flagValue = 1;
     const int srcValue = 2;
-    storage::Cache c(TestableMeasCount - 1);
+    mdb::Cache c(TestableMeasCount - 1);
 
     for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
-      auto newMeas = storage::Meas::empty();
+      auto newMeas = mdb::Meas::empty();
       newMeas.value = i;
       newMeas.id = i;
       newMeas.flag = flagValue;
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
       auto wrt_res = c.append(newMeas, 0);
       BOOST_CHECK_EQUAL(wrt_res.writed, size_t(1));
     }
-    auto newMeas = storage::Meas::empty();
+    auto newMeas = mdb::Meas::empty();
     auto wrt_res = c.append(newMeas, 0);
 
     BOOST_CHECK_EQUAL(wrt_res.writed, size_t(0));
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
     BOOST_CHECK_EQUAL(interval.size(), TestableMeasCount - 1);
     for (auto m : interval) {
       BOOST_CHECK(
-          utils::inInterval<storage::Time>(0, TestableMeasCount - 1, m.time));
+          utils::inInterval<mdb::Time>(0, TestableMeasCount - 1, m.time));
     }
 
     for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 BOOST_AUTO_TEST_CASE(CacheResize) {
   const int TestableMeasCount = 10000;
   {
-    storage::Cache c(TestableMeasCount - 1);
+    mdb::Cache c(TestableMeasCount - 1);
 
     c.setSize(10);
     BOOST_CHECK_EQUAL(c.size(), size_t(10));
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(CacheResize) {
 }
 
 BOOST_AUTO_TEST_CASE(CachePoolChecks) {
-  storage::CachePool pool(2, 100);
+  mdb::CachePool pool(2, 100);
 
   BOOST_CHECK(pool.haveCache());
 

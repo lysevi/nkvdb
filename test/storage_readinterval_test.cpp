@@ -3,12 +3,12 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/page.h>
-#include <storage/storage.h>
-#include <storage/config.h>
-#include <storage/time.h>
-#include "storage/utils/logger.h"
-#include "storage/utils/utils.h"
+#include <libmdb/page.h>
+#include <libmdb/storage.h>
+#include <libmdb/config.h>
+#include <libmdb/time.h>
+#include <libmdb/utils/logger.h>
+#include <libmdb/utils/utils.h>
 
 #include <iterator>
 #include <list>
@@ -17,15 +17,15 @@
 #include <chrono>
 #include <thread>
 
-using namespace storage;
+using namespace mdb;
 
 BOOST_AUTO_TEST_CASE(StorageReadInterval) {
     const int meas2write = 5;
-    const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+    const uint64_t storage_size = sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
     const std::string storage_path = mdb_test::storage_path + "storageIO";
-    auto ds=storage::Storage::Create(storage_path,storage_size);
+    auto ds=mdb::Storage::Create(storage_path,storage_size);
 
-    storage::Meas m;
+    mdb::Meas m;
     {
         m.id=1; m.time=1;
         ds->append(m);
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 
 		{
 			auto tp_reader = ds->readInTimePoint(6);
-			storage::Meas::MeasList output_in_point{};
+            mdb::Meas::MeasList output_in_point{};
 			tp_reader->readAll(&output_in_point);
 
 			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(5));
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 		{
 			
 			auto tp_reader = ds->readInTimePoint(3);
-			storage::Meas::MeasList output_in_point{};
+            mdb::Meas::MeasList output_in_point{};
 			tp_reader->readAll(&output_in_point);
 
 			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(2));
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 			}
 		}
 		auto reader=ds->readInterval(3,5);
-        storage::Meas::MeasList output{};
+        mdb::Meas::MeasList output{};
         reader->readAll(&output);
         BOOST_CHECK_EQUAL(output.size(),size_t(5));
     }
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 		{
 
 			auto tp_reader = ds->readInTimePoint(8);
-			storage::Meas::MeasList output_in_point{};
+            mdb::Meas::MeasList output_in_point{};
 			tp_reader->readAll(&output_in_point);
 
 			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(5));
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 		}
 
         auto reader=ds->readInterval(IdArray{1,2,4,5,55},0,0,8,10);
-        storage::Meas::MeasList output{};
+        mdb::Meas::MeasList output{};
         reader->readAll(&output);
         BOOST_CHECK_EQUAL(output.size(),size_t(7));
     }

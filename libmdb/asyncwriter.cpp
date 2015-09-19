@@ -3,10 +3,10 @@
 #include "page_manager.h"
 #include <assert.h>
 #include <algorithm>
-using namespace storage;
+using namespace mdb;
 
 struct MeasCmpByTime {
-  bool operator()(storage::Meas a, storage::Meas b) { return a.time < b.time; }
+  bool operator()(mdb::Meas a, mdb::Meas b) { return a.time < b.time; }
 };
 
 AsyncWriter::AsyncWriter() {}

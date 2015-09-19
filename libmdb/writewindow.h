@@ -2,7 +2,7 @@
 #include <vector>
 #include "meas.h"
 
-namespace storage
+namespace mdb
 {
 	class WriteWindow:public std::vector<Meas>
 	{

@@ -2,24 +2,24 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <storage/storage.h>
-#include "storage/utils/logger.h"
+#include <libmdb/storage.h>
+#include <libmdb/utils/logger.h>
 
 const std::string storage_path = "exampleStorage";
 
 size_t pagesize = 2000000;
 bool enable_dyn_cache = false;
-size_t cache_size=storage::defaultcacheSize;
-size_t cache_pool_size=storage::defaultcachePoolSize;
+size_t cache_size=mdb::defaultcacheSize;
+size_t cache_pool_size=mdb::defaultcachePoolSize;
 
 
 int main(int argc, char *argv[]) {
  
  const uint64_t storage_size =
-      sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
+      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * pagesize);
 
-  storage::Storage::Storage_ptr ds =
-      storage::Storage::Create(storage_path, storage_size);
+  mdb::Storage::Storage_ptr ds =
+      mdb::Storage::Create(storage_path, storage_size);
 
   ds->enableCacheDynamicSize(enable_dyn_cache);
   ds->setPoolSize(cache_pool_size);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
   std::cout << "write " << writes_count << " values..." << std::endl;
 
   clock_t write_t0 = clock();
-  storage::Meas meas = storage::Meas::empty();
+  mdb::Meas meas = mdb::Meas::empty();
 
   for (int i = 0; i < 3000000; ++i) {
     meas.value = i;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 
   clock_t read_t0 = clock();
 
-  storage::Meas::MeasList output;
+  mdb::Meas::MeasList output;
   auto reader = ds->readInterval(0, writes_count);
   
   // or meases->readAll(&output);

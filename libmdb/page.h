@@ -14,7 +14,7 @@
 #include "index.h"
 #include "writewindow.h"
 
-namespace storage {
+namespace mdb {
 
 class PageReader;
 typedef std::shared_ptr<PageReader> PageReader_ptr;
@@ -77,13 +77,13 @@ public:
   size_t append(const Meas::PMeas begin, const size_t size);
   bool read(Meas::PMeas result, uint64_t position);
   PageReader_ptr readInterval(Time from, Time to);
-  PageReader_ptr readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to);
+  PageReader_ptr readInterval(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time from, Time to);
 
   PageReader_ptr readInTimePoint(Time time_point);
-  PageReader_ptr readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point);
+  PageReader_ptr readInTimePoint(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time time_point);
 
   // read from end to start while not find all meases in ids;
-  Meas::MeasList backwardRead(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point);
+  Meas::MeasList backwardRead(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time time_point);
   /// if page openned to read, after read must call this method.
   /// if count of reader is zero, page automaticaly closed;
   void readComplete();
@@ -93,7 +93,7 @@ public:
   void flushWriteWindow();
 private:
   PageReader_ptr readAll();
-  PageReader_ptr readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to, size_t begin, size_t end);
+  PageReader_ptr readFromToPos(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time from, Time to, size_t begin, size_t end);
   Page(std::string fname);
   /// write empty header.
   void initHeader(char *data);
@@ -134,8 +134,8 @@ public:
     void addReadPos(uint64_t begin,uint64_t end);
 public:
     IdArray ids;
-    storage::Flag source;
-    storage::Flag flag;
+    mdb::Flag source;
+    mdb::Flag flag;
     Time from;
     Time to;
 	Time time_point;

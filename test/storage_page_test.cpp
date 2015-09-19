@@ -3,17 +3,17 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/meas.h>
-#include <storage/page.h>
-#include <storage/storage.h>
-#include <storage/config.h>
-#include "storage/utils/logger.h"
-#include "storage/utils/utils.h"
-#include "storage/utils/exception.h"
+#include <libmdb/meas.h>
+#include <libmdb/page.h>
+#include <libmdb/storage.h>
+#include <libmdb/config.h>
+#include <libmdb/utils/logger.h>
+#include <libmdb/utils/utils.h>
+#include <libmdb/utils/exception.h>
 
 #include <iterator>
 #include <list>
-using namespace storage;
+using namespace mdb;
 
 BOOST_AUTO_TEST_CASE(PageCreateOpen) {
   {
@@ -55,12 +55,12 @@ BOOST_AUTO_TEST_CASE(PageIO) {
       Page::Page_ptr storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
       storage->close();
     }
-    const storage::Flag flagValue = 1;
-    const storage::Flag srcValue = 2;
+    const mdb::Flag flagValue = 1;
+    const mdb::Flag srcValue = 2;
 
     for (size_t i = 0; i < TestableMeasCount; ++i) {
       Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
-      auto newMeas = storage::Meas::empty();
+      auto newMeas = mdb::Meas::empty();
       newMeas.value = i;
       newMeas.id = i;
       newMeas.flag = flagValue;
@@ -72,10 +72,10 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 
     Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
 
-    BOOST_CHECK_EQUAL(storage->minTime(), storage::Time(0));
-    BOOST_CHECK_EQUAL(storage->maxTime(), static_cast<storage::Time>(TestableMeasCount - 1));
+    BOOST_CHECK_EQUAL(storage->minTime(), mdb::Time(0));
+    BOOST_CHECK_EQUAL(storage->maxTime(), static_cast<mdb::Time>(TestableMeasCount - 1));
 
-    auto newMeas = storage::Meas::empty();
+    auto newMeas = mdb::Meas::empty();
     for (size_t i = 0; i < TestableMeasCount; ++i) {
       bool readState = storage->read(&newMeas, i);
 
@@ -85,13 +85,13 @@ BOOST_AUTO_TEST_CASE(PageIO) {
       BOOST_CHECK_EQUAL(newMeas.flag, flagValue);
       BOOST_CHECK_EQUAL(newMeas.source, srcValue);
 
-      BOOST_CHECK_EQUAL(newMeas.time, (storage::Time)i);
+      BOOST_CHECK_EQUAL(newMeas.time, (mdb::Time)i);
     }
     BOOST_CHECK(!storage->isFull());
 
     auto hdr = storage->getHeader();
-    BOOST_CHECK_EQUAL(hdr.maxTime, (storage::Time)TestableMeasCount - 1);
-    BOOST_CHECK_EQUAL(hdr.minTime, storage::Time(0));
+    BOOST_CHECK_EQUAL(hdr.maxTime, (mdb::Time)TestableMeasCount - 1);
+    BOOST_CHECK_EQUAL(hdr.minTime, mdb::Time(0));
     BOOST_CHECK_EQUAL(hdr.size, storage->size());
     index = storage->index_fileName();
     storage->close();
@@ -103,11 +103,11 @@ BOOST_AUTO_TEST_CASE(PageIO) {
 
 BOOST_AUTO_TEST_CASE(Capacity) {
   const size_t pageSize =
-      sizeof(storage::Page::Header) + sizeof(storage::Meas) * 10;
+      sizeof(mdb::Page::Header) + sizeof(mdb::Meas) * 10;
   Page::Page_ptr page = Page::Create(mdb_test::test_page_name, pageSize);
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)10);
 
-  auto newMeas = storage::Meas::empty();
+  auto newMeas = mdb::Meas::empty();
   page->append(newMeas);
 
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)9);
@@ -123,11 +123,11 @@ BOOST_AUTO_TEST_CASE(Capacity) {
 
 BOOST_AUTO_TEST_CASE(AppendMany) {
   const size_t pageSize =
-      sizeof(storage::Page::Header) + sizeof(storage::Meas) * 10;
+      sizeof(mdb::Page::Header) + sizeof(mdb::Meas) * 10;
   Page::Page_ptr page = Page::Create(mdb_test::test_page_name, pageSize);
 
   size_t arr_size = 15;
-  storage::Meas::PMeas array = new storage::Meas[arr_size];
+  mdb::Meas::PMeas array = new mdb::Meas[arr_size];
   for (size_t i = 0; i < arr_size; ++i) {
     array[i].id = i;
     array[i].time = i;
@@ -137,13 +137,13 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
   BOOST_CHECK_EQUAL(writed, (size_t)10);
 
   for (size_t i = 0; i < writed; ++i) {
-    storage::Meas readed;
+    mdb::Meas readed;
     page->read(&readed, i);
     BOOST_CHECK_EQUAL(readed.id, i);
   }
 
-  BOOST_CHECK_EQUAL(page->minTime(), storage::Time(0));
-  BOOST_CHECK_EQUAL(page->maxTime(), (storage::Time)writed-1);
+  BOOST_CHECK_EQUAL(page->minTime(), mdb::Time(0));
+  BOOST_CHECK_EQUAL(page->maxTime(), (mdb::Time)writed-1);
   auto index = page->index_fileName();
   page->close();
   utils::rm(mdb_test::test_page_name);
@@ -155,19 +155,18 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
   std::string index = "";
   {
     {
-      Page::Page_ptr storage =
-          Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+      Page::Page_ptr storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
       storage->close();
     }
 
     Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
     for (int i = 0; i < TestableMeasCount; ++i) {
 
-      auto newMeas = storage::Meas::empty();
+      auto newMeas = mdb::Meas::empty();
       newMeas.value = i;
       newMeas.id = i % 10;
-      newMeas.flag = (storage::Flag)(i % 5);
-      newMeas.source = (storage::Flag)(i % 5);
+      newMeas.flag = (mdb::Flag)(i % 5);
+      newMeas.source = (mdb::Flag)(i % 5);
       newMeas.time = i;
       storage->append(newMeas);
     }
@@ -175,7 +174,7 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
     {
       IdArray ids = {1, 2, 3};
 	  Meas::MeasList readRes;
-	  auto reader=storage->readInterval(ids, 3, 3, 0, TestableMeasCount);
+      auto reader=storage->readInterval(ids, 3, 3, 0, TestableMeasCount);
 	  reader->readAll(&readRes);
       reader=nullptr;
 

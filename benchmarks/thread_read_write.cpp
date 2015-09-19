@@ -4,8 +4,8 @@
 #include <thread>
 #include <atomic>
 
-#include <storage/storage.h>
-#include "storage/utils/logger.h"
+#include <libmdb/storage.h>
+#include <libmdb/utils/logger.h>
 
 #include <boost/program_options.hpp>
 
@@ -21,9 +21,9 @@ size_t read_iteration_count=10;
 bool verbose = false;
 bool dont_remove = false;
 bool enable_dyn_cache = false;
-size_t cache_size = storage::defaultcacheSize;
-size_t cache_pool_size = storage::defaultcachePoolSize;
-storage::Storage::Storage_ptr ds = nullptr;
+size_t cache_size = mdb::defaultcacheSize;
+size_t cache_pool_size = mdb::defaultcachePoolSize;
+mdb::Storage::Storage_ptr ds = nullptr;
 
 std::atomic_long append_count{ 0 };
 std::atomic_long reads_count{ 0 };
@@ -33,9 +33,9 @@ void makeStorage() {
 	logger("makeStorage mc:" << meas2write << " dyn_cache: " << (enable_dyn_cache ? "true" : "false"));
 
 	const uint64_t storage_size =
-		sizeof(storage::Page::Header) + (sizeof(storage::Meas) * pagesize);
+        sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * pagesize);
 
-	ds = storage::Storage::Create(storage_path, storage_size);
+    ds = mdb::Storage::Create(storage_path, storage_size);
 
 	ds->enableCacheDynamicSize(enable_dyn_cache);
 	ds->setPoolSize(cache_pool_size);
@@ -43,7 +43,7 @@ void makeStorage() {
 }
 
 void writer(int writeCount) {
-    storage::Meas meas = storage::Meas::empty();
+    mdb::Meas meas = mdb::Meas::empty();
 
 	for (int i = 0; i < writeCount; ++i) {
         meas.value = i % meas2write;
@@ -56,12 +56,12 @@ void writer(int writeCount) {
 	}
 }
 
-void reader(int num,storage::Time from, storage::Time to) {
+void reader(int num,mdb::Time from, mdb::Time to) {
     auto read_window = (to - from) / read_iteration_count;
 
 	for (size_t i = 0; i < read_iteration_count; i++) {
 		auto reader = ds->readInterval(read_window*(i+1), read_window*(i+2));
-		storage::Meas::MeasList output;
+        mdb::Meas::MeasList output;
 		reader->readAll(&output);
 		reads_count++;
 	}

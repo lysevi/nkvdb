@@ -1,14 +1,14 @@
 #include "writewindow.h"
 
-using namespace storage;
+using namespace mdb;
 
-WriteWindow::WriteWindow(const size_t &size): std::vector<storage::Meas>(size) {
+WriteWindow::WriteWindow(const size_t &size): std::vector<mdb::Meas>(size) {
 }
 
-WriteWindow::WriteWindow(const WriteWindow& other) : std::vector<storage::Meas>(other) {
+WriteWindow::WriteWindow(const WriteWindow& other) : std::vector<mdb::Meas>(other) {
 }
 
-WriteWindow::WriteWindow(WriteWindow::const_iterator begin, WriteWindow::const_iterator end) : std::vector<storage::Meas>(begin,end) {
+WriteWindow::WriteWindow(WriteWindow::const_iterator begin, WriteWindow::const_iterator end) : std::vector<mdb::Meas>(begin,end) {
 }
 
 void WriteWindow::operator= (const WriteWindow& other) {
@@ -20,7 +20,7 @@ void WriteWindow::operator= (const WriteWindow& other) {
 	}
 	clear();
 	resize(other.size());
-	for (int i = 0; i < other.size(); i++) {
+    for (size_t i = 0; i < other.size(); i++) {
 		this->at(i) = other[i];
 	}
 }

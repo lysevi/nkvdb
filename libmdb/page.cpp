@@ -12,14 +12,14 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
-uint64_t storage::PageReader::ReadSize=storage::PageReader::defaultReadSize;
+uint64_t mdb::PageReader::ReadSize=mdb::PageReader::defaultReadSize;
 namespace bi=boost::interprocess;
 
-using namespace storage;
+using namespace mdb;
 
 const size_t oneMb = sizeof(char) * 1024 * 1024;
 
-bool storage::HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
+bool mdb::HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
 	if (utils::inInterval(from, to, hdr.minTime) || utils::inInterval(from, to, hdr.maxTime)) {
 		return true;
 	} else {
@@ -27,7 +27,7 @@ bool storage::HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
 	}
 }
 
-bool storage::HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
+bool mdb::HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
 	if (hdr.minId >= from || hdr.maxId <= to) {
 		return true;
 	} else {
@@ -120,7 +120,7 @@ Time Page::maxTime() const {
 
 Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
     if(!readOnly){
-        storage::Page::Header hdr = Page::ReadHeader(filename);
+        mdb::Page::Header hdr = Page::ReadHeader(filename);
         if (hdr.isOpen) {
             throw MAKE_EXCEPTION("page is already openned. ");
         }
@@ -348,7 +348,7 @@ PageReader_ptr  Page::readAll() {
 }
 
 
-PageReader_ptr Page::readFromToPos(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to,size_t begin,size_t end){
+PageReader_ptr Page::readFromToPos(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time from, Time to,size_t begin,size_t end){
     if(this->m_header->write_pos==0){
         return nullptr;
     }
@@ -373,7 +373,7 @@ PageReader_ptr Page::readInterval(Time from, Time to) {
     return this->readInterval(emptyArray, 0, 0, from, to);
 }
 
-PageReader_ptr Page::readInterval(const IdArray &ids, storage::Flag source, storage::Flag flag, Time from, Time to) {
+PageReader_ptr Page::readInterval(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time from, Time to) {
     // [from...minTime,maxTime...to]
     if(this->m_header->write_pos==0){
         return nullptr;
@@ -424,7 +424,7 @@ PageReader_ptr Page::readInTimePoint(Time time_point) {
 	return this->readInTimePoint(emptyArray, 0, 0, time_point);
 }
 
-PageReader_ptr Page::readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point) {
+PageReader_ptr Page::readInTimePoint(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time time_point) {
 	if (this->m_header->write_pos == 0) {
 		return nullptr;
 	}
@@ -439,7 +439,7 @@ PageReader_ptr Page::readInTimePoint(const IdArray &ids, storage::Flag source, s
 	return result;
 }
 
-Meas::MeasList Page::backwardRead(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point) {
+Meas::MeasList Page::backwardRead(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time time_point) {
 	Meas::MeasList result;
 	
 	std::map<Id, Meas> readed_values{};
@@ -496,11 +496,11 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, storage::Flag source, stor
 }
 
 bool Page::isFull() const {
-  return (sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos) >= m_header->size;
+  return (sizeof(Page::Header) + sizeof(mdb::Meas) * m_header->write_pos) >= m_header->size;
 }
 
 size_t Page::capacity() const {
-  size_t bytes_left = m_header->size -(sizeof(Page::Header) + sizeof(storage::Meas) * m_header->write_pos);
+  size_t bytes_left = m_header->size -(sizeof(Page::Header) + sizeof(mdb::Meas) * m_header->write_pos);
   return bytes_left / sizeof(Meas);
 }
 
@@ -513,7 +513,8 @@ PageReader::PageReader(Page::Page_ptr page):
     flag(0),
     from(0),
     to(0),
-	m_read_pos_list(), prev_ww()
+    prev_ww(),
+    m_read_pos_list()
 {
     m_cur_pos_end=m_cur_pos_begin=0;
     m_page=page;
@@ -588,7 +589,7 @@ void PageReader::readNext(Meas::MeasList*output){
         if(i==m_cur_pos_end){
             break;
         }
-        storage::Meas readedValue;
+        mdb::Meas readedValue;
         if (!m_page->read(&readedValue, i)) {
             std::stringstream ss;
             ss << "PageReader::readNext: "

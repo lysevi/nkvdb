@@ -11,7 +11,7 @@
 
 namespace fs = boost::filesystem;
 
-using namespace storage;
+using namespace mdb;
 
 
 Storage::Storage()
@@ -147,7 +147,7 @@ StorageReader_ptr Storage::readInterval(Time from, Time to) {
 }
 
 StorageReader_ptr Storage::readInterval(const IdArray &ids,
-                                     storage::Flag source, storage::Flag flag,
+                                     mdb::Flag source, mdb::Flag flag,
                                      Time from, Time to) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
 	this->flush_and_stop();
@@ -228,7 +228,7 @@ StorageReader_ptr Storage::readInTimePoint(Time time_point) {
 	return this->readInTimePoint(IdArray{}, 0, 0, time_point);
 }
 
-StorageReader_ptr Storage::readInTimePoint(const IdArray &ids, storage::Flag source, storage::Flag flag, Time time_point) {
+StorageReader_ptr Storage::readInTimePoint(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time time_point) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
 	this->flush_and_stop();
 	auto sr = new StorageReader();
@@ -299,7 +299,7 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
 
 	IdSet id_set(ids.begin(), ids.end());
 
-	storage::Page::Page_ptr page2read = storage::Page::Open(page_time_vector.front().name, true);
+	mdb::Page::Page_ptr page2read = mdb::Page::Open(page_time_vector.front().name, true);
 	WriteWindow ww = page2read->getWriteWindow();
 	for (auto m : ww) {
 		m_cur_values.writeValue(m);
@@ -393,12 +393,12 @@ void StorageReader::readNext(Meas::MeasList*output){
     if(m_current_reader==nullptr){
         auto page_name=m_pages.front();
         m_pages.pop_front();
-        storage::Page::Page_ptr page2read = storage::Page::Open(page_name, true);
+        mdb::Page::Page_ptr page2read = mdb::Page::Open(page_name, true);
 
 		if (this->time_point != 0) {
 			WriteWindow prev_ww{};
 			if (prev_interval_page != "") {
-				storage::Page::Page_ptr prev_page2read = storage::Page::Open(prev_interval_page, true);
+				mdb::Page::Page_ptr prev_page2read = mdb::Page::Open(prev_interval_page, true);
 				prev_ww = prev_page2read->getWriteWindow();
 				prev_page2read->readComplete();
 			}
@@ -409,7 +409,7 @@ void StorageReader::readNext(Meas::MeasList*output){
 		else {
 			WriteWindow prev_ww{};
 			if (prev_interval_page != "") {
-				storage::Page::Page_ptr prev_page2read = storage::Page::Open(prev_interval_page, true);
+				mdb::Page::Page_ptr prev_page2read = mdb::Page::Open(prev_interval_page, true);
 				prev_ww = prev_page2read->getWriteWindow();
 				prev_page2read->readComplete();
 			}

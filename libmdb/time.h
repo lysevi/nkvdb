@@ -2,13 +2,13 @@
 #include "meas.h"
 #include <chrono>
 
-namespace storage {
+namespace mdb {
 namespace TimeWork {
 
-    storage::Time CurrentUtcTime();
+    mdb::Time CurrentUtcTime();
 
     template <class Duration>
-    storage::Time fromDuration(Duration d){
+    mdb::Time fromDuration(Duration d){
         return std::chrono::duration_cast<std::chrono::nanoseconds>(d).count();
     }
 }

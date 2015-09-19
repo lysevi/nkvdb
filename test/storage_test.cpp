@@ -3,12 +3,12 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <storage/page.h>
-#include <storage/storage.h>
-#include <storage/config.h>
-#include <storage/time.h>
-#include "storage/utils/logger.h"
-#include "storage/utils/utils.h"
+#include <libmdb/page.h>
+#include <libmdb/storage.h>
+#include <libmdb/config.h>
+#include <libmdb/time.h>
+#include <libmdb/utils/logger.h>
+#include <libmdb/utils/utils.h>
 
 #include <iterator>
 #include <list>
@@ -17,22 +17,22 @@
 #include <chrono>
 #include <thread>
 
-using namespace storage;
+using namespace mdb;
 
 BOOST_AUTO_TEST_CASE(MeasEmpty) {
-  storage::Meas pm = storage::Meas::empty();
+  mdb::Meas pm = mdb::Meas::empty();
 
-  BOOST_CHECK_EQUAL(pm.value, storage::Value(0));
-  BOOST_CHECK_EQUAL(pm.flag, storage::Flag(0));
-  BOOST_CHECK_EQUAL(pm.id, storage::Id(0));
-  BOOST_CHECK_EQUAL(pm.source, storage::Flag(0));
-  BOOST_CHECK_EQUAL(pm.time, storage::Time(0));
+  BOOST_CHECK_EQUAL(pm.value, mdb::Value(0));
+  BOOST_CHECK_EQUAL(pm.flag, mdb::Flag(0));
+  BOOST_CHECK_EQUAL(pm.id, mdb::Id(0));
+  BOOST_CHECK_EQUAL(pm.source, mdb::Flag(0));
+  BOOST_CHECK_EQUAL(pm.time, mdb::Time(0));
 }
 
 BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
   {
     {
-      storage::Storage::Storage_ptr ds = storage::Storage::Create(mdb_test::storage_path);
+      mdb::Storage::Storage_ptr ds = mdb::Storage::Create(mdb_test::storage_path);
       BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
       BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
 
@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
       BOOST_CHECK_EQUAL(pages.size(), (size_t)2);
       ds->Close();
 
-      ds = storage::Storage::Create(mdb_test::storage_path);
+      ds = mdb::Storage::Create(mdb_test::storage_path);
       BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
       BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
       pages = utils::ls(mdb_test::storage_path);
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
       ds->Close();
     }
     {
-      storage::Storage::Storage_ptr ds =  storage::Storage::Open(mdb_test::storage_path);
+      mdb::Storage::Storage_ptr ds =  mdb::Storage::Open(mdb_test::storage_path);
       ds=nullptr;
     }
   }
@@ -58,17 +58,17 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
 BOOST_AUTO_TEST_CASE(StorageIO) {
   const int meas2write = 10;
   const int write_iteration = 10;
-  const uint64_t storage_size = sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+  const uint64_t storage_size = sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
   const std::string storage_path = mdb_test::storage_path + "storageIO";
 
 
   {
-    storage::Storage::Storage_ptr ds =
-        storage::Storage::Create(storage_path, storage_size);
+    mdb::Storage::Storage_ptr ds =
+        mdb::Storage::Create(storage_path, storage_size);
 
-    storage::Meas meas = storage::Meas::empty();
-    storage::Time end_it = (meas2write * write_iteration);
-    for (storage::Time i = 0; i < end_it; ++i) {
+    mdb::Meas meas = mdb::Meas::empty();
+    mdb::Time end_it = (meas2write * write_iteration);
+    for (mdb::Time i = 0; i < end_it; ++i) {
       meas.value = i;
       meas.id = i;
       meas.source = meas.flag = i % meas2write;
@@ -80,10 +80,10 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       reader->readAll(&meases);
 
 
-      for (storage::Time j = 0; j < i; ++j) {
+      for (mdb::Time j = 0; j < i; ++j) {
         bool isExists = false;
-        for (storage::Meas m : meases) {
-          if (m.id == static_cast<storage::Id>(j)) {
+        for (mdb::Meas m : meases) {
+          if (m.id == static_cast<mdb::Id>(j)) {
             isExists = true;
             break;
           }
@@ -97,11 +97,11 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
     BOOST_CHECK_EQUAL(pages.size(), (size_t)(write_iteration * 3));
   }
   {
-    storage::Storage::Storage_ptr ds =
-        storage::Storage::Open(storage_path);
+    mdb::Storage::Storage_ptr ds =
+        mdb::Storage::Open(storage_path);
 
     for (int i = 1; i < meas2write * write_iteration;i += (meas2write * write_iteration) / 100) {
-      storage::Time to = i * ((meas2write * write_iteration) / 100);
+      mdb::Time to = i * ((meas2write * write_iteration) / 100);
 
       Meas::MeasList meases{};
       auto reader = ds->readInterval(0, to);
@@ -109,8 +109,8 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
       BOOST_CHECK_EQUAL(meases.size(), (size_t)(to + 1));
 
-      for (storage::Meas m : meases) {
-        BOOST_CHECK(utils::inInterval<storage::Time>(0, to, m.time));
+      for (mdb::Meas m : meases) {
+        BOOST_CHECK(utils::inInterval<mdb::Time>(0, to, m.time));
 
         BOOST_CHECK(m.time <= to);
       }
@@ -121,14 +121,14 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
   utils::rm(storage_path);
   
  {/// readinterval with not exists data. reading from WriteWindow.
-	  storage::Storage::Storage_ptr ds = storage::Storage::Create(storage_path, storage_size);
+      mdb::Storage::Storage_ptr ds = mdb::Storage::Create(storage_path, storage_size);
 
-	  storage::Meas meas = storage::Meas::empty();
-	  storage::Time end_it = (meas2write * write_iteration);
-	  storage::Time queryFrom = 20;
-      storage::Time queryFrom2 = 22;
-	  storage::Id   Id = 1;
-	  for (storage::Time i = 0; i < end_it; ++i) {
+      mdb::Meas meas = mdb::Meas::empty();
+      mdb::Time end_it = (meas2write * write_iteration);
+      mdb::Time queryFrom = 20;
+      mdb::Time queryFrom2 = 22;
+      mdb::Id   Id = 1;
+      for (mdb::Time i = 0; i < end_it; ++i) {
 		  if (i == queryFrom) {
 			  Id = 2;
 			  continue;
@@ -153,20 +153,20 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 	  reader->readAll(&meases);
 
 	  // [..max] from [min]
-      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom](const storage::Meas&m){return m.time > queryFrom; }), meases.end());
+      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom](const mdb::Meas&m){return m.time > queryFrom; }), meases.end());
 	  
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
-      BOOST_CHECK_EQUAL(meases.front().id, storage::Id(1));
+      BOOST_CHECK_EQUAL(meases.front().id, mdb::Id(1));
 
 	  // [..max] [min..from]
       meases.clear();
 	  reader = ds->readInterval(IdArray{1,2},0,0,queryFrom2, end_it);
       reader->readAll(&meases);
 
-      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom2](const storage::Meas&m){return m.time > queryFrom2; }), meases.end());
+      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom2](const mdb::Meas&m){return m.time > queryFrom2; }), meases.end());
 	  
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
-      BOOST_CHECK_EQUAL(meases.front().id, storage::Id(1));
+      BOOST_CHECK_EQUAL(meases.front().id, mdb::Id(1));
 
 	  ds->Close();
 	  utils::rm(storage_path);
@@ -177,15 +177,15 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
   const int meas2write = 10;
   const size_t write_iteration = 10;
   const uint64_t storage_size =
-      sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
   const std::string storage_path = mdb_test::storage_path + "storageIO";
 
   {
-    storage::Storage::Storage_ptr ds =
-        storage::Storage::Create(storage_path, storage_size);
+    mdb::Storage::Storage_ptr ds =
+        mdb::Storage::Create(storage_path, storage_size);
 
     size_t arr_size = meas2write * write_iteration;
-    storage::Meas::PMeas array = new storage::Meas[arr_size];
+    mdb::Meas::PMeas array = new mdb::Meas[arr_size];
     for (size_t i = 0; i < arr_size; ++i) {
       array[i].id = i;
       array[i].time = i;
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {
-      BOOST_CHECK(utils::inInterval<storage::Time>(0, arr_size, m.time));
+      BOOST_CHECK(utils::inInterval<mdb::Time>(0, arr_size, m.time));
     }
 
     for (size_t i = 0; i < arr_size; ++i) {
@@ -224,20 +224,20 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
   const int meas2write = 10;
   const int write_iteration = 10;
   const uint64_t storage_size =
-      sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
   const std::string storage_path = mdb_test::storage_path + "storageIO";
 
   {
-    storage::Storage::Storage_ptr ds =
-        storage::Storage::Create(storage_path, storage_size);
+    mdb::Storage::Storage_ptr ds =
+        mdb::Storage::Create(storage_path, storage_size);
 
-    ds->setPastTime(storage::TimeWork::fromDuration(std::chrono::seconds(2)));
+    ds->setPastTime(mdb::TimeWork::fromDuration(std::chrono::seconds(2)));
 
     size_t arr_size = meas2write * write_iteration;
 
-    storage::Meas::PMeas array = new storage::Meas[arr_size];
+    mdb::Meas::PMeas array = new mdb::Meas[arr_size];
 
-    auto cur_utc_time=storage::TimeWork::CurrentUtcTime();
+    auto cur_utc_time=mdb::TimeWork::CurrentUtcTime();
     for (size_t i = 0; i < arr_size; ++i) {
       array[i].id = i;
       array[i].time = cur_utc_time;
@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {
-      BOOST_CHECK(utils::inInterval<storage::Time>(array[0].time, array[arr_size - 1].time, m.time));
+      BOOST_CHECK(utils::inInterval<mdb::Time>(array[0].time, array[arr_size - 1].time, m.time));
     }
 
     for (size_t i = 0; i < arr_size; ++i) {
@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
 
 BOOST_AUTO_TEST_CASE(StorageCurvalues) {
-	auto test_storage = [](IdArray query, std::map<storage::Id, storage::Meas> id2meas, storage::Storage::Storage_ptr ds){
+    auto test_storage = [](IdArray query, std::map<mdb::Id, mdb::Meas> id2meas, mdb::Storage::Storage_ptr ds){
 		auto curValues = ds->curValues(query);
 		BOOST_CHECK_EQUAL(curValues.size(), id2meas.size());
 		for (auto v : curValues) {
@@ -294,20 +294,20 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
     const int meas2write = 10;
 	const size_t write_iteration = 10;
 	const uint64_t storage_size =
-		sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+        sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
 	const std::string storage_path = mdb_test::storage_path + "storageIO";
 	
-	std::map<storage::Id, storage::Meas> id2meas;
+    std::map<mdb::Id, mdb::Meas> id2meas;
 	IdArray query{};
 	{
 		{
-			storage::Storage::Storage_ptr ds =	storage::Storage::Create(storage_path, storage_size);
+            mdb::Storage::Storage_ptr ds =	mdb::Storage::Create(storage_path, storage_size);
 
 			size_t arr_size = meas2write * write_iteration;
 
 			
 
-			storage::Meas::PMeas array = new storage::Meas[arr_size];
+            mdb::Meas::PMeas array = new mdb::Meas[arr_size];
 			for (size_t i = 0; i < arr_size; ++i) {
 				array[i].id = i%meas2write;
 				array[i].time = i;
@@ -327,14 +327,14 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 			test_storage(query, id2meas, ds);
 		}
 		{
-			storage::Storage::Storage_ptr ds =	storage::Storage::Open(storage_path);
+            mdb::Storage::Storage_ptr ds =	mdb::Storage::Open(storage_path);
 			ds->loadCurValues(query);
 			test_storage(query, id2meas, ds);
 		}
 	}
     {
         /// check query with not found result
-        storage::Storage::Storage_ptr ds =	storage::Storage::Open(storage_path);
+        mdb::Storage::Storage_ptr ds =	mdb::Storage::Open(storage_path);
         IdArray query={0,1,meas2write+2,meas2write+3};
         auto notFound=ds->loadCurValues(query);
         BOOST_CHECK_EQUAL(notFound.size(),size_t(2));
@@ -347,15 +347,15 @@ BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
     const int meas2write = 10;
     const size_t write_iteration = 10;
     const uint64_t storage_size =
-            sizeof(storage::Page::Header) + (sizeof(storage::Meas) * meas2write);
+            sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
     const std::string storage_path = mdb_test::storage_path + "storageIO";
 
     {
-        storage::Storage::Storage_ptr ds =
-                storage::Storage::Create(storage_path, storage_size);
+        mdb::Storage::Storage_ptr ds =
+                mdb::Storage::Create(storage_path, storage_size);
 
         size_t arr_size = meas2write * write_iteration;
-        storage::Meas::PMeas array = new storage::Meas[arr_size];
+        mdb::Meas::PMeas array = new mdb::Meas[arr_size];
         for (size_t i = 0; i < arr_size; ++i) {
             array[i].id = i;
             array[i].time = i;

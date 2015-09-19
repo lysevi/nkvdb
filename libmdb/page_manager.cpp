@@ -6,7 +6,7 @@
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
-using namespace storage;
+using namespace mdb;
 
 PageManager *PageManager::m_instance=nullptr;
 
@@ -66,7 +66,7 @@ std::string PageManager::getOldesPage(const std::list<std::string> &pages)const 
 	fs::path maxTimePage;
 	Time maxTime = 0;
 	for (auto p : pages) {
-		storage::Page::Header hdr = storage::Page::ReadHeader(p);
+		mdb::Page::Header hdr = mdb::Page::ReadHeader(p);
 		Time cur_time = hdr.maxTime;
 		if (maxTime < cur_time || cur_time == 0) {
 			maxTime = cur_time;
@@ -125,7 +125,7 @@ std::vector<PageManager::PageInfo> PageManager::pagesByTime()const {
 	page_time_vector.resize(page_list.size());
 	int pos = 0;
 	for (auto page : page_list) {
-		storage::Page::Header hdr = storage::Page::ReadHeader(page);
+		mdb::Page::Header hdr = mdb::Page::ReadHeader(page);
 		page_time_vector[pos]=PageManager::PageInfo{ hdr, page };
 		pos++;
 	}

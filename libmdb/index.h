@@ -2,7 +2,7 @@
 
 #include "meas.h"
 #include <list>
-namespace storage
+namespace mdb
 {
 	const uint16_t index_file_format=1;
     /**

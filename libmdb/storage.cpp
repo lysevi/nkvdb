@@ -395,24 +395,19 @@ void StorageReader::readNext(Meas::MeasList*output){
         m_pages.pop_front();
         mdb::Page::Page_ptr page2read = mdb::Page::Open(page_name, true);
 
+        WriteWindow prev_ww{};
+        if (prev_interval_page != "") {
+            mdb::Page::Page_ptr prev_page2read = mdb::Page::Open(prev_interval_page, true);
+            prev_ww = prev_page2read->getWriteWindow();
+            prev_page2read->readComplete();
+        }
+
 		if (this->time_point != 0) {
-			WriteWindow prev_ww{};
-			if (prev_interval_page != "") {
-				mdb::Page::Page_ptr prev_page2read = mdb::Page::Open(prev_interval_page, true);
-				prev_ww = prev_page2read->getWriteWindow();
-				prev_page2read->readComplete();
-			}
 			m_current_reader = page2read->readInTimePoint(ids, source, flag, time_point);
 			m_current_reader->prev_ww = prev_ww;
 
 		}
 		else {
-			WriteWindow prev_ww{};
-			if (prev_interval_page != "") {
-				mdb::Page::Page_ptr prev_page2read = mdb::Page::Open(prev_interval_page, true);
-				prev_ww = prev_page2read->getWriteWindow();
-				prev_page2read->readComplete();
-			}
 			m_current_reader = page2read->readInterval(ids, source, flag, from, to);
 			m_current_reader->prev_ww=prev_ww;
 		

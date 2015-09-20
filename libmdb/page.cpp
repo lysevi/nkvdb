@@ -1,6 +1,7 @@
 #include "page.h"
 #include "utils/exception.h"
 #include "utils/search.h"
+#include "readers.h"
 
 #include <algorithm>
 #include <sstream>
@@ -341,9 +342,10 @@ PageReader_ptr  Page::readAll() {
         return nullptr;
     }
     auto ppage=this->shared_from_this();
-    auto preader=new PageReader(ppage);
+    auto preader=new PageReaderInterval(ppage);
+    preader->addReadPos(0,m_header->write_pos);
+
     auto result=PageReader_ptr(preader);
-    result->addReadPos(0,m_header->write_pos);
     return result;
 }
 
@@ -354,14 +356,14 @@ PageReader_ptr Page::readFromToPos(const IdArray &ids, mdb::Flag source, mdb::Fl
     }
 
     auto ppage=this->shared_from_this();
-    auto preader=new PageReader(ppage);
+    auto preader=new PageReaderInterval(ppage);
     auto result=PageReader_ptr(preader);
-    result->addReadPos(begin,end);
-    result->ids=ids;
-    result->source=source;
-    result->flag=flag;
-    result->from=from;
-    result->to=to;
+    preader->addReadPos(begin,end);
+    preader->ids=ids;
+    preader->source=source;
+    preader->flag=flag;
+    preader->from=from;
+    preader->to=to;
     return result;
 }
 
@@ -381,21 +383,22 @@ PageReader_ptr Page::readInterval(const IdArray &ids, mdb::Flag source, mdb::Fla
 	if (from > this->m_header->maxTime) {
 		/// read from write window
 		auto ppage = this->shared_from_this();
-		auto preader = new PageReader(ppage);
+        auto preader = new PageReaderInterval(ppage);
 		auto result = PageReader_ptr(preader);
-		result->ids = ids;
-		result->source = source;
-		result->flag = flag;
-		result->from = from;
-		result->to = to;
-		result->isWindowReader = true;
+        preader->ids = ids;
+        preader->source = source;
+        preader->flag = flag;
+        preader->from = from;
+        preader->to = to;
+        preader->isWindowReader = true;
 		return result;
 	}
     if ((from <= m_header->minTime) && (to >= m_header->maxTime)) {
         if ((ids.size() == 0) && (source == 0) && (flag == 0)) {
             auto result=this->readAll();
-            result->from=from;
-            result->to=to;
+            auto preader=dynamic_cast<PageReaderInterval*>(result.get());
+            preader->from=from;
+            preader->to=to;
             return result;
         } else {
             return this->readFromToPos(ids, source, flag, from, to, 0, m_header->write_pos);
@@ -403,18 +406,18 @@ PageReader_ptr Page::readInterval(const IdArray &ids, mdb::Flag source, mdb::Fla
     }
 	m_region->flush(0, this->size(), false);
     auto ppage=this->shared_from_this();
-    auto preader=new PageReader(ppage);
+    auto preader=new PageReaderInterval(ppage);
     auto result=PageReader_ptr(preader);
-    result->ids = ids;
-    result->source = source;
-    result->flag = flag;
-    result->from = from;
-    result->to = to;
+    preader->ids = ids;
+    preader->source = source;
+    preader->flag = flag;
+    preader->from = from;
+    preader->to = to;
 
     auto irecords = m_index.findInIndex(ids, from, to);
     for (Index::IndexRecord &rec : irecords) {
         auto max_pos = rec.pos + rec.count;
-        result->addReadPos(rec.pos,max_pos);
+        preader->addReadPos(rec.pos,max_pos);
     }
   return result;
 }
@@ -429,13 +432,12 @@ PageReader_ptr Page::readInTimePoint(const IdArray &ids, mdb::Flag source, mdb::
 		return nullptr;
 	}
 	auto ppage = this->shared_from_this();
-	auto preader = new PageReader(ppage);
+    auto preader = new PageReader_TimePoint(ppage);
 	auto result = PageReader_ptr(preader);
-	result->ids = ids;
-	result->source = source;
-	result->flag = flag;
-	result->time_point = time_point;
-	result->isWindowReader = true;
+    preader->ids = ids;
+    preader->source = source;
+    preader->flag = flag;
+    preader->time_point = time_point;
 	return result;
 }
 
@@ -481,9 +483,6 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, mdb::Flag source, mdb::Fla
 				readed_values[m.id] = m;
 			}
 		}
-		
-		
-
 
 		if (pos == 0) {
 			break;
@@ -506,22 +505,13 @@ size_t Page::capacity() const {
 
 Page::Header Page::getHeader() const { return *m_header; }
 
-
 PageReader::PageReader(Page::Page_ptr page):
     ids(),
     source(0),
     flag(0),
-    from(0),
-    to(0),
-    prev_ww(),
-    m_read_pos_list()
+    prev_ww()
 {
-    m_cur_pos_end=m_cur_pos_begin=0;
     m_page=page;
-	isWindowReader = false;
-	m_wwWindowReader_read_end = false;
-	time_point = 0;
-	values_in_point_reader = false;
 }
 
 PageReader::~PageReader(){
@@ -531,149 +521,64 @@ PageReader::~PageReader(){
     }
 }
 
-void PageReader::addReadPos(uint64_t begin,uint64_t end){
-    m_read_pos_list.push_back(std::make_pair(begin,end));
+bool PageReader::checkValueFlags(const Meas&m)const {
+    if (flag != 0) {
+        if (m.flag != flag) {
+            return false;
+        }
+    }
+    if (source != 0) {
+        if (m.source != source) {
+            return false;
+        }
+    }
+    if (ids.size() != 0) {
+        if (std::find(ids.cbegin(), ids.cend(), m.id) == ids.end()) {
+            return false;
+        }
+    }
+    return true;
 }
 
-bool PageReader::isEnd() const{
-	if (isWindowReader) {
-		return m_wwWindowReader_read_end;
-	}
-    if(m_read_pos_list.size()==0){
-        return m_cur_pos_begin==m_cur_pos_end;
-    }else{
-        return false;
+void PageReader::readAll(Meas::MeasList*output) {
+    while (!isEnd()) {
+        this->readNext(output);
     }
-}
-
-void PageReader::readNext(Meas::MeasList*output){
-	if (isEnd()) {
-		return;
-	}
-
-	if (this->time_point != 0) {
-		this->timePointRead(time_point,output);
-		m_wwWindowReader_read_end = true;
-		return;
-	}
-
-	if (this->from > this->m_page->getHeader().maxTime) {
-		for (auto wwIt : this->m_page->getWriteWindow()) {
-			auto readedValue = wwIt;
-			if (checkValueFlags(readedValue)) {
-				output->push_back(readedValue);
-			}
-		}
-		m_wwWindowReader_read_end = true;
-		return;
-	}
-
-	if (from > this->m_page->getHeader().minTime) {
-		if (!values_in_point_reader) {
-			this->timePointRead(from, output);
-			values_in_point_reader = true;
-		}
-	}
-
-    if(m_cur_pos_begin==m_cur_pos_end){
-        /// get next read interval
-        auto pos=m_read_pos_list.front();
-        m_read_pos_list.pop_front();
-
-        m_cur_pos_begin=pos.first;
-        m_cur_pos_end=pos.second;
-    }
-    auto read_to=(m_cur_pos_begin+PageReader::ReadSize);
-    uint64_t i=0;
-    for (i = m_cur_pos_begin; i < read_to; ++i) {
-        if(i==m_cur_pos_end){
-            break;
-        }
-        mdb::Meas readedValue;
-        if (!m_page->read(&readedValue, i)) {
-            std::stringstream ss;
-            ss << "PageReader::readNext: "
-               << " file name: " << m_page->fileName()
-               << " readPos: " << i
-               << " size: " << m_page->getHeader().size;
-
-            throw MAKE_EXCEPTION(ss.str());
-        }
-
-		if ((checkValueInterval(readedValue)) && checkValueFlags(readedValue)){
-            output->push_back(readedValue);
-        }
-        
-    }
-    m_cur_pos_begin=i;
 }
 
 void PageReader::timePointRead(Time tp,Meas::MeasList*output) {
-	if (tp > this->m_page->getHeader().maxTime) {
-		for (auto wwIt : this->m_page->getWriteWindow()) {
-			if (wwIt.time == 0) {
-				continue;
-			}
-			auto readedValue = wwIt;
-			if (checkValueFlags(readedValue)) {
-				output->push_back(readedValue);
-			}
-		}
-	} else {
-		auto sub_result = this->m_page->backwardRead(this->ids, source, flag, tp);
-		
-		// более новые значения надо удалить.
-		for (auto wwIt : prev_ww) {
-			if (wwIt.time == 0) {
-				continue;
-			}
-			bool exists = false;
-			for (auto sub_value : sub_result) {
-				if (sub_value.id == wwIt.id) {
-					exists = true;
-					break;
-				}
-			}
-			if (!exists) {
-				auto readedValue = wwIt;
-				if (checkValueFlags(readedValue)) {
-					output->push_back(readedValue);
-				}
-			}
+    if (tp > this->m_page->getHeader().maxTime) {
+        for (auto wwIt : this->m_page->getWriteWindow()) {
+            if (wwIt.time == 0) {
+                continue;
+            }
+            auto readedValue = wwIt;
+            if (checkValueFlags(readedValue)) {
+                output->push_back(readedValue);
+            }
+        }
+    } else {
+        auto sub_result = this->m_page->backwardRead(this->ids, source, flag, tp);
 
-		}
-		std::copy(sub_result.begin(), sub_result.end(), std::back_inserter(*output));
-	}
-}
-void PageReader::readAll(Meas::MeasList*output) {
-	while (!isEnd()) {
-		this->readNext(output);
-	}
-}
-
-bool PageReader::checkValueInterval(const Meas&m)const {
-	if (utils::inInterval(from, to, m.time)) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool PageReader::checkValueFlags(const Meas&m)const {
-	if (flag != 0) {
-		if (m.flag != flag) {
-			return false;
-		}
-	}
-	if (source != 0) {
-		if (m.source != source) {
-			return false;
-		}
-	}
-	if (ids.size() != 0) {
-		if (std::find(ids.cbegin(), ids.cend(), m.id) == ids.end()) {
-			return false;
-		}
-	}
-	return true;
+        // to ouput pushing values from prev_ww, that no exists in sub_result
+        for (auto wwIt : prev_ww) {
+            if (wwIt.time == 0) {
+                continue;
+            }
+            bool exists = false;
+            for (auto sub_value : sub_result) {
+                if (sub_value.id == wwIt.id) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                auto readedValue = wwIt;
+                if (checkValueFlags(readedValue)) {
+                    output->push_back(readedValue);
+                }
+            }
+        }
+        std::copy(sub_result.begin(), sub_result.end(), std::back_inserter(*output));
+    }
 }

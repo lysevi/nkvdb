@@ -19,6 +19,7 @@ namespace mdb {
 class PageReader;
 typedef std::shared_ptr<PageReader> PageReader_ptr;
 
+
 /**
 * Page class.
 * Header + [meas_0...meas_i]
@@ -115,10 +116,10 @@ protected:
   WriteWindow m_writewindow;
 };
 
+bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr);
+bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr);
 
-class PageReader: public utils::NonCopy
-{
-    typedef std::pair<uint64_t,uint64_t> from_to_pos;
+class PageReader: public utils::NonCopy{
 public:
     static const  uint64_t defaultReadSize=1024;
     /// max count of measurements readed in on call of readNext
@@ -126,37 +127,20 @@ public:
 
     PageReader(Page::Page_ptr page);
     ~PageReader();
-    bool isEnd() const;
+    virtual bool isEnd() const=0;
+    virtual void readNext(Meas::MeasList*output)=0;
+    virtual void readAll(Meas::MeasList*output);
 
-    void readNext(Meas::MeasList*output);
-	void readAll(Meas::MeasList*output);
-    /// add {from,to} position to read.
-    void addReadPos(uint64_t begin,uint64_t end);
-public:
     IdArray ids;
     mdb::Flag source;
     mdb::Flag flag;
-    Time from;
-    Time to;
-	Time time_point;
-	bool isWindowReader;
+    WriteWindow prev_ww;
 
-	WriteWindow prev_ww;
-private:
-	bool checkValueInterval(const Meas&m)const;
-	bool checkValueFlags(const Meas&m)const;
-	void timePointRead(Time tp, Meas::MeasList*output);
-private:
-    Page::Page_ptr m_page;
-    std::list<from_to_pos> m_read_pos_list;
-    uint64_t m_cur_pos_begin;
-    uint64_t m_cur_pos_end;
-	
-	bool m_wwWindowReader_read_end;
-	bool values_in_point_reader;
-	friend class StorageReader;
+protected:
+    bool checkValueFlags(const Meas&m)const;
+    void timePointRead(Time tp, Meas::MeasList*output);
+protected:
+     Page::Page_ptr m_page;
 };
 
-bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr);
-bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr);
 }

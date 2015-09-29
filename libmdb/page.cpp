@@ -448,7 +448,9 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, mdb::Flag source, mdb::Fla
 	for (uint64_t pos = this->getHeader().write_pos-1;; pos--) {
 		Meas m;
 		if (!this->read(&m, pos)) {
-			throw MAKE_EXCEPTION("Page::backwardRead read error");
+            std::stringstream ss;
+            ss<<"Page::backwardRead read error pos="<<pos<<" start="<<this->getHeader().write_pos-1;
+            throw MAKE_EXCEPTION(ss.str());
 		}
 		
 		if (m.time > time_point) {

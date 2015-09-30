@@ -1,6 +1,6 @@
 #include "page.h"
 #include "readers.h"
-#include "utils/exception.h"
+#include "exception.h"
 
 #include <sstream>
 

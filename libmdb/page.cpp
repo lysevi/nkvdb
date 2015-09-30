@@ -1,6 +1,6 @@
 #include "page.h"
-#include "utils/exception.h"
-#include "utils/search.h"
+#include "exception.h"
+#include "search.h"
 #include "readers.h"
 
 #include <algorithm>

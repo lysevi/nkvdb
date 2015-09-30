@@ -1,4 +1,4 @@
-include_directories(..)
+include_directories(../include)
 
 add_library(mdb_test STATIC test_common.cpp test_common.h)
 

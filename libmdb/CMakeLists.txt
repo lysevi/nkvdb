@@ -1,5 +1,6 @@
 include_directories(..)
-FILE(GLOB SRC "*.cpp"  "*.h" "utils/*.cpp" "utils/*.h")
+include_directories(../include)
+FILE(GLOB SRC "*.cpp"  "../include/*.h")
 
 if(MSVC)
 	add_library(libmdb STATIC ${SRC})

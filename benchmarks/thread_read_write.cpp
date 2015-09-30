@@ -4,8 +4,8 @@
 #include <thread>
 #include <atomic>
 
-#include <libmdb/storage.h>
-#include <libmdb/utils/logger.h>
+#include <storage.h>
+#include <logger.h>
 
 #include <boost/program_options.hpp>
 

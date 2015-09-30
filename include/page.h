@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/utils.h"
+#include "utils.h"
 
 #include <cstdint>
 #include <memory>
@@ -10,7 +10,6 @@
 #include <boost/interprocess/file_mapping.hpp>
 
 #include "meas.h"
-#include "config.h"
 #include "index.h"
 #include "writewindow.h"
 

@@ -1,4 +1,4 @@
-include_directories(..)
+include_directories(../include)
 
 add_executable (read_write read_write.cpp)
 TARGET_LINK_LIBRARIES(read_write libmdb ${Boost_LIBRARIES})

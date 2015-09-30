@@ -1,6 +1,6 @@
 #include "storage.h"
 #include "page_manager.h"
-#include "utils/exception.h"
+#include "exception.h"
 
 #include <ctime>
 #include <cmath>

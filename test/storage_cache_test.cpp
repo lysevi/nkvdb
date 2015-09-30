@@ -3,10 +3,11 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include "test_common.h"
-#include <libmdb/meas.h>
-#include <libmdb/utils/utils.h>
-#include <libmdb/cache.h>
-#include <libmdb/utils/logger.h>
+
+#include <meas.h>
+#include <utils.h>
+#include <cache.h>
+#include <logger.h>
 
 #include <iterator>
 #include <list>

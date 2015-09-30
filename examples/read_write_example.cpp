@@ -2,8 +2,8 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <libmdb/storage.h>
-#include <libmdb/utils/logger.h>
+#include <storage.h>
+#include <logger.h>
 
 const std::string storage_path = "exampleStorage";
 

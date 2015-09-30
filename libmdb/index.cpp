@@ -1,8 +1,8 @@
 #include "index.h"
 
-#include "utils/exception.h"
-#include "utils/utils.h"
-#include "utils/search.h"
+#include "exception.h"
+#include "utils.h"
+#include "search.h"
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>

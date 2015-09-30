@@ -30,6 +30,5 @@ struct Meas {
   Value value;
 };
 
-bool checkPastTime(const Time t,
-                   const Time past_time); // |current time - t| < past_time
+bool checkPastTime(const Time t, const Time past_time); // |current time - t| < past_time
 }

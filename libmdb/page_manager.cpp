@@ -1,7 +1,7 @@
 #include "page_manager.h"
 #include "common.h"
 
-#include "utils/exception.h"
+#include "exception.h"
 
 #include <boost/filesystem.hpp>
 

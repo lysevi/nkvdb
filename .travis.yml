@@ -1,6 +1,6 @@
 build_image: shippableimages/ubuntu1404_cpp
 language: cpp
-compiler: gcc
+compiler: g++
 
 before_install:
   - sudo apt-get update

@@ -9,7 +9,7 @@
 
 # Dependencies
 ---
-* Boost 1.57.0 or higher: system, filesystem, log, interprocess, unit_test_framework(to build tests), program_options (to build benchmarks)
+* Boost 1.57.0 or higher: system, filesystem, interprocess, unit_test_framework(to build tests), program_options (to build benchmarks)
 * cmake
 * c++ 11 compiler
 

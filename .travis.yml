@@ -17,4 +17,4 @@ before_script:
 
 script: 
    - make -j4
-   - ctest -VV
+

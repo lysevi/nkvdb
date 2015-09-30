@@ -1,20 +1,19 @@
+
+[![Build Status](https://travis-ci.org/lysevi/mdb.svg?branch=master)](https://travis-ci.org/lysevi/mdb)
 #mdb - not key-value database
 **mdb** - is a numeric time-series database.
 
 # Features
----
 * High write speed(1.5 - 2.5 millions values per second)
 * Proprietary storage format 
 * Implemented as C++ library.
 
 # Dependencies
----
-* Boost 1.57.0 or higher: system, filesystem, interprocess, unit_test_framework(to build tests), program_options (to build benchmarks)
+* Boost 1.53.0 or higher: system, filesystem, interprocess, unit_test_framework(to build tests), program_options (to build benchmarks)
 * cmake
 * c++ 11 compiler
 
 # Example
----
 ## Open, read, write
 ```C++
 #include <libmdb/storage.h>

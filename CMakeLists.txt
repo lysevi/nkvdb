@@ -39,7 +39,7 @@ else(WIN32)
 
   set(BoostUSESTATIC_LIBS OFF)
   
-  find_package(Boost 1.57.0 REQUIRED unit_test_framework system  filesystem program_options)
+  find_package(Boost  REQUIRED unit_test_framework system  filesystem program_options)
 ENDIF(WIN32)
 
 IF(Boost_FOUND)

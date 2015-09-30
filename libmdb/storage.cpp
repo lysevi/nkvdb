@@ -41,8 +41,7 @@ void Storage::Close() {
   m_closed = true;
 }
 
-Storage::Storage_ptr Storage::Create(const std::string &ds_path,
-                                              uint64_t page_size) {
+Storage::Storage_ptr Storage::Create(const std::string &ds_path, uint64_t page_size) {
   Storage::Storage_ptr result(new Storage);
   
 

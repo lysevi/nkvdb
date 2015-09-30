@@ -10,9 +10,9 @@
 
 namespace mdb {
 
-const uint64_t defaultPageSize = 10 * 1024 * 1024; // 10Mb
-const size_t defaultcacheSize = 10000;
-const size_t defaultcachePoolSize = 100;
+	const uint64_t defaultPageSize = sizeof(Page::Header) + sizeof(Meas) * 1000000;
+	const size_t defaultcacheSize = 10000;
+	const size_t defaultcachePoolSize = 100;
 
 class StorageReader;
 typedef std::shared_ptr<StorageReader> StorageReader_ptr;

@@ -22,10 +22,13 @@ install:
   - gem install coveralls-lcov
 
 before_script:
-   - cmake -DENABLE_TESTING_COVERAGE=ON .
+   - mkdir builddir
+   - cd builddir
+   - cmake ../ -DENABLE_TESTING_COVERAGE=ON .
 
 
 script: 
+   - cd builddir
    - make -j2
    - cd bin
    - ls
@@ -39,7 +42,8 @@ script:
 
 
 after_success:
-   - cd ${TRAVIS_BUILD_DIR}/bin
+   - cd ${TRAVIS_BUILD_DIR}/builddir
+   - cd bin
    - ls
    - lcov --directory . --capture --output-file coverage.info # capture coverage info
    - lcov --remove coverage.info '../tests/*' '/usr/*' '../libmdb/*' --output-file coverage.info # filter out system and test code

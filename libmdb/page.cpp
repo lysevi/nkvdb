@@ -453,39 +453,36 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, mdb::Flag source, mdb::Fla
             throw MAKE_EXCEPTION(ss.str());
 		}
 		
-		if (m.time > time_point) {
-			continue;
-		}
-
-		auto find_res = readed_values.find(m.id);
-		if (find_res == readed_values.end()) {
-			bool flag_check = true;
-			if (flag != 0) {
-				if (m.flag != flag) {
-					flag_check = false;
+		if (m.time < time_point) {
+			auto find_res = readed_values.find(m.id);
+			if (find_res == readed_values.end()) {
+				bool flag_check = true;
+				if (flag != 0) {
+					if (m.flag != flag) {
+						flag_check = false;
+					}
 				}
-			}
-			bool source_check = true;
-			if (source != 0) {
-				if (m.source != source) {
-					source_check = false;
+				bool source_check = true;
+				if (source != 0) {
+					if (m.source != source) {
+						source_check = false;
+					}
 				}
-			}
-			bool ids_check = true;
-			if (ids.size() != 0) {
-				if (std::find(ids.cbegin(), ids.cend(), m.id) != ids.end()) {
-					ids_check = false;
+				bool ids_check = true;
+				if (ids.size() != 0) {
+					if (std::find(ids.cbegin(), ids.cend(), m.id) != ids.end()) {
+						ids_check = false;
+					}
 				}
-			}
-			if (flag_check && source_check && ids_check) {
-				readed_values.insert(std::make_pair(m.id, m));
-			}
-		} else {
-			if (find_res->second.time > m.time) {
-				readed_values[m.id] = m;
+				if (flag_check && source_check && ids_check) {
+					readed_values.insert(std::make_pair(m.id, m));
+				}
+			} else {
+				if (find_res->second.time > m.time) {
+					readed_values[m.id] = m;
+				}
 			}
 		}
-
 		if (pos == 0) {
 			break;
 		}

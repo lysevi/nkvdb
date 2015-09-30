@@ -26,9 +26,14 @@ before_script:
 
 
 script: 
-   - make 
+   - make -j2
    - cd bin
-   - ctest .
+   - ./storage_cache_test
+   - ./storage_page_test
+   - ./storage_test
+   - ./storage_readinterval_test
+   - ./storage_thread_test
+   - ./utils_test
 
 
 after_success:

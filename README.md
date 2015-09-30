@@ -1,5 +1,4 @@
-
-[![Coverage Status](https://coveralls.io/repos/lysevi/mdb/badge.svg?branch=master&service=github)](https://coveralls.io/github/lysevi/mdb?branch=master)
+[![Build Status](https://travis-ci.org/lysevi/mdb.svg?branch=master)](https://travis-ci.org/lysevi/mdb)
 #mdb - not key-value database
 **mdb** - is a numeric time-series database.
 

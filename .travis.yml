@@ -1,12 +1,16 @@
-build_image: shippableimages/ubuntu1404_python
+build_image: shippableimages/ubuntu1404_cpp
 language: cpp
 compiler: gcc
 
 before_install:
   - sudo apt-get update
-  - sudo apt-get install -y libboost-dev libboost-test-dev libboost-system-dev libboost-filesystem-dev libboost-log-dev libboost-program-options-dev
+  - sudo apt-get install -y libboost-dev
+  - sudo apt-get install -y libboost-test-dev
+  - sudo apt-get install -y libboost-system-dev
+  - sudo apt-get install -y libboost-filesystem-dev 
+  - sudo apt-get install -y libboost-log-dev 
+  - sudo apt-get install -y libboost-program-options-dev
   - sudo apt-get install -y cmake
-
 
 before_script:
    - cmake .

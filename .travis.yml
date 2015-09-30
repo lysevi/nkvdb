@@ -39,6 +39,6 @@ script:
 after_success:
    - cd ${TRAVIS_BUILD_DIR}
    - lcov --directory . --capture --output-file coverage.info # capture coverage info
-   - lcov --remove coverage.info 'tests/*' '/usr/*' --output-file coverage.info # filter out system and test code
+   - lcov --remove coverage.info '../tests/*' '/usr/*' '../libmdb/*' --output-file coverage.info # filter out system and test code
    - lcov --list coverage.info # debug before upload
    - coveralls-lcov --repo-token NbrjZLPmBgJ5I37YXTHTWWfVH8bHbM5NQ coverage.info # uploads to coveralls

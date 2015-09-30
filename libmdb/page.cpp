@@ -123,7 +123,9 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
     if(!readOnly){
         mdb::Page::Header hdr = Page::ReadHeader(filename);
         if (hdr.isOpen) {
-            throw MAKE_EXCEPTION("page is already openned. ");
+			std::stringstream ss;
+			ss << "page is already openned. filename=" << filename << " readOnly=" << readOnly;
+			throw MAKE_EXCEPTION(ss.str());
         }
     }
     Page_ptr result(new Page(filename));
@@ -183,9 +185,11 @@ Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
 Page::Header Page::ReadHeader(std::string filename) {
   std::ifstream istream;
   istream.open(filename, std::fstream::in);
-  if (!istream.is_open())
-	  throw MAKE_EXCEPTION("can open file.");
-
+  if (!istream.is_open()) {
+	  std::stringstream ss;
+	  ss << "can't open file. filename=" << filename;
+	  throw MAKE_EXCEPTION(ss.str());
+  }
   Header result;
   istream.read((char *)&result, sizeof(Page::Header));
   istream.close();

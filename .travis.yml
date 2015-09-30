@@ -23,11 +23,3 @@ before_script:
 
 script: 
    - make -j2
-
-after_success:
-   - ./storage_cache_test
-   - ./storage_page_test
-   - ./storage_test
-   - ./storage_readinterval_test
-   - ./storage_thread_test
-   - ./utils_test

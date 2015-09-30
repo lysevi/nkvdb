@@ -28,17 +28,21 @@ before_script:
 script: 
    - make -j2
    - cd bin
+   - ls
    - ./storage_cache_test
    - ./storage_page_test
    - ./storage_test
    - ./storage_readinterval_test
    - ./storage_thread_test
    - ./utils_test
+   - ls
 
 
 after_success:
-   - cd ${TRAVIS_BUILD_DIR}
+   - cd ${TRAVIS_BUILD_DIR}/bin
+   - ls
    - lcov --directory . --capture --output-file coverage.info # capture coverage info
    - lcov --remove coverage.info '../tests/*' '/usr/*' '../libmdb/*' --output-file coverage.info # filter out system and test code
    - lcov --list coverage.info # debug before upload
    - coveralls-lcov --repo-token NbrjZLPmBgJ5I37YXTHTWWfVH8bHbM5NQ coverage.info # uploads to coveralls
+   - ls

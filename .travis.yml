@@ -1,4 +1,3 @@
-build_image: shippableimages/ubuntu1404_cpp
 language: cpp
 compiler: g++
 

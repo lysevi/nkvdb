@@ -2,6 +2,8 @@
 
 #include "meas.h"
 #include <list>
+#include <string>
+
 namespace mdb
 {
 	const uint16_t index_file_format=1;

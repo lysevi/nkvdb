@@ -91,10 +91,10 @@ std::string PageManager::getNewPageUniqueName()const {
 		page_path.clear();
 
 		std::stringstream ss;
-		ss << std::time(nullptr) << '_' << suffix;
+		ss << std::time(nullptr) << '_' << suffix << ".page";
 		++suffix;
-		page_path.append(m_path);
-		page_path.append(ss.str() + ".page");
+		page_path /= fs::path(m_path);
+		page_path /= fs::path(ss.str());
 	}
 
 	return page_path.string();

@@ -16,7 +16,7 @@
 # Example
 ## Open, read, write
 ```C++
-#include <storage.h>
+#include <mdb.h>
 
 int main(int argc, char *argv[]) {
 	auto writes_count = 3000000;

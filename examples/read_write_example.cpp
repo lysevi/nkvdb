@@ -2,12 +2,10 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <storage.h>
-#include <logger.h>
+#include <mdb.h>
 
 const std::string storage_path = "exampleStorage";
 
-size_t pagesize = 2000000;
 bool enable_dyn_cache = false;
 size_t cache_size=mdb::defaultcacheSize;
 size_t cache_pool_size=mdb::defaultcachePoolSize;
@@ -15,11 +13,7 @@ size_t cache_pool_size=mdb::defaultcachePoolSize;
 
 int main(int argc, char *argv[]) {
  
- const uint64_t storage_size =
-      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * pagesize);
-
-  mdb::Storage::Storage_ptr ds =
-      mdb::Storage::Create(storage_path, storage_size);
+  mdb::Storage::Storage_ptr ds =  mdb::Storage::Create(storage_path);
 
   ds->enableCacheDynamicSize(enable_dyn_cache);
   ds->setPoolSize(cache_pool_size);

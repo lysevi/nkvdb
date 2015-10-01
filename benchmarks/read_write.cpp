@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <storage.h>
+#include <mdb.h>
 #include <logger.h>
 
 #include <boost/program_options.hpp>
@@ -52,15 +52,12 @@ void makeAndWrite(int mc, int ic) {
   utils::rm(storage_path);
 }
 
-void readIntervalBench(mdb::Storage::Storage_ptr ds,
-                       mdb::Time from, mdb::Time to,
-                       std::string message) {
+void readIntervalBench(mdb::Storage::Storage_ptr ds,   mdb::Time from, mdb::Time to,   std::string message) {
+
   clock_t read_t0 = clock();
   mdb::Meas::MeasList meases {};
   auto reader = ds->readInterval(from, to);
-
   reader->readAll(&meases);
-
   clock_t read_t1 = clock();
 
   logger("=> : " << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
@@ -76,7 +73,6 @@ void readIntervalBenchFltr(mdb::IdArray ids, mdb::Flag src,
   mdb::Meas::MeasList output;
   auto reader = ds->readInterval(ids, src, flag, from, to);
   reader->readAll(&output);
-
   clock_t read_t1 = clock();
 
   logger("=> :" << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);

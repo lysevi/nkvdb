@@ -16,58 +16,58 @@
 #include <chrono>
 #include <thread>
 
-using namespace mdb;
+using namespace nkvdb;
 
 BOOST_AUTO_TEST_CASE(MeasEmpty) {
-  mdb::Meas pm = mdb::Meas::empty();
+  nkvdb::Meas pm = nkvdb::Meas::empty();
 
-  BOOST_CHECK_EQUAL(pm.value, mdb::Value(0));
-  BOOST_CHECK_EQUAL(pm.flag, mdb::Flag(0));
-  BOOST_CHECK_EQUAL(pm.id, mdb::Id(0));
-  BOOST_CHECK_EQUAL(pm.source, mdb::Flag(0));
-  BOOST_CHECK_EQUAL(pm.time, mdb::Time(0));
+  BOOST_CHECK_EQUAL(pm.value, nkvdb::Value(0));
+  BOOST_CHECK_EQUAL(pm.flag, nkvdb::Flag(0));
+  BOOST_CHECK_EQUAL(pm.id, nkvdb::Id(0));
+  BOOST_CHECK_EQUAL(pm.source, nkvdb::Flag(0));
+  BOOST_CHECK_EQUAL(pm.time, nkvdb::Time(0));
 }
 
 BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
   {
     {
-      mdb::Storage::Storage_ptr ds = mdb::Storage::Create(mdb_test::storage_path);
-      BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
-      BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
+      nkvdb::Storage::Storage_ptr ds = nkvdb::Storage::Create(nkvdb_test::storage_path);
+      BOOST_CHECK(boost::filesystem::exists(nkvdb_test::storage_path));
+      BOOST_CHECK(boost::filesystem::is_directory(nkvdb_test::storage_path));
 
-      std::list<boost::filesystem::path> pages = utils::ls(mdb_test::storage_path);
+      std::list<boost::filesystem::path> pages = utils::ls(nkvdb_test::storage_path);
       BOOST_CHECK_EQUAL(pages.size(), (size_t)2);
       ds->Close();
 
-      ds = mdb::Storage::Create(mdb_test::storage_path);
-      BOOST_CHECK(boost::filesystem::exists(mdb_test::storage_path));
-      BOOST_CHECK(boost::filesystem::is_directory(mdb_test::storage_path));
-      pages = utils::ls(mdb_test::storage_path);
+      ds = nkvdb::Storage::Create(nkvdb_test::storage_path);
+      BOOST_CHECK(boost::filesystem::exists(nkvdb_test::storage_path));
+      BOOST_CHECK(boost::filesystem::is_directory(nkvdb_test::storage_path));
+      pages = utils::ls(nkvdb_test::storage_path);
       BOOST_CHECK_EQUAL(pages.size(), (size_t)2);
       ds->Close();
     }
     {
-      mdb::Storage::Storage_ptr ds =  mdb::Storage::Open(mdb_test::storage_path);
+      nkvdb::Storage::Storage_ptr ds =  nkvdb::Storage::Open(nkvdb_test::storage_path);
       ds=nullptr;
     }
   }
-  utils::rm(mdb_test::storage_path);
+  utils::rm(nkvdb_test::storage_path);
 }
 
 BOOST_AUTO_TEST_CASE(StorageIO) {
   const int meas2write = 10;
   const int write_iteration = 10;
-  const uint64_t storage_size = sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
-  const std::string storage_path = mdb_test::storage_path + "storageIO";
+  const uint64_t storage_size = sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+  const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
 
   {
-    mdb::Storage::Storage_ptr ds =
-        mdb::Storage::Create(storage_path, storage_size);
+    nkvdb::Storage::Storage_ptr ds =
+        nkvdb::Storage::Create(storage_path, storage_size);
 
-    mdb::Meas meas = mdb::Meas::empty();
-    mdb::Time end_it = (meas2write * write_iteration);
-    for (mdb::Time i = 0; i < end_it; ++i) {
+    nkvdb::Meas meas = nkvdb::Meas::empty();
+    nkvdb::Time end_it = (meas2write * write_iteration);
+    for (nkvdb::Time i = 0; i < end_it; ++i) {
       meas.value = i;
       meas.id = i;
       meas.source = meas.flag = i % meas2write;
@@ -79,10 +79,10 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       reader->readAll(&meases);
 
 
-      for (mdb::Time j = 0; j < i; ++j) {
+      for (nkvdb::Time j = 0; j < i; ++j) {
         bool isExists = false;
-        for (mdb::Meas m : meases) {
-          if (m.id == static_cast<mdb::Id>(j)) {
+        for (nkvdb::Meas m : meases) {
+          if (m.id == static_cast<nkvdb::Id>(j)) {
             isExists = true;
             break;
           }
@@ -96,11 +96,11 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
     BOOST_CHECK_EQUAL(pages.size(), (size_t)(write_iteration * 3));
   }
   {
-    mdb::Storage::Storage_ptr ds =
-        mdb::Storage::Open(storage_path);
+    nkvdb::Storage::Storage_ptr ds =
+        nkvdb::Storage::Open(storage_path);
 
     for (int i = 1; i < meas2write * write_iteration;i += (meas2write * write_iteration) / 100) {
-      mdb::Time to = i * ((meas2write * write_iteration) / 100);
+      nkvdb::Time to = i * ((meas2write * write_iteration) / 100);
 
       Meas::MeasList meases{};
       auto reader = ds->readInterval(0, to);
@@ -108,8 +108,8 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
       BOOST_CHECK_EQUAL(meases.size(), (size_t)(to + 1));
 
-      for (mdb::Meas m : meases) {
-        BOOST_CHECK(utils::inInterval<mdb::Time>(0, to, m.time));
+      for (nkvdb::Meas m : meases) {
+        BOOST_CHECK(utils::inInterval<nkvdb::Time>(0, to, m.time));
 
         BOOST_CHECK(m.time <= to);
       }
@@ -120,14 +120,14 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
   utils::rm(storage_path);
   
  {/// readinterval with not exists data. reading from WriteWindow.
-      mdb::Storage::Storage_ptr ds = mdb::Storage::Create(storage_path, storage_size);
+      nkvdb::Storage::Storage_ptr ds = nkvdb::Storage::Create(storage_path, storage_size);
 
-      mdb::Meas meas = mdb::Meas::empty();
-      mdb::Time end_it = (meas2write * write_iteration);
-      mdb::Time queryFrom = 20;
-      mdb::Time queryFrom2 = 22;
-      mdb::Id   Id = 1;
-      for (mdb::Time i = 0; i < end_it; ++i) {
+      nkvdb::Meas meas = nkvdb::Meas::empty();
+      nkvdb::Time end_it = (meas2write * write_iteration);
+      nkvdb::Time queryFrom = 20;
+      nkvdb::Time queryFrom2 = 22;
+      nkvdb::Id   Id = 1;
+      for (nkvdb::Time i = 0; i < end_it; ++i) {
 		  if (i == queryFrom) {
 			  Id = 2;
 			  continue;
@@ -152,20 +152,20 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 	  reader->readAll(&meases);
 
 	  // [..max] from [min]
-      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom](const mdb::Meas&m){return m.time > queryFrom; }), meases.end());
+      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom](const nkvdb::Meas&m){return m.time > queryFrom; }), meases.end());
 	  
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
-      BOOST_CHECK_EQUAL(meases.front().id, mdb::Id(1));
+      BOOST_CHECK_EQUAL(meases.front().id, nkvdb::Id(1));
 
 	  // [..max] [min..from]
       meases.clear();
 	  reader = ds->readInterval(IdArray{1,2},0,0,queryFrom2, end_it);
       reader->readAll(&meases);
 
-      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom2](const mdb::Meas&m){return m.time > queryFrom2; }), meases.end());
+      meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom2](const nkvdb::Meas&m){return m.time > queryFrom2; }), meases.end());
 	  
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
-      BOOST_CHECK_EQUAL(meases.front().id, mdb::Id(1));
+      BOOST_CHECK_EQUAL(meases.front().id, nkvdb::Id(1));
 
 	  ds->Close();
 	  utils::rm(storage_path);
@@ -176,15 +176,15 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
   const int meas2write = 10;
   const size_t write_iteration = 10;
   const uint64_t storage_size =
-      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
-  const std::string storage_path = mdb_test::storage_path + "storageIO";
+      sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+  const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
   {
-    mdb::Storage::Storage_ptr ds =
-        mdb::Storage::Create(storage_path, storage_size);
+    nkvdb::Storage::Storage_ptr ds =
+        nkvdb::Storage::Create(storage_path, storage_size);
 
     size_t arr_size = meas2write * write_iteration;
-    mdb::Meas::PMeas array = new mdb::Meas[arr_size];
+    nkvdb::Meas::PMeas array = new nkvdb::Meas[arr_size];
     for (size_t i = 0; i < arr_size; ++i) {
       array[i].id = i;
       array[i].time = i;
@@ -198,7 +198,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {
-      BOOST_CHECK(utils::inInterval<mdb::Time>(0, arr_size, m.time));
+      BOOST_CHECK(utils::inInterval<nkvdb::Time>(0, arr_size, m.time));
     }
 
     for (size_t i = 0; i < arr_size; ++i) {
@@ -223,20 +223,20 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
   const int meas2write = 10;
   const int write_iteration = 10;
   const uint64_t storage_size =
-      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
-  const std::string storage_path = mdb_test::storage_path + "storageIO";
+      sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+  const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
   {
-    mdb::Storage::Storage_ptr ds =
-        mdb::Storage::Create(storage_path, storage_size);
+    nkvdb::Storage::Storage_ptr ds =
+        nkvdb::Storage::Create(storage_path, storage_size);
 
-    ds->setPastTime(mdb::TimeWork::fromDuration(std::chrono::seconds(2)));
+    ds->setPastTime(nkvdb::TimeWork::fromDuration(std::chrono::seconds(2)));
 
     size_t arr_size = meas2write * write_iteration;
 
-    mdb::Meas::PMeas array = new mdb::Meas[arr_size];
+    nkvdb::Meas::PMeas array = new nkvdb::Meas[arr_size];
 
-    auto cur_utc_time=mdb::TimeWork::CurrentUtcTime();
+    auto cur_utc_time=nkvdb::TimeWork::CurrentUtcTime();
     for (size_t i = 0; i < arr_size; ++i) {
       array[i].id = i;
       array[i].time = cur_utc_time;
@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
     BOOST_CHECK_EQUAL(interval.size(), arr_size);
     for (auto m : interval) {
-      BOOST_CHECK(utils::inInterval<mdb::Time>(array[0].time, array[arr_size - 1].time, m.time));
+      BOOST_CHECK(utils::inInterval<nkvdb::Time>(array[0].time, array[arr_size - 1].time, m.time));
     }
 
     for (size_t i = 0; i < arr_size; ++i) {
@@ -277,7 +277,7 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
 
 
 BOOST_AUTO_TEST_CASE(StorageCurvalues) {
-    auto test_storage = [](IdArray query, std::map<mdb::Id, mdb::Meas> id2meas, mdb::Storage::Storage_ptr ds){
+    auto test_storage = [](IdArray query, std::map<nkvdb::Id, nkvdb::Meas> id2meas, nkvdb::Storage::Storage_ptr ds){
 		auto curValues = ds->curValues(query);
 		BOOST_CHECK_EQUAL(curValues.size(), id2meas.size());
 		for (auto v : curValues) {
@@ -293,20 +293,20 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
     const int meas2write = 10;
 	const size_t write_iteration = 10;
 	const uint64_t storage_size =
-        sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
-	const std::string storage_path = mdb_test::storage_path + "storageIO";
+        sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+	const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 	
-    std::map<mdb::Id, mdb::Meas> id2meas;
+    std::map<nkvdb::Id, nkvdb::Meas> id2meas;
 	IdArray query{};
 	{
 		{
-            mdb::Storage::Storage_ptr ds =	mdb::Storage::Create(storage_path, storage_size);
+            nkvdb::Storage::Storage_ptr ds =	nkvdb::Storage::Create(storage_path, storage_size);
 
 			size_t arr_size = meas2write * write_iteration;
 
 			
 
-            mdb::Meas::PMeas array = new mdb::Meas[arr_size];
+            nkvdb::Meas::PMeas array = new nkvdb::Meas[arr_size];
 			for (size_t i = 0; i < arr_size; ++i) {
 				array[i].id = i%meas2write;
 				array[i].time = i;
@@ -326,14 +326,14 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 			test_storage(query, id2meas, ds);
 		}
 		{
-            mdb::Storage::Storage_ptr ds =	mdb::Storage::Open(storage_path);
+            nkvdb::Storage::Storage_ptr ds =	nkvdb::Storage::Open(storage_path);
 			ds->loadCurValues(query);
 			test_storage(query, id2meas, ds);
 		}
 	}
     {
         /// check query with not found result
-        mdb::Storage::Storage_ptr ds =	mdb::Storage::Open(storage_path);
+        nkvdb::Storage::Storage_ptr ds =	nkvdb::Storage::Open(storage_path);
         IdArray query={0,1,meas2write+2,meas2write+3};
         auto notFound=ds->loadCurValues(query);
         BOOST_CHECK_EQUAL(notFound.size(),size_t(2));
@@ -346,15 +346,15 @@ BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
     const int meas2write = 10;
     const size_t write_iteration = 10;
     const uint64_t storage_size =
-            sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
-    const std::string storage_path = mdb_test::storage_path + "storageIO";
+            sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+    const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
     {
-        mdb::Storage::Storage_ptr ds =
-                mdb::Storage::Create(storage_path, storage_size);
+        nkvdb::Storage::Storage_ptr ds =
+                nkvdb::Storage::Create(storage_path, storage_size);
 
         size_t arr_size = meas2write * write_iteration;
-        mdb::Meas::PMeas array = new mdb::Meas[arr_size];
+        nkvdb::Meas::PMeas array = new nkvdb::Meas[arr_size];
         for (size_t i = 0; i < arr_size; ++i) {
             array[i].id = i;
             array[i].time = i;

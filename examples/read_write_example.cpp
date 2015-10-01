@@ -2,18 +2,18 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <mdb.h>
+#include <nkvdb.h>
 
 const std::string storage_path = "exampleStorage";
 
 bool enable_dyn_cache = false;
-size_t cache_size=mdb::defaultcacheSize;
-size_t cache_pool_size=mdb::defaultcachePoolSize;
+size_t cache_size=nkvdb::defaultcacheSize;
+size_t cache_pool_size=nkvdb::defaultcachePoolSize;
 
 
 int main(int argc, char *argv[]) {
  
-  mdb::Storage::Storage_ptr ds =  mdb::Storage::Create(storage_path);
+  nkvdb::Storage::Storage_ptr ds =  nkvdb::Storage::Create(storage_path);
 
   ds->enableCacheDynamicSize(enable_dyn_cache);
   ds->setPoolSize(cache_pool_size);
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
   std::cout << "write " << writes_count << " values..." << std::endl;
 
   clock_t write_t0 = clock();
-  mdb::Meas meas = mdb::Meas::empty();
+  nkvdb::Meas meas = nkvdb::Meas::empty();
 
   for (int i = 0; i < 3000000; ++i) {
     meas.value = i;
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
   clock_t read_t0 = clock();
 
-  mdb::Meas::MeasList output;
+  nkvdb::Meas::MeasList output;
   auto reader = ds->readInterval(3, 30);
   
   reader->readAll(&output);

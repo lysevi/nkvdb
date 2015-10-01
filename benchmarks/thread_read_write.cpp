@@ -21,9 +21,9 @@ size_t read_iteration_count=10;
 bool verbose = false;
 bool dont_remove = false;
 bool enable_dyn_cache = false;
-size_t cache_size = mdb::defaultcacheSize;
-size_t cache_pool_size = mdb::defaultcachePoolSize;
-mdb::Storage::Storage_ptr ds = nullptr;
+size_t cache_size = nkvdb::defaultcacheSize;
+size_t cache_pool_size = nkvdb::defaultcachePoolSize;
+nkvdb::Storage::Storage_ptr ds = nullptr;
 
 std::atomic_long append_count{ 0 };
 std::atomic_long reads_count{ 0 };
@@ -33,9 +33,9 @@ void makeStorage() {
 	logger("makeStorage mc:" << meas2write << " dyn_cache: " << (enable_dyn_cache ? "true" : "false"));
 
 	const uint64_t storage_size =
-        sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * pagesize);
+        sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * pagesize);
 
-    ds = mdb::Storage::Create(storage_path, storage_size);
+    ds = nkvdb::Storage::Create(storage_path, storage_size);
 
 	ds->enableCacheDynamicSize(enable_dyn_cache);
 	ds->setPoolSize(cache_pool_size);
@@ -43,7 +43,7 @@ void makeStorage() {
 }
 
 void writer(int writeCount) {
-    mdb::Meas meas = mdb::Meas::empty();
+    nkvdb::Meas meas = nkvdb::Meas::empty();
 
 	for (int i = 0; i < writeCount; ++i) {
         meas.value = i % meas2write;
@@ -56,12 +56,12 @@ void writer(int writeCount) {
 	}
 }
 
-void reader(int num,mdb::Time from, mdb::Time to) {
+void reader(int num,nkvdb::Time from, nkvdb::Time to) {
     auto read_window = (to - from) / read_iteration_count;
 
 	for (size_t i = 0; i < read_iteration_count; i++) {
 		auto reader = ds->readInterval(read_window*(i+1), read_window*(i+2));
-        mdb::Meas::MeasList output;
+        nkvdb::Meas::MeasList output;
 		reader->readAll(&output);
 		reads_count++;
 	}

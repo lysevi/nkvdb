@@ -1,3 +1,3 @@
 #include "test_common.h"
 
-namespace mdb_test {}
+namespace nkvdb_test {}

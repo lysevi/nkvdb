@@ -1,14 +1,14 @@
 #include "writewindow.h"
 
-using namespace mdb;
+using namespace nkvdb;
 
-WriteWindow::WriteWindow(const size_t &size): std::vector<mdb::Meas>(size) {
+WriteWindow::WriteWindow(const size_t &size): std::vector<nkvdb::Meas>(size) {
 }
 
-WriteWindow::WriteWindow(const WriteWindow& other) : std::vector<mdb::Meas>(other) {
+WriteWindow::WriteWindow(const WriteWindow& other) : std::vector<nkvdb::Meas>(other) {
 }
 
-WriteWindow::WriteWindow(WriteWindow::const_iterator begin, WriteWindow::const_iterator end) : std::vector<mdb::Meas>(begin,end) {
+WriteWindow::WriteWindow(WriteWindow::const_iterator begin, WriteWindow::const_iterator end) : std::vector<nkvdb::Meas>(begin,end) {
 }
 
 void WriteWindow::operator= (const WriteWindow& other) {

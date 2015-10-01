@@ -6,13 +6,13 @@
 #include <ctime>
 #include <set>
 
-namespace mdb {
+namespace nkvdb {
 typedef uint64_t Time;
 typedef uint64_t Id;
 typedef uint64_t Flag;
 typedef uint64_t Value;
 typedef std::vector<Id> IdArray;
-typedef std::set<mdb::Id> IdSet;
+typedef std::set<nkvdb::Id> IdSet;
 
 struct Meas {
   typedef Meas *PMeas;

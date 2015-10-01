@@ -2,7 +2,7 @@
 #include <vector>
 #include "meas.h"
 
-namespace mdb
+namespace nkvdb
 {
 	class WriteWindow:public std::vector<Meas>
 	{

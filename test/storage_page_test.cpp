@@ -12,19 +12,19 @@
 
 #include <iterator>
 #include <list>
-using namespace mdb;
+using namespace nkvdb;
 
 BOOST_AUTO_TEST_CASE(PageCreateOpen) {
   {
     Page::Page_ptr created =
-        Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+        Page::Create(nkvdb_test::test_page_name, nkvdb_test::sizeInMb10);
     BOOST_CHECK(!created->isFull());
     created->close();
   }
  {
-    Page::Page_ptr openned = Page::Open(mdb_test::test_page_name);
+    Page::Page_ptr openned = Page::Open(nkvdb_test::test_page_name);
 
-    BOOST_CHECK_EQUAL(openned->size(), mdb_test::sizeInMb10);
+    BOOST_CHECK_EQUAL(openned->size(), nkvdb_test::sizeInMb10);
     BOOST_CHECK(!openned->isFull());
     openned->close();
   }
@@ -32,14 +32,14 @@ BOOST_AUTO_TEST_CASE(PageCreateOpen) {
 
 BOOST_AUTO_TEST_CASE(PageOpenTwice) {
   
-	Page::Page_ptr created =  Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+	Page::Page_ptr created =  Page::Create(nkvdb_test::test_page_name, nkvdb_test::sizeInMb10);
     BOOST_CHECK(!created->isFull());
 	created->close();
   
   {
-    Page::Page_ptr openned = Page::Open(mdb_test::test_page_name);
+    Page::Page_ptr openned = Page::Open(nkvdb_test::test_page_name);
 
-    BOOST_CHECK_THROW(Page::Open(mdb_test::test_page_name), utils::Exception);
+    BOOST_CHECK_THROW(Page::Open(nkvdb_test::test_page_name), utils::Exception);
 
     openned->close();
   }
@@ -51,15 +51,15 @@ BOOST_AUTO_TEST_CASE(PageIO) {
   std::string index = "";
   {
     {
-      Page::Page_ptr storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+      Page::Page_ptr storage = Page::Create(nkvdb_test::test_page_name, nkvdb_test::sizeInMb10);
       storage->close();
     }
-    const mdb::Flag flagValue = 1;
-    const mdb::Flag srcValue = 2;
+    const nkvdb::Flag flagValue = 1;
+    const nkvdb::Flag srcValue = 2;
 
     for (size_t i = 0; i < TestableMeasCount; ++i) {
-      Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
-      auto newMeas = mdb::Meas::empty();
+      Page::Page_ptr storage = Page::Open(nkvdb_test::test_page_name);
+      auto newMeas = nkvdb::Meas::empty();
       newMeas.value = i;
       newMeas.id = i;
       newMeas.flag = flagValue;
@@ -69,12 +69,12 @@ BOOST_AUTO_TEST_CASE(PageIO) {
       storage->close();
     }
 
-    Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
+    Page::Page_ptr storage = Page::Open(nkvdb_test::test_page_name);
 
-    BOOST_CHECK_EQUAL(storage->minTime(), mdb::Time(0));
-    BOOST_CHECK_EQUAL(storage->maxTime(), static_cast<mdb::Time>(TestableMeasCount - 1));
+    BOOST_CHECK_EQUAL(storage->minTime(), nkvdb::Time(0));
+    BOOST_CHECK_EQUAL(storage->maxTime(), static_cast<nkvdb::Time>(TestableMeasCount - 1));
 
-    auto newMeas = mdb::Meas::empty();
+    auto newMeas = nkvdb::Meas::empty();
     for (size_t i = 0; i < TestableMeasCount; ++i) {
       bool readState = storage->read(&newMeas, i);
 
@@ -84,29 +84,29 @@ BOOST_AUTO_TEST_CASE(PageIO) {
       BOOST_CHECK_EQUAL(newMeas.flag, flagValue);
       BOOST_CHECK_EQUAL(newMeas.source, srcValue);
 
-      BOOST_CHECK_EQUAL(newMeas.time, (mdb::Time)i);
+      BOOST_CHECK_EQUAL(newMeas.time, (nkvdb::Time)i);
     }
     BOOST_CHECK(!storage->isFull());
 
     auto hdr = storage->getHeader();
-    BOOST_CHECK_EQUAL(hdr.maxTime, (mdb::Time)TestableMeasCount - 1);
-    BOOST_CHECK_EQUAL(hdr.minTime, mdb::Time(0));
+    BOOST_CHECK_EQUAL(hdr.maxTime, (nkvdb::Time)TestableMeasCount - 1);
+    BOOST_CHECK_EQUAL(hdr.minTime, nkvdb::Time(0));
     BOOST_CHECK_EQUAL(hdr.size, storage->size());
     index = storage->index_fileName();
     storage->close();
   }
 
-  utils::rm(mdb_test::test_page_name);
+  utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
 }
 
 BOOST_AUTO_TEST_CASE(Capacity) {
   const size_t pageSize =
-      sizeof(mdb::Page::Header) + sizeof(mdb::Meas) * 10;
-  Page::Page_ptr page = Page::Create(mdb_test::test_page_name, pageSize);
+      sizeof(nkvdb::Page::Header) + sizeof(nkvdb::Meas) * 10;
+  Page::Page_ptr page = Page::Create(nkvdb_test::test_page_name, pageSize);
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)10);
 
-  auto newMeas = mdb::Meas::empty();
+  auto newMeas = nkvdb::Meas::empty();
   page->append(newMeas);
 
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)9);
@@ -116,17 +116,17 @@ BOOST_AUTO_TEST_CASE(Capacity) {
   auto index = page->index_fileName();
   page->close();
 
-  utils::rm(mdb_test::test_page_name);
+  utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
 }
 
 BOOST_AUTO_TEST_CASE(AppendMany) {
   const size_t pageSize =
-      sizeof(mdb::Page::Header) + sizeof(mdb::Meas) * 10;
-  Page::Page_ptr page = Page::Create(mdb_test::test_page_name, pageSize);
+      sizeof(nkvdb::Page::Header) + sizeof(nkvdb::Meas) * 10;
+  Page::Page_ptr page = Page::Create(nkvdb_test::test_page_name, pageSize);
 
   size_t arr_size = 15;
-  mdb::Meas::PMeas array = new mdb::Meas[arr_size];
+  nkvdb::Meas::PMeas array = new nkvdb::Meas[arr_size];
   for (size_t i = 0; i < arr_size; ++i) {
     array[i].id = i;
     array[i].time = i;
@@ -136,16 +136,16 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
   BOOST_CHECK_EQUAL(writed, (size_t)10);
 
   for (size_t i = 0; i < writed; ++i) {
-    mdb::Meas readed;
+    nkvdb::Meas readed;
     page->read(&readed, i);
     BOOST_CHECK_EQUAL(readed.id, i);
   }
 
-  BOOST_CHECK_EQUAL(page->minTime(), mdb::Time(0));
-  BOOST_CHECK_EQUAL(page->maxTime(), (mdb::Time)writed-1);
+  BOOST_CHECK_EQUAL(page->minTime(), nkvdb::Time(0));
+  BOOST_CHECK_EQUAL(page->maxTime(), (nkvdb::Time)writed-1);
   auto index = page->index_fileName();
   page->close();
-  utils::rm(mdb_test::test_page_name);
+  utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
 }
 
@@ -154,18 +154,18 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
   std::string index = "";
   {
     {
-      Page::Page_ptr storage = Page::Create(mdb_test::test_page_name, mdb_test::sizeInMb10);
+      Page::Page_ptr storage = Page::Create(nkvdb_test::test_page_name, nkvdb_test::sizeInMb10);
       storage->close();
     }
 
-    Page::Page_ptr storage = Page::Open(mdb_test::test_page_name);
+    Page::Page_ptr storage = Page::Open(nkvdb_test::test_page_name);
     for (int i = 0; i < TestableMeasCount; ++i) {
 
-      auto newMeas = mdb::Meas::empty();
+      auto newMeas = nkvdb::Meas::empty();
       newMeas.value = i;
       newMeas.id = i % 10;
-      newMeas.flag = (mdb::Flag)(i % 5);
-      newMeas.source = (mdb::Flag)(i % 5);
+      newMeas.flag = (nkvdb::Flag)(i % 5);
+      newMeas.source = (nkvdb::Flag)(i % 5);
       newMeas.time = i;
       storage->append(newMeas);
     }
@@ -215,6 +215,6 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
     storage->close();
   }
 
-  utils::rm(mdb_test::test_page_name);
+  utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
 }

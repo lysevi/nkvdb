@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mdb
+namespace nkvdb
 {
 	struct append_result
 	{

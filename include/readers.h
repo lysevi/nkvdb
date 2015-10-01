@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mdb{
+namespace nkvdb{
 
 class PageReaderInterval:public PageReader
 {

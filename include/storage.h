@@ -8,7 +8,7 @@
 #include "cache.h"
 #include "asyncworker.h"
 
-namespace mdb {
+namespace nkvdb {
 
 const uint64_t defaultPageSize = sizeof(Page::Header) + sizeof(Meas) * 1000000;
 const size_t defaultcacheSize = 10000;
@@ -22,7 +22,7 @@ class Storage;
 class AsyncWriter : public utils::AsyncWorker<Cache::PCache> {
 public:
   AsyncWriter();
-  void setStorage(Storage *mdb);
+  void setStorage(Storage *nkvdb);
   void call(const Cache::PCache data) override;
 
 private:
@@ -30,7 +30,7 @@ private:
 };
 
 /**
-* Main class of mdb storage.
+* Main class of nkvdb storage.
 */
 class Storage {
 public:
@@ -47,11 +47,11 @@ public:
     append_result append(const Meas::PMeas begin, const size_t meas_count);
 
     StorageReader_ptr readInterval(Time from, Time to);
-    StorageReader_ptr readInterval(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time from, Time to);
+    StorageReader_ptr readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to);
     Meas::MeasList curValues(const IdArray&ids);
 
     StorageReader_ptr readInTimePoint(Time time_point);
-    StorageReader_ptr readInTimePoint(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time time_point);
+    StorageReader_ptr readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point);
 
     /// get max time in past to write
     Time pastTime() const;
@@ -77,13 +77,13 @@ protected:
     std::string m_path;
 
     std::mutex m_write_mutex;
-    mdb::Cache::PCache m_cache;
+    nkvdb::Cache::PCache m_cache;
     AsyncWriter m_cache_writer;
     CachePool m_cache_pool;
     CurValuesCache m_cur_values;
     Time m_past_time;
     bool m_closed;
-    friend class mdb::Cache;
+    friend class nkvdb::Cache;
 };
 
 class StorageReader: public utils::NonCopy{
@@ -95,11 +95,11 @@ public:
     void addPage(std::string page_name);
 
     IdArray ids;
-    mdb::Flag source;
-    mdb::Flag flag;
-    mdb::Time from;
-    mdb::Time to;
-    mdb::Time time_point;
+    nkvdb::Flag source;
+    nkvdb::Flag flag;
+    nkvdb::Time from;
+    nkvdb::Time to;
+    nkvdb::Time time_point;
     std::string prev_interval_page;
 private:
     std::deque<std::string> m_pages;

@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/lysevi/mdb.svg?branch=master)](https://travis-ci.org/lysevi/mdb)
+[![Build Status](https://travis-ci.org/lysevi/nkvdb.svg?branch=master)](https://travis-ci.org/lysevi/nkvdb)
 
-#mdb - not key-value database
-**mdb** - is a numeric time-series database.
+#nkvdb - not key-value database
+**nkvdb** - is a numeric time-series database.
 
 # Features
 * High write speed(1.5 - 2.5 millions values per second)
@@ -16,12 +16,12 @@
 # Example
 ## Open, read, write
 ```C++
-#include <mdb.h>
+#include <nkvdb.h>
 
 int main(int argc, char *argv[]) {
 	auto writes_count = 3000000;
 	{
-		auto ds = mdb::Storage::Create("path/to/storage");
+		auto ds = nkvdb::Storage::Create("path/to/storage");
 
 		mdb::Meas meas = mdb::Meas::empty();
 
@@ -36,9 +36,9 @@ int main(int argc, char *argv[]) {
 		ds->Close();
 	}
 	{
-		auto ds = mdb::Storage::Open("path/to/storage");
+		auto ds = nkvdb::Storage::Open("path/to/storage");
 		//reading
-		mdb::Meas::MeasList output;
+		nkvdb::Meas::MeasList output;
 		auto reader = ds->readInterval(0, writes_count);
 
 		// or just call reader->readAll(&output);

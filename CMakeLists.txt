@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 2.8)
-project (mdb)
+project (nkvdb)
 
-set(MDB_MAJOR_VERSION 0)
-set(MDB_MINOR_VERSION 1)
-set(MDB_PATCH_VERSION 1)
-set(MDB_VERSION${MDB_MAJOR_VERSION}.${MDB_MINOR_VERSION}.${MDB_PATCH_VERSION})
+set(nkvdb_MAJOR_VERSION 0)
+set(nkvdb_MINOR_VERSION 1)
+set(nkvdb_PATCH_VERSION 1)
+set(nkvdb_VERSION${nkvdb_MAJOR_VERSION}.${nkvdb_MINOR_VERSION}.${nkvdb_PATCH_VERSION})
 
 # Offer the user the choice of overriding the installation directories
 set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
@@ -14,17 +14,18 @@ set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header fi
 if(WIN32 AND NOT CYGWIN)
   set(DEF_INSTALL_CMAKE_DIR CMake)
 else()
-  set(DEF_INSTALL_CMAKE_DIR lib/CMake/MDB)
+  set(DEF_INSTALL_CMAKE_DIR lib/CMake/nkvdb)
 endif()
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
   
-  # Make relative paths absolute (needed later on)
+# Make relative paths absolute (needed later on)
 foreach(p LIB BIN INCLUDE CMAKE)
   set(var INSTALL_${p}_DIR)
   if(NOT IS_ABSOLUTE "${${var}}")
     set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
   endif()
 endforeach()
+
 set(Boost_USE_STATIC_LIBS        OFF)
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME     OFF)
@@ -44,23 +45,7 @@ IF(WIN32)
   else(MSVC)
         find_package(Boost 1.57.0 REQUIRED unit_test_framework system  filesystem program_options)
   endif(MSVC)
-
-  include (GenerateExportHeader)
-
-  macro(DEFINE_EXPORT libname)
-	GENERATE_EXPORT_HEADER(${libname}
-      BASE_NAME ${libname}
-      EXPORT_MACRO_NAME _EXPORT
-      EXPORT_FILE_NAME ${libname}_export.h
-      STATIC_DEFINE ${libname}_BUILT_AS_STATIC
-	  )
-	SET_TARGET_PROPERTIES (${libname} PROPERTIES DEFINE_SYMBOL  "COMPILING_DLL" )
-  endmacro(DEFINE_EXPORT)
-
 else(WIN32)
-  macro(DEFINE_EXPORT libname)
-  endmacro(DEFINE_EXPORT)
-
   set(BoostUSESTATIC_LIBS OFF)
   
   find_package(Boost  REQUIRED unit_test_framework system  filesystem program_options)
@@ -94,9 +79,8 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 
 enable_testing()
 
-add_subdirectory (libmdb)
+add_subdirectory (libnkvdb)
 add_subdirectory (test)
 add_subdirectory (benchmarks)
 add_subdirectory (examples)
-# add_executable (mdb main.cpp)
-# TARGET_LINK_LIBRARIES(mdb libmdb ${Boost_LIBRARIES})
+

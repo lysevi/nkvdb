@@ -11,17 +11,17 @@
 
 #include <iterator>
 #include <list>
-using namespace mdb;
+using namespace nkvdb;
 
 BOOST_AUTO_TEST_CASE(CacheIO) {
   const size_t TestableMeasCount = 10000;
   {
     const int flagValue = 1;
     const int srcValue = 2;
-    mdb::Cache c(TestableMeasCount - 1);
+    nkvdb::Cache c(TestableMeasCount - 1);
 
     for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
-      auto newMeas = mdb::Meas::empty();
+      auto newMeas = nkvdb::Meas::empty();
       newMeas.value = i;
       newMeas.id = i;
       newMeas.flag = flagValue;
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
       auto wrt_res = c.append(newMeas, 0);
       BOOST_CHECK_EQUAL(wrt_res.writed, size_t(1));
     }
-    auto newMeas = mdb::Meas::empty();
+    auto newMeas = nkvdb::Meas::empty();
     auto wrt_res = c.append(newMeas, 0);
 
     BOOST_CHECK_EQUAL(wrt_res.writed, size_t(0));
@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
     BOOST_CHECK_EQUAL(interval.size(), TestableMeasCount - 1);
     for (auto m : interval) {
       BOOST_CHECK(
-          utils::inInterval<mdb::Time>(0, TestableMeasCount - 1, m.time));
+          utils::inInterval<nkvdb::Time>(0, TestableMeasCount - 1, m.time));
     }
 
     for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 BOOST_AUTO_TEST_CASE(CacheResize) {
   const int TestableMeasCount = 10000;
   {
-    mdb::Cache c(TestableMeasCount - 1);
+    nkvdb::Cache c(TestableMeasCount - 1);
 
     c.setSize(10);
     BOOST_CHECK_EQUAL(c.size(), size_t(10));
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(CacheResize) {
 }
 
 BOOST_AUTO_TEST_CASE(CachePoolChecks) {
-  mdb::CachePool pool(2, 100);
+  nkvdb::CachePool pool(2, 100);
 
   BOOST_CHECK(pool.haveCache());
 

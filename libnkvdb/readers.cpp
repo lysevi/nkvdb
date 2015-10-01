@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-using namespace mdb;
+using namespace nkvdb;
 
 PageReaderInterval::PageReaderInterval(Page::Page_ptr page):PageReader(page),
     from(0),
@@ -70,7 +70,7 @@ void PageReaderInterval::readNext(Meas::MeasList*output){
         if(i==m_cur_pos_end){
             break;
         }
-        mdb::Meas readedValue;
+        nkvdb::Meas readedValue;
         if (!m_page->read(&readedValue, i)) {
             std::stringstream ss;
             ss << "PageReader::readNext: "

@@ -3,13 +3,13 @@
 #include "meas.h"
 #include <chrono>
 
-namespace mdb {
+namespace nkvdb {
 namespace TimeWork {
 
-    mdb::Time CurrentUtcTime();
+    nkvdb::Time CurrentUtcTime();
 
     template <class Duration>
-    mdb::Time fromDuration(Duration d){
+    nkvdb::Time fromDuration(Duration d){
         return std::chrono::duration_cast<std::chrono::nanoseconds>(d).count();
     }
 }

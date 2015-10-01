@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-using namespace mdb;
+using namespace nkvdb;
 
 Cache::Cache(size_t size): m_max_size(size), m_size(0), m_index(0), m_sync(false),m_ds(nullptr) {
   m_meases = new Meas[size];
@@ -216,11 +216,11 @@ size_t CachePool::getPoolSize()const{
 CurValuesCache::CurValuesCache() :m_values() {
 }
 
-void CurValuesCache::writeValue(const mdb::Meas&v) {
+void CurValuesCache::writeValue(const nkvdb::Meas&v) {
 	this->m_values.insert(std::make_pair(v.id, v));
 }
 
-mdb::Meas::MeasList CurValuesCache::readValue(const mdb::IdArray&ids)const {
+nkvdb::Meas::MeasList CurValuesCache::readValue(const nkvdb::IdArray&ids)const {
 	Meas::MeasList result;
 	for (auto id : ids) {
 		auto it = m_values.find(id);

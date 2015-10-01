@@ -11,10 +11,10 @@
 
 namespace fs = boost::filesystem;
 
-using namespace mdb;
+using namespace nkvdb;
 
 struct MeasCmpByTime {
-  bool operator()(mdb::Meas a, mdb::Meas b) { return a.time < b.time; }
+  bool operator()(nkvdb::Meas a, nkvdb::Meas b) { return a.time < b.time; }
 };
 
 
@@ -178,7 +178,7 @@ StorageReader_ptr Storage::readInterval(Time from, Time to) {
 }
 
 StorageReader_ptr Storage::readInterval(const IdArray &ids,
-                                     mdb::Flag source, mdb::Flag flag,
+                                     nkvdb::Flag source, nkvdb::Flag flag,
                                      Time from, Time to) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
 	this->flush_and_stop();
@@ -259,7 +259,7 @@ StorageReader_ptr Storage::readInTimePoint(Time time_point) {
 	return this->readInTimePoint(IdArray{}, 0, 0, time_point);
 }
 
-StorageReader_ptr Storage::readInTimePoint(const IdArray &ids, mdb::Flag source, mdb::Flag flag, Time time_point) {
+StorageReader_ptr Storage::readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) {
 	std::lock_guard<std::mutex> guard(m_write_mutex);
 	this->flush_and_stop();
 	auto sr = new StorageReader();
@@ -330,7 +330,7 @@ IdArray Storage::loadCurValues(const IdArray&ids) {
 
 	IdSet id_set(ids.begin(), ids.end());
 
-	mdb::Page::Page_ptr page2read = mdb::Page::Open(page_time_vector.front().name, true);
+	nkvdb::Page::Page_ptr page2read = nkvdb::Page::Open(page_time_vector.front().name, true);
 	WriteWindow ww = page2read->getWriteWindow();
 	for (auto m : ww) {
 		m_cur_values.writeValue(m);
@@ -425,11 +425,11 @@ void StorageReader::readNext(Meas::MeasList*output){
     if(m_current_reader==nullptr){
         auto page_name=m_pages.front();
         m_pages.pop_front();
-        mdb::Page::Page_ptr page2read = mdb::Page::Open(page_name, true);
+        nkvdb::Page::Page_ptr page2read = nkvdb::Page::Open(page_name, true);
 
         WriteWindow prev_ww{};
         if (prev_interval_page != "") {
-            mdb::Page::Page_ptr prev_page2read = mdb::Page::Open(prev_interval_page, true);
+            nkvdb::Page::Page_ptr prev_page2read = nkvdb::Page::Open(prev_interval_page, true);
             prev_ww = prev_page2read->getWriteWindow();
             prev_page2read->readComplete();
         }

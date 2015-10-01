@@ -15,16 +15,16 @@
 #include <chrono>
 #include <atomic>
 
-using namespace mdb;
+using namespace nkvdb;
 
 std::atomic<int> threads_count(0);
 const int meas2write = 10;
 const int write_iteration = 10;
 size_t arr_size = meas2write * write_iteration;
 
-void writer(mdb::Storage::Storage_ptr ds) {
+void writer(nkvdb::Storage::Storage_ptr ds) {
 	threads_count++;
-    mdb::Meas meas = mdb::Meas::empty();
+    nkvdb::Meas meas = nkvdb::Meas::empty();
 	for (size_t i = 0; i < arr_size; ++i) {
         meas.value = i;
         meas.id = i;
@@ -37,12 +37,12 @@ void writer(mdb::Storage::Storage_ptr ds) {
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 
   const uint64_t storage_size =
-      sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
-  const std::string storage_path = mdb_test::storage_path + "storageIO";
+      sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+  const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
   {
-    mdb::Storage::Storage_ptr ds =
-        mdb::Storage::Create(storage_path, storage_size);
+    nkvdb::Storage::Storage_ptr ds =
+        nkvdb::Storage::Create(storage_path, storage_size);
 
     std::thread t1(writer, ds);
     std::thread t2(writer, ds);

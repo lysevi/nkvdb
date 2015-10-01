@@ -4,7 +4,7 @@
 #include <list>
 #include <string>
 
-namespace mdb
+namespace nkvdb
 {
 	const uint16_t index_file_format=1;
     /**

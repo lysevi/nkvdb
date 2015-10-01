@@ -5,7 +5,7 @@
 #include <string>
 #include <list>
 
-namespace mdb {
+namespace nkvdb {
     /**
     * Manage of pages.
     */

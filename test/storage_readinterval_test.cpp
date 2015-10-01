@@ -16,15 +16,15 @@
 #include <chrono>
 #include <thread>
 
-using namespace mdb;
+using namespace nkvdb;
 
 BOOST_AUTO_TEST_CASE(StorageReadInterval) {
     const int meas2write = 5;
-    const uint64_t storage_size = sizeof(mdb::Page::Header) + (sizeof(mdb::Meas) * meas2write);
-    const std::string storage_path = mdb_test::storage_path + "storageIO";
-    auto ds=mdb::Storage::Create(storage_path,storage_size);
+    const uint64_t storage_size = sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+    const std::string storage_path = nkvdb_test::storage_path + "storageIO";
+    auto ds=nkvdb::Storage::Create(storage_path,storage_size);
 
-    mdb::Meas m;
+    nkvdb::Meas m;
     {
         m.id=1; m.time=1;
         ds->append(m);
@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 
 		{
 			auto tp_reader = ds->readInTimePoint(6);
-            mdb::Meas::MeasList output_in_point{};
+            nkvdb::Meas::MeasList output_in_point{};
 			tp_reader->readAll(&output_in_point);
 
 			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(5));
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 		{
 			
 			auto tp_reader = ds->readInTimePoint(3);
-            mdb::Meas::MeasList output_in_point{};
+            nkvdb::Meas::MeasList output_in_point{};
 			tp_reader->readAll(&output_in_point);
 
 			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(2));
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 			}
 		}
 		auto reader=ds->readInterval(3,5);
-        mdb::Meas::MeasList output{};
+        nkvdb::Meas::MeasList output{};
         reader->readAll(&output);
         BOOST_CHECK_EQUAL(output.size(),size_t(5));
     }
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 		{
 
 			auto tp_reader = ds->readInTimePoint(8);
-            mdb::Meas::MeasList output_in_point{};
+            nkvdb::Meas::MeasList output_in_point{};
 			tp_reader->readAll(&output_in_point);
 
 			BOOST_CHECK_EQUAL(output_in_point.size(), size_t(5));
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 		}
 
         auto reader=ds->readInterval(IdArray{1,2,4,5,55},0,0,8,10);
-        mdb::Meas::MeasList output{};
+        nkvdb::Meas::MeasList output{};
         reader->readAll(&output);
         BOOST_CHECK_EQUAL(output.size(),size_t(7));
     }
@@ -96,10 +96,10 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
 
 
 BOOST_AUTO_TEST_CASE(descendingOrder) {
-	const std::string storage_path = mdb_test::storage_path + "descendingOrder";
-	mdb::Storage::Storage_ptr ds = mdb::Storage::Create(storage_path);
+	const std::string storage_path = nkvdb_test::storage_path + "descendingOrder";
+	nkvdb::Storage::Storage_ptr ds = nkvdb::Storage::Create(storage_path);
 
-	mdb::Meas meas = mdb::Meas::empty();
+	nkvdb::Meas meas = nkvdb::Meas::empty();
 
 	for (int i = 0; i < 3000000; ++i) {
 		meas.value = i;
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(descendingOrder) {
 		ds->append(meas);
 	}
 
-	mdb::Meas::MeasList output;
+	nkvdb::Meas::MeasList output;
 	auto reader = ds->readInterval(3, 30);
 
 	reader->readAll(&output);
@@ -122,10 +122,10 @@ BOOST_AUTO_TEST_CASE(descendingOrder) {
 
 
 BOOST_AUTO_TEST_CASE(descendingOrder_backReader) {
-	const std::string storage_path = mdb_test::storage_path + "descendingOrder";
-	mdb::Storage::Storage_ptr ds = mdb::Storage::Create(storage_path);
+	const std::string storage_path = nkvdb_test::storage_path + "descendingOrder";
+	nkvdb::Storage::Storage_ptr ds = nkvdb::Storage::Create(storage_path);
 
-	mdb::Meas meas = mdb::Meas::empty();
+	nkvdb::Meas meas = nkvdb::Meas::empty();
 
 	for (int i = 0; i < 30; ++i) {
 		meas.value = i;
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(descendingOrder_backReader) {
 		ds->append(meas);
 	}
 
-	mdb::Meas::MeasList output;
+	nkvdb::Meas::MeasList output;
 	auto reader = ds->readInterval(3, 30);
 
 	reader->readAll(&output);

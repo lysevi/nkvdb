@@ -99,8 +99,6 @@ BOOST_AUTO_TEST_CASE(descendingOrder) {
 	const std::string storage_path = mdb_test::storage_path + "descendingOrder";
 	mdb::Storage::Storage_ptr ds = mdb::Storage::Create(storage_path);
 
-	auto writes_count = 3000000;
-
 	mdb::Meas meas = mdb::Meas::empty();
 
 	for (int i = 0; i < 3000000; ++i) {

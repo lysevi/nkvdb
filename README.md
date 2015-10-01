@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 	{
 		auto ds = nkvdb::Storage::Create("path/to/storage");
 
-		mdb::Meas meas = mdb::Meas::empty();
+		nkvdb::Meas meas = nkvdb::Meas::empty();
 
 		for (int i = 0; i < 3000000; ++i) {
 			meas.value = i;

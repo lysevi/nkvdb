@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 		mdb::Meas::MeasList output;
 		auto reader = ds->readInterval(0, writes_count);
 
-		// or meases->readAll(&output);
+		// or just call reader->readAll(&output);
 		while (!reader->isEnd()) {
 			reader->readNext(&output);
 		}

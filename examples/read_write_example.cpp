@@ -43,11 +43,8 @@ int main(int argc, char *argv[]) {
   mdb::Meas::MeasList output;
   auto reader = ds->readInterval(0, writes_count);
   
-  // or meases->readAll(&output);
-  while (!reader->isEnd()) {
-	  reader->readNext(&output);
-  }
-
+  reader->readAll(&output);
+  
   clock_t read_t1 = clock();
 
   std::cout<<"read time :" << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC<<std::endl;

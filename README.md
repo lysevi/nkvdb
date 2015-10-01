@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/lysevi/nkvdb.svg?branch=master)](https://travis-ci.org/lysevi/nkvdb)
 
 #nkvdb - not key-value database
+
+[![Join the chat at https://gitter.im/lysevi/nkvdb](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lysevi/nkvdb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 **nkvdb** - is a numeric time-series database.
 
 # Features

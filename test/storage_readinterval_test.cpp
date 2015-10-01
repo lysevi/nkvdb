@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(descendingOrder) {
 
 	for (int i = 0; i < 3000000; ++i) {
 		meas.value = i;
-		meas.id = i % 10;
+		meas.id = i%10;
 		meas.source = meas.flag = 0;
 		meas.time = i;
 
@@ -116,6 +116,32 @@ BOOST_AUTO_TEST_CASE(descendingOrder) {
 	reader->readAll(&output);
 	
 	BOOST_CHECK_EQUAL(output.size(), size_t(31));
+	ds->Close();
+	utils::rm(storage_path);
+}
+
+
+BOOST_AUTO_TEST_CASE(descendingOrder_backReader) {
+	const std::string storage_path = mdb_test::storage_path + "descendingOrder";
+	mdb::Storage::Storage_ptr ds = mdb::Storage::Create(storage_path);
+
+	mdb::Meas meas = mdb::Meas::empty();
+
+	for (int i = 0; i < 30; ++i) {
+		meas.value = i;
+		meas.id = 1;
+		meas.source = meas.flag = 0;
+		meas.time = i;
+
+		ds->append(meas);
+	}
+
+	mdb::Meas::MeasList output;
+	auto reader = ds->readInterval(3, 30);
+
+	reader->readAll(&output);
+
+	BOOST_CHECK_EQUAL(output.front().time, Time(2));
 	ds->Close();
 	utils::rm(storage_path);
 }

@@ -47,6 +47,7 @@ public:
     /// size in bytes
     uint64_t size;
     uint64_t WriteWindowSize;
+    uint64_t _reserved_for_future[16];
   };
 
   typedef std::shared_ptr<Page> Page_ptr;

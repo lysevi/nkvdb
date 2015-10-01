@@ -187,8 +187,8 @@ StorageReader_ptr Storage::readInterval(const IdArray &ids,
     StorageReader_ptr result(sr);
 
     this->m_cache_writer.pause_work();
-
-    auto pages = PageManager::get()->pagesByTime();
+    
+	auto pages = PageManager::get()->pagesByTime();
 	std::reverse(std::begin(pages), std::end(pages));
 
 	std::list<std::string> pages_to_read{};
@@ -381,6 +381,7 @@ void Storage::flush_and_stop() {
 		if (!m_cache_writer.isBusy()) {
 			break;
 		}
+		std::this_thread::sleep_for(std::chrono::microseconds(100));
 	}
 }
 

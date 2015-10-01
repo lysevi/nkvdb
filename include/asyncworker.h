@@ -42,14 +42,15 @@ public:
 
   /// whait, while all works done and stop thread.
   void stop() {
-    if (!stoped()) {
-      while (true) {
-        if (!isBusy()) {
-          break;
-        }
-      }
-      kill();
-    }
+	  if (!stoped()) {
+		  while (true) {
+			  std::this_thread::sleep_for(std::chrono::microseconds(100));
+			  if (!isBusy()) {
+				  break;
+			  }
+		  }
+		  kill();
+	  }
   }
 
   bool isBusy() const { return !m_data.empty(); }

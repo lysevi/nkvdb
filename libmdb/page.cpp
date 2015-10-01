@@ -482,7 +482,7 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, mdb::Flag source, mdb::Fla
 					readed_values.insert(std::make_pair(m.id, m));
 				}
 			} else {
-				if (find_res->second.time > m.time) {
+				if (find_res->second.time < m.time) {
 					readed_values[m.id] = m;
 				}
 			}

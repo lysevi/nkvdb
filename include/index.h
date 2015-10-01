@@ -31,6 +31,8 @@ namespace mdb
 		void setFileName(const std::string& fname);
 		void writeIndexRec(const IndexRecord &rec);
 		std::list<Index::IndexRecord> findInIndex(const IdArray &ids, Time from, Time to) const;
+	protected:
+		bool checkInterval(const IndexRecord&rec, Time from, Time to)const;
 	private:
 		std::string m_fname;
 	};

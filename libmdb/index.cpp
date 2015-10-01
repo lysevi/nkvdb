@@ -76,7 +76,8 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 
 			rec = i_data[pos];
 
-			if (utils::inInterval(from, to, rec.minTime) ||	utils::inInterval(from, to, rec.maxTime)) {
+			if (checkInterval(rec,from,to)) 
+			{
 				if ((!index_filter) || (utils::inInterval(minId, maxId, rec.minId) || utils::inInterval(minId, maxId, rec.maxId))) {
 					if (!first) {
 						if ((prev_value.pos + prev_value.count) == rec.pos) {
@@ -101,4 +102,11 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 	}
 
 	return result;
+}
+
+bool  Index::checkInterval(const IndexRecord&rec, Time from, Time to)const {
+	return utils::inInterval(from, to, rec.minTime)
+		|| utils::inInterval(from, to, rec.maxTime)
+		|| utils::inInterval(rec.minTime, rec.maxTime, from)
+		|| utils::inInterval(rec.minTime, rec.maxTime, from);
 }

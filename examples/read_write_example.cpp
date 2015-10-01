@@ -41,13 +41,15 @@ int main(int argc, char *argv[]) {
   clock_t read_t0 = clock();
 
   mdb::Meas::MeasList output;
-  auto reader = ds->readInterval(0, writes_count);
+  auto reader = ds->readInterval(3, 30);
   
   reader->readAll(&output);
-  
+  for (auto i = output.cbegin(); i != output.cend(); ++i) {
+	  std::cout << "got time %lu" << i->time;
+  }
   clock_t read_t1 = clock();
 
-  std::cout<<"read time :" << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC<<std::endl;
+  std::cout<<"read time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC<<std::endl;
 
   ds->Close();
 }

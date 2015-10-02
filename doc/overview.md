@@ -1,6 +1,12 @@
 #nkvdb is a not key value database.
 
 specific read model can found [here](read_model.md)
+- [Measurment](#measurment)
+- [Creating storage](#creating-storage)
+- [Openning storage](#openning-storage)
+  - [Options](#storage-options)
+- [Writing data](#writing-data)
+- [Reading](#reading)
 
 ## Measurment
 Is a struct:

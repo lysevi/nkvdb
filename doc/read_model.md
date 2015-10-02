@@ -23,7 +23,7 @@ reader->readAll(&output);
 if you execute that query
 
 ```C++
-auto reader=ds->readInTimePoint(from);
+auto reader=ds->readInTimePoint(timepoint);
 nkvdb::Meas::MeasList output;
 reader->readAll(&output);
 ```

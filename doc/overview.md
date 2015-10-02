@@ -42,7 +42,7 @@ By default cache have size equal  nkvdb::defaultcacheSize. you can change that b
 #### cache pool
 To fast write speed nkvdb have many caches (nkvdb::defaultcachePoolSize constant). To change that use method **setPoolSize**.
 ```C++
-ds->setPoolSize(cache_pool_size); 
+    ds->setPoolSize(cache_pool_size); 
 ```
 
 ## Writing data

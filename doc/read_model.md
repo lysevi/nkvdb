@@ -1,4 +1,3 @@
-# Overview
 Again. nkvdb is a not key value database. you can`t get value by key, but you
 may query data by interval. or query data in time point.
 

@@ -145,3 +145,31 @@ BOOST_AUTO_TEST_CASE(descendingOrder_backReader) {
 	ds->Close();
 	utils::rm(storage_path);
 }
+
+
+
+BOOST_AUTO_TEST_CASE(RealTimeWriterTest) {
+    const std::string storage_path = nkvdb_test::storage_path + "descendingOrder";
+    nkvdb::Storage::Storage_ptr ds = nkvdb::Storage::Create(storage_path);
+
+    nkvdb::Meas meas = nkvdb::Meas::empty();
+    time_t start=time(0);
+    size_t writes_count=1000;
+    for (size_t i = 0; i < writes_count; ++i) {
+        meas.value = i;
+        meas.id = 1;
+        meas.source = meas.flag = 0;
+        meas.time = time(0);
+
+        ds->append(meas);
+    }
+
+    nkvdb::Meas::MeasList output;
+    auto reader = ds->readInterval(start, time(0));
+
+    reader->readAll(&output);
+
+    BOOST_CHECK_EQUAL(output.size(), writes_count);
+    ds->Close();
+    utils::rm(storage_path);
+}

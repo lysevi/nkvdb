@@ -24,11 +24,12 @@ int main(int argc, char *argv[]) {
   clock_t write_t0 = clock();
   nkvdb::Meas meas = nkvdb::Meas::empty();
 
+  auto start_time=time(0);
   for (int i = 0; i < 3000000; ++i) {
     meas.value = i;
     meas.id = i % 10;
     meas.source = meas.flag = 0;
-    meas.time = i;
+    meas.time = time(0);
 
     ds->append(meas);
   }
@@ -41,12 +42,9 @@ int main(int argc, char *argv[]) {
   clock_t read_t0 = clock();
 
   nkvdb::Meas::MeasList output;
-  auto reader = ds->readInterval(3, 30);
+  auto reader = ds->readInterval(start_time, time(0));
   
   reader->readAll(&output);
-  for (auto i = output.cbegin(); i != output.cend(); ++i) {
-	  std::cout << "got time %lu" << i->time;
-  }
   clock_t read_t1 = clock();
 
   std::cout<<"read time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC<<std::endl;

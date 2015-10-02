@@ -40,7 +40,7 @@ void makeAndWrite(int mc, int ic) {
     meas.value = i % mc;
     meas.id = i % mc;
     meas.source = meas.flag = i % mc;
-    meas.time = i;
+    meas.time = time(0);
 
     ds->append(meas);
   }

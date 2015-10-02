@@ -25,8 +25,8 @@ struc Meas
     auto ds =  nkvdb::Storage::Create(storage_path);
 ```
 
-ds - is shared ptr, and if you forget call ds->Close(), that method called automaticaly.
-**if storage_path already exists, ngvdb remove storage_path and create new.**
+ds - is shared ptr, and if you forget call ds->Close(), it will be called automaticaly.
+**if storage_path already exists, ngvdb will remove storage_path and create new.**
 
 ## Openning storage
 ```C++
@@ -34,13 +34,13 @@ ds - is shared ptr, and if you forget call ds->Close(), that method called autom
 ```
 ### storage options
 #### cache size;
-By default cache have size equal  nkvdb::defaultcacheSize. you can change that by code.
+The default cache size is nkvdb::defaultcacheSize. But you can change it by this code.
 
 ```C++
     ds->setCacheSize(cache_size);
 ```
 #### cache pool
-To fast write speed nkvdb have many caches (nkvdb::defaultcachePoolSize constant). To change that use method **setPoolSize**.
+nkvdb uses cache pools for fast writing speed. The default cache pools size is nkvdb::defaultcachePoolSize). To change its size use method **setPoolSize**.
 ```C++
     ds->setPoolSize(cache_pool_size); 
 ```
@@ -72,8 +72,8 @@ To fast write speed nkvdb have many caches (nkvdb::defaultcachePoolSize constant
     reader->readAll(&output);
 ```
 ### Read time with filteration.
-That query return measurments with **id**={1,2,3}, **source**=777, **flag**=111, 
-and woth **time** from 10 to 30
+This query return measurments with **id**={1,2,3}, **source**=777, **flag**=111, 
+and with **time** from 10 to 30
 ```C++
     auto queryIds = IdArray{ 1, 2, 3 };
 
@@ -85,7 +85,7 @@ and woth **time** from 10 to 30
     reader->readAll(&output);
 ```
 ### Read value in time point
-Return all unique values (unique defines by id) from with time less than tpoint.
+Return all unique values (unique by id) from an inteval (тут надо дописать какой интервал, так должно быть понятнее) with time less than tpoint.
 ```C++
 nkvdb::Time tpoint=...
 auto reader=ds->readInTimePoint(tpoint);

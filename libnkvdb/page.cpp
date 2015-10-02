@@ -56,6 +56,7 @@ void Page::close() {
         this->flushWriteWindow();
         this->m_header->isOpen = false;
         this->m_header->ReadersCount = 0;
+		m_region->flush(0, 0, false);
         delete m_region;
         delete m_file;
         m_region=nullptr;
@@ -184,13 +185,14 @@ Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
 
 Page::Header Page::ReadHeader(std::string filename) {
   std::ifstream istream;
-  istream.open(filename, std::fstream::in);
+  istream.open(filename, std::fstream::in|std::fstream::binary);
   if (!istream.is_open()) {
 	  std::stringstream ss;
 	  ss << "can't open file. filename=" << filename;
 	  throw MAKE_EXCEPTION(ss.str());
   }
   Header result;
+  memset(&result, 0, sizeof(Header));
   istream.read((char *)&result, sizeof(Page::Header));
   istream.close();
   return result;

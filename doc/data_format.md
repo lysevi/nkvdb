@@ -3,7 +3,7 @@ storage is a set of pages. each pages represent by 3 files:
 
 ![page](images/nkvdb_format.png) 
 
-**.page** file contains measurements in order, which send to write. no sorting, no merging, no compressing.
+The **.page** file contains measurements in order of their writting. no sorting, no merging, no compressing.
 All for fast write speed.
 
 Before write to page, nkvdb store data to cache. Cache is just an array and write speed to it is very fast.
@@ -16,4 +16,4 @@ nkvdb operate page file as mapped file. nkvdb just take full cache and just writ
 And here nkvdb write to .pagei index info for future read queries.
 
 ## When page os full.
-When page is full, to .pagew file write last values for each **id**. thats do for reads data in time point and may save time for scanning pages to past.
+When the page has filled up, the .pagew file contains the very latest value of the measurement. Thats do for reads data in time point and may save time for scanning pages to past.

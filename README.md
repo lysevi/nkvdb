@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
 
 			ds->append(meas);
 		}
-		ds->Close();
 	}
 	{
 		auto ds = nkvdb::Storage::Open("path/to/storage");
@@ -46,7 +45,6 @@ int main(int argc, char *argv[]) {
 		while (!reader->isEnd()) {
 			reader->readNext(&output);
 		}
-		ds->Close();
 	}
 }
 ```

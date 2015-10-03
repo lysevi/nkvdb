@@ -48,6 +48,4 @@ int main(int argc, char *argv[]) {
   clock_t read_t1 = clock();
 
   std::cout<<"read time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC<<std::endl;
-
-  ds->Close();
 }

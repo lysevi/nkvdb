@@ -23,8 +23,7 @@ size_t cache_pool_size=nkvdb::defaultcachePoolSize;
 void makeAndWrite(int mc, int ic) {
   logger("makeAndWrite mc:" << mc << " ic:" << ic << " dyn_cache: " << (enable_dyn_cache ? "true" : "false"));
 
-  const uint64_t storage_size =
-      sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * pagesize);
+  const uint64_t storage_size = sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * pagesize);
 
   nkvdb::Storage::Storage_ptr ds =
       nkvdb::Storage::Create(storage_path, storage_size);
@@ -47,7 +46,6 @@ void makeAndWrite(int mc, int ic) {
 
   clock_t write_t1 = clock();
   logger("write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC);
-  ds->Close();
   ds = nullptr;
   utils::rm(storage_path);
 }
@@ -188,7 +186,7 @@ int main(int argc, char *argv[]) {
     readIntervalBenchFltr(nkvdb::IdArray{0}, 1, 1, ds, 6 * pagesize * 0.3,
                           7 * pagesize * 0.7,
                           "Id: {0},     src:1,  flag:1; [6.3-7.7]");
-    ds->Close();
+    ds=nullptr;
 
     if (!dont_remove)
       utils::rm(storage_path);

@@ -40,7 +40,6 @@ public:
     static Storage_ptr Create(const std::string &ds_path, uint64_t page_size = defaultPageSize);
     static Storage_ptr Open(const std::string &ds_path);
     ~Storage();
-    void Close();
 
     bool havePage2Write() const;
     append_result append(const Meas& m);
@@ -70,6 +69,7 @@ public:
     /// load current values of ids. return array of not founded measurements.
     IdArray loadCurValues(const IdArray&ids);
 private:
+    void Close();
     Storage();
     void writeCache();
     void flush_and_stop();

@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
         reader->readAll(&output);
         BOOST_CHECK_EQUAL(output.size(),size_t(7));
     }
-    ds->Close();
+    ds=nullptr;
     utils::rm(storage_path);
 }
 
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(descendingOrder) {
 	reader->readAll(&output);
 	
 	BOOST_CHECK_EQUAL(output.size(), size_t(31));
-	ds->Close();
+    ds=nullptr;
 	utils::rm(storage_path);
 }
 
@@ -142,11 +142,9 @@ BOOST_AUTO_TEST_CASE(descendingOrder_backReader) {
 	reader->readAll(&output);
 
 	BOOST_CHECK_EQUAL(output.front().time, Time(2));
-	ds->Close();
+    ds=nullptr;
 	utils::rm(storage_path);
 }
-
-
 
 BOOST_AUTO_TEST_CASE(RealTimeWriterTest) {
     const std::string storage_path = nkvdb_test::storage_path + "descendingOrder";
@@ -170,6 +168,6 @@ BOOST_AUTO_TEST_CASE(RealTimeWriterTest) {
     reader->readAll(&output);
 
     BOOST_CHECK_EQUAL(output.size(), writes_count);
-    ds->Close();
+    ds=nullptr;
     utils::rm(storage_path);
 }

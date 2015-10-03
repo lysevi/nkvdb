@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
 	stop_info = true;
 	read_info_thread.join();
 
-	ds->Close();
+    ds=nullptr;
 	if (!dont_remove) {
 		utils::rm(storage_path);
 	}

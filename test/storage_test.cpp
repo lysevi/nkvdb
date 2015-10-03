@@ -37,14 +37,14 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
 
       std::list<boost::filesystem::path> pages = utils::ls(nkvdb_test::storage_path);
       BOOST_CHECK_EQUAL(pages.size(), (size_t)2);
-      ds->Close();
+      ds=nullptr;
 
       ds = nkvdb::Storage::Create(nkvdb_test::storage_path);
       BOOST_CHECK(boost::filesystem::exists(nkvdb_test::storage_path));
       BOOST_CHECK(boost::filesystem::is_directory(nkvdb_test::storage_path));
       pages = utils::ls(nkvdb_test::storage_path);
       BOOST_CHECK_EQUAL(pages.size(), (size_t)2);
-      ds->Close();
+      ds=nullptr;
     }
     {
       nkvdb::Storage::Storage_ptr ds =  nkvdb::Storage::Open(nkvdb_test::storage_path);
@@ -90,14 +90,12 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
         BOOST_CHECK(isExists);
       }
     }
-	ds->Close();
     ds = nullptr;
     auto pages = utils::ls(storage_path);
     BOOST_CHECK_EQUAL(pages.size(), (size_t)(write_iteration * 3));
   }
   {
-    nkvdb::Storage::Storage_ptr ds =
-        nkvdb::Storage::Open(storage_path);
+    nkvdb::Storage::Storage_ptr ds = nkvdb::Storage::Open(storage_path);
 
     for (int i = 1; i < meas2write * write_iteration;i += (meas2write * write_iteration) / 100) {
       nkvdb::Time to = i * ((meas2write * write_iteration) / 100);
@@ -114,7 +112,6 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
         BOOST_CHECK(m.time <= to);
       }
     }
-	ds->Close();
   }
  
   utils::rm(storage_path);
@@ -167,7 +164,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       BOOST_CHECK_EQUAL(meases.size(), size_t(1));
       BOOST_CHECK_EQUAL(meases.front().id, nkvdb::Id(1));
 
-	  ds->Close();
+      ds=nullptr;
 	  utils::rm(storage_path);
   }
 }
@@ -211,7 +208,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
       }
       BOOST_CHECK(isExists);
     }
-    ds->Close();
+    ds=nullptr;
 
     auto pages = utils::ls(storage_path);
     BOOST_CHECK_EQUAL(pages.size(), write_iteration * 3);
@@ -270,7 +267,6 @@ BOOST_AUTO_TEST_CASE(StorageIORealTime) {
     BOOST_CHECK_EQUAL(wrt_res.writed, wrt_res.ignored);
 
     delete[] array;
-    ds->Close();
   }
   utils::rm(storage_path);
 }
@@ -345,8 +341,7 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
     const int meas2write = 10;
     const size_t write_iteration = 10;
-    const uint64_t storage_size =
-            sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+    const uint64_t storage_size =  sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
     const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
     {

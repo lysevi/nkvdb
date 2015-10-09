@@ -23,7 +23,7 @@ typedef std::shared_ptr<PageReader> PageReader_ptr;
 * Page class.
 * Header + [meas_0...meas_i]
 */
-class Page : public utils::NonCopy, public std::enable_shared_from_this<Page> {
+class Page : public utils::NonCopy, public std::enable_shared_from_this<Page>, public MetaStorage {
 public:
     static const uint8_t page_version = 1;
   struct Header {
@@ -93,11 +93,8 @@ public:
   bool append(const Meas& value);
   size_t append(const Meas::PMeas begin, const size_t size);
   bool read(Meas::PMeas result, uint64_t position);
-  PageReader_ptr readInterval(Time from, Time to);
-  PageReader_ptr readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to);
-
-  PageReader_ptr readInTimePoint(Time time_point);
-  PageReader_ptr readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point);
+  virtual Reader_ptr readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) override;
+  virtual Reader_ptr readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) override;
 
   // read from end to start while not find all meases in ids;
   Meas::MeasList backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point);

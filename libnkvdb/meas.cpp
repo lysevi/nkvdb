@@ -34,3 +34,14 @@ void nkvdb::Reader::readAll(Meas::MeasList*output) {
         this->readNext(output);
     }
 }
+
+
+Reader_ptr nkvdb::MetaStorage::readInterval(Time from, Time to){
+    static IdArray empty{};
+    return this->readInterval(empty,0,0,from,to);
+}
+
+Reader_ptr nkvdb::MetaStorage::readInTimePoint(Time time_point){
+    static IdArray empty{};
+    return this->readInTimePoint(empty,0,0,time_point);
+}

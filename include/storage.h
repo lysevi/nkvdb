@@ -1,9 +1,9 @@
 #pragma once
 
 #include <string>
-#include <memory>
 #include <thread>
 #include <mutex>
+#include "meas.h"
 #include "page.h"
 #include "cache.h"
 #include "asyncworker.h"
@@ -32,7 +32,7 @@ private:
 /**
 * Main class of nkvdb storage.
 */
-class Storage {
+class Storage: public MetaStorage  {
 public:
     typedef std::shared_ptr<Storage> Storage_ptr;
 
@@ -45,12 +45,12 @@ public:
     append_result append(const Meas& m);
     append_result append(const Meas::PMeas begin, const size_t meas_count);
 
-    StorageReader_ptr readInterval(Time from, Time to);
-    StorageReader_ptr readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to);
-    Meas::MeasList curValues(const IdArray&ids);
+    Reader_ptr readInterval(Time from, Time to)override;
+    Reader_ptr readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) override;
+    Reader_ptr readInTimePoint(Time time_point)override;
+    Reader_ptr readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) override;
 
-    StorageReader_ptr readInTimePoint(Time time_point);
-    StorageReader_ptr readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point);
+    Meas::MeasList curValues(const IdArray&ids);
 
     /// get max time in past to write
     Time pastTime() const;
@@ -102,6 +102,6 @@ public:
     std::string prev_interval_page;
 private:
     std::deque<std::string> m_pages;
-    PageReader_ptr m_current_reader;
+    Reader_ptr m_current_reader;
 };
 }

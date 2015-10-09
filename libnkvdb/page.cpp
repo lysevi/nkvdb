@@ -373,15 +373,8 @@ PageReader_ptr Page::readFromToPos(const IdArray &ids, nkvdb::Flag source, nkvdb
     return result;
 }
 
-PageReader_ptr Page::readInterval(Time from, Time to) {
-    if(this->m_header->write_pos==0){
-        return nullptr;
-    }
-    static IdArray emptyArray;
-    return this->readInterval(emptyArray, 0, 0, from, to);
-}
 
-PageReader_ptr Page::readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) {
+Reader_ptr Page::readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) {
     // [from...minTime,maxTime...to]
     if(this->m_header->write_pos==0){
         return nullptr;
@@ -428,12 +421,8 @@ PageReader_ptr Page::readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb:
   return result;
 }
 
-PageReader_ptr Page::readInTimePoint(Time time_point) {
-	static IdArray emptyArray;
-	return this->readInTimePoint(emptyArray, 0, 0, time_point);
-}
 
-PageReader_ptr Page::readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) {
+Reader_ptr Page::readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) {
 	if (this->m_header->write_pos == 0) {
 		return nullptr;
 	}

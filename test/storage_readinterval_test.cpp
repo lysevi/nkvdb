@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(StorageReadInterval) {
             }
         }
 
-        auto reader=ds->readInterval(IdArray{1,2,4,5,55},0,0,8,10);
+        auto reader=ds->readIntervalFltr(IdArray{1,2,4,5,55},0,0,8,10);
         nkvdb::Meas::MeasList output{};
         reader->readAll(&output);
         BOOST_CHECK_EQUAL(output.size(),size_t(7));

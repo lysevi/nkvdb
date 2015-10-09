@@ -173,11 +173,8 @@ void Storage::writeCache() {
     m_cache->setStorage(this);
 }
 
-Reader_ptr Storage::readInterval(Time from, Time to){
-    return MetaStorage::readInterval(from,to);
-}
 
-Reader_ptr  Storage::readInterval(const IdArray &ids,nkvdb::Flag source, nkvdb::Flag flag,Time from, Time to) {
+Reader_ptr  Storage::readIntervalFltr(const IdArray &ids,nkvdb::Flag source, nkvdb::Flag flag,Time from, Time to) {
     std::lock_guard<std::mutex> guard(m_write_mutex);
     this->flush_and_stop();
 
@@ -253,12 +250,8 @@ Reader_ptr  Storage::readInterval(const IdArray &ids,nkvdb::Flag source, nkvdb::
     return result;
 }
 
-Reader_ptr Storage::readInTimePoint(Time time_point){
-    return MetaStorage::readInTimePoint(time_point);
-}
 
-
-Reader_ptr  Storage::readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) {
+Reader_ptr  Storage::readInTimePointFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) {
     std::lock_guard<std::mutex> guard(m_write_mutex);
     this->flush_and_stop();
     auto sr = new StorageReader();
@@ -429,13 +422,13 @@ void StorageReader::readNext(Meas::MeasList*output){
         }
 
         if (this->time_point != 0) {
-            m_current_reader = page2read->readInTimePoint(ids, source, flag, time_point);
+            m_current_reader = page2read->readInTimePointFltr(ids, source, flag, time_point);
             auto rdr=m_current_reader.get();
             dynamic_cast<PageReader*>(rdr)->prev_ww = prev_ww;
 
         }
         else {
-            m_current_reader = page2read->readInterval(ids, source, flag, from, to);
+            m_current_reader = page2read->readIntervalFltr(ids, source, flag, from, to);
             auto rdr=m_current_reader.get();
             dynamic_cast<PageReader*>(rdr)->prev_ww=prev_ww;
 

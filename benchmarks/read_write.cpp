@@ -69,7 +69,7 @@ void readIntervalBenchFltr(nkvdb::IdArray ids, nkvdb::Flag src,
   clock_t read_t0 = clock();
   
   nkvdb::Meas::MeasList output;
-  auto reader = ds->readInterval(ids, src, flag, from, to);
+  auto reader = ds->readIntervalFltr(ids, src, flag, from, to);
   reader->readAll(&output);
   clock_t read_t1 = clock();
 

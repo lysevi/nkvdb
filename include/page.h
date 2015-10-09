@@ -93,8 +93,9 @@ public:
   bool append(const Meas& value);
   size_t append(const Meas::PMeas begin, const size_t size);
   bool read(Meas::PMeas result, uint64_t position);
-  virtual Reader_ptr readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) override;
-  virtual Reader_ptr readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) override;
+
+  virtual Reader_ptr readIntervalFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) override;
+  virtual Reader_ptr readInTimePointFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) override;
 
   // read from end to start while not find all meases in ids;
   Meas::MeasList backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point);

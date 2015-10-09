@@ -145,7 +145,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       Meas::MeasList meases{};
       auto queryIds = IdArray{ 1, 2, 3 };
 	  
-      auto reader = ds->readInterval(queryIds,0,0,queryFrom, end_it);
+      auto reader = ds->readIntervalFltr(queryIds,0,0,queryFrom, end_it);
       reader->readAll(&meases);
 
       // [..max] from [min]
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 
       // [..max] [min..from]
       meases.clear();
-      reader = ds->readInterval(IdArray{1,2},0,0,queryFrom2, end_it);
+      reader = ds->readIntervalFltr(IdArray{1,2},0,0,queryFrom2, end_it);
       reader->readAll(&meases);
 
       meases.erase(std::remove_if(meases.begin(), meases.end(), [queryFrom2](const nkvdb::Meas&m){return m.time > queryFrom2; }), meases.end());

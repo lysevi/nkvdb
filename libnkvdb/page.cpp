@@ -545,12 +545,6 @@ bool PageReader::checkValueFlags(const Meas&m)const {
     return true;
 }
 
-void PageReader::readAll(Meas::MeasList*output) {
-    while (!isEnd()) {
-        this->readNext(output);
-    }
-}
-
 void PageReader::timePointRead(Time tp,Meas::MeasList*output) {
     if (tp > this->m_page->getHeader().maxTime) {
         for (auto wwIt : this->m_page->getWriteWindow()) {

@@ -31,4 +31,12 @@ struct Meas {
 };
 
 bool checkPastTime(const Time t, const Time past_time); // |current time - t| < past_time
+
+class Reader
+{
+public:
+    virtual bool isEnd() const=0;
+    virtual void readNext(Meas::MeasList*output)=0;
+    virtual void readAll(Meas::MeasList*output);
+};
 }

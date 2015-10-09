@@ -27,3 +27,10 @@ bool nkvdb::checkPastTime(const Time t, const Time past_time) { // |current time
     return delta <= past_time;
   }
 }
+
+
+void nkvdb::Reader::readAll(Meas::MeasList*output) {
+    while (!isEnd()) {
+        this->readNext(output);
+    }
+}

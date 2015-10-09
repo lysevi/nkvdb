@@ -135,7 +135,7 @@ protected:
 bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr);
 bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr);
 
-class PageReader: public utils::NonCopy{
+class PageReader: public utils::NonCopy, public Reader{
 public:
     static const  uint64_t defaultReadSize=1024;
     /// max count of measurements readed in on call of readNext
@@ -143,9 +143,6 @@ public:
 
     PageReader(Page::Page_ptr page);
     ~PageReader();
-    virtual bool isEnd() const=0;
-    virtual void readNext(Meas::MeasList*output)=0;
-    virtual void readAll(Meas::MeasList*output);
 
     IdArray ids;
     nkvdb::Flag source;

@@ -402,18 +402,12 @@ StorageReader::StorageReader():m_pages(){
 	time_point = 0;
 }
 
-bool StorageReader::isEnd(){
+bool StorageReader::isEnd()const{
     if(this->m_pages.size()==0){
         return m_current_reader==nullptr?true:m_current_reader->isEnd();
     }else{
         return false;
     }
-}
-
-void StorageReader::readAll(Meas::MeasList*output) {
-	while (!isEnd()) {
-		this->readNext(output);
-	}
 }
 
 void StorageReader::readNext(Meas::MeasList*output){

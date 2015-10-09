@@ -86,12 +86,11 @@ protected:
     friend class nkvdb::Cache;
 };
 
-class StorageReader: public utils::NonCopy{
+class StorageReader: public utils::NonCopy, public Reader{
 public:
     StorageReader();
-    bool isEnd();
-    void readNext(Meas::MeasList*output);
-    void readAll(Meas::MeasList*output);
+    virtual bool isEnd()const override;
+    virtual void readNext(Meas::MeasList*output) override;
     void addPage(std::string page_name);
 
     IdArray ids;

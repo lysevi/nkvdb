@@ -42,6 +42,10 @@ public:
     ~Storage();
 
     bool havePage2Write() const;
+
+    virtual Time minTime() override;
+    virtual Time maxTime() override;
+
     append_result append(const Meas& m);
     append_result append(const Meas::PMeas begin, const size_t meas_count);
 
@@ -74,7 +78,7 @@ private:
 protected:
     std::string m_path;
 
-    std::mutex m_write_mutex;
+    mutable std::mutex m_write_mutex;
     nkvdb::Cache::PCache m_cache;
     AsyncWriter m_cache_writer;
     CachePool m_cache_pool;

@@ -15,19 +15,21 @@
 using namespace nkvdb;
 
 BOOST_AUTO_TEST_CASE(PageCreateOpen) {
-  {
-    Page::Page_ptr created =
-        Page::Create(nkvdb_test::test_page_name, nkvdb_test::sizeInMb10);
-    BOOST_CHECK(!created->isFull());
-    created->close();
-  }
- {
-    Page::Page_ptr openned = Page::Open(nkvdb_test::test_page_name);
+    {
+        Page::Page_ptr created =
+                Page::Create(nkvdb_test::test_page_name, nkvdb_test::sizeInMb10);
+        BOOST_CHECK(!created->isFull());
+        created->close();
+    }
+    {
+        Page::Page_ptr openned = Page::Open(nkvdb_test::test_page_name);
 
-    BOOST_CHECK_EQUAL(openned->size(), nkvdb_test::sizeInMb10);
-    BOOST_CHECK(!openned->isFull());
-    openned->close();
-  }
+        BOOST_CHECK_EQUAL(openned->size(), nkvdb_test::sizeInMb10);
+        BOOST_CHECK(!openned->isFull());
+        openned->close();
+    }
+
+    utils::rm(nkvdb_test::test_page_name);
 }
 
 BOOST_AUTO_TEST_CASE(PageOpenTwice) {
@@ -43,12 +45,13 @@ BOOST_AUTO_TEST_CASE(PageOpenTwice) {
 
     openned->close();
   }
- 
+ utils::rm(nkvdb_test::test_page_name);
 }
-
+/**/
 BOOST_AUTO_TEST_CASE(PageIO) {
   const size_t TestableMeasCount = 100;
   std::string index = "";
+  std::string wname ="";
   {
     {
       Page::Page_ptr storage = Page::Create(nkvdb_test::test_page_name, nkvdb_test::sizeInMb10);
@@ -93,11 +96,13 @@ BOOST_AUTO_TEST_CASE(PageIO) {
     BOOST_CHECK_EQUAL(hdr.minTime, nkvdb::Time(0));
     BOOST_CHECK_EQUAL(hdr.size, storage->size());
     index = storage->index_fileName();
+    wname=storage->writewindow_fileName();
     storage->close();
   }
 
   utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
+  utils::rm(wname);
 }
 
 BOOST_AUTO_TEST_CASE(Capacity) {
@@ -114,10 +119,12 @@ BOOST_AUTO_TEST_CASE(Capacity) {
 
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)8);
   auto index = page->index_fileName();
+  auto wname=page->writewindow_fileName();
   page->close();
 
   utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
+   utils::rm(wname);
 }
 
 BOOST_AUTO_TEST_CASE(AppendMany) {
@@ -131,7 +138,7 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
     array[i].id = i;
     array[i].time = i;
   }
-  size_t writed = page->append(array, arr_size);
+  size_t writed = page->append(array, arr_size).writed;
   delete[] array;
   BOOST_CHECK_EQUAL(writed, (size_t)10);
 
@@ -144,17 +151,21 @@ BOOST_AUTO_TEST_CASE(AppendMany) {
   BOOST_CHECK_EQUAL(page->minTime(), nkvdb::Time(0));
   BOOST_CHECK_EQUAL(page->maxTime(), (nkvdb::Time)writed-1);
   auto index = page->index_fileName();
+  auto wname=page->writewindow_fileName();
   page->close();
   utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
+  utils::rm(wname);
 }
 
 BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
   const int TestableMeasCount = 1000;
   std::string index = "";
+  std::string wname = "";
   {
     {
       Page::Page_ptr storage = Page::Create(nkvdb_test::test_page_name, nkvdb_test::sizeInMb10);
+      wname=storage->writewindow_fileName();
       storage->close();
     }
 
@@ -217,4 +228,21 @@ BOOST_AUTO_TEST_CASE(PagereadIntervalFltr) {
 
   utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
+  utils::rm(wname);
+}
+
+
+BOOST_AUTO_TEST_CASE(PageCommonTest) {
+    auto sz100=nkvdb::Page::calc_size<100>();
+    Page::Page_ptr created = Page::Create(nkvdb_test::test_page_name, sz100);
+    auto iname=created->index_fileName();
+    auto wname=created->writewindow_fileName();
+    nkvdb_test::storage_test_io(created.get(),0,100,1);
+
+    created->close();
+
+
+    utils::rm(nkvdb_test::test_page_name);
+    utils::rm(iname);
+    utils::rm(wname);
 }

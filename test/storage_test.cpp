@@ -376,3 +376,15 @@ BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
     }
     utils::rm(storage_path);
 }
+
+
+BOOST_AUTO_TEST_CASE(StorageCommonTest) {
+    {
+        nkvdb::Storage::Storage_ptr ds = nkvdb::Storage::Create(nkvdb_test::storage_path, nkvdb::Page::calc_size<10>());
+
+        nkvdb_test::storage_test_io(ds.get(),0,100,1);
+
+        ds=nullptr;
+    }
+    utils::rm(nkvdb_test::storage_path);
+}

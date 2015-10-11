@@ -27,14 +27,15 @@ void AsyncWriter::call(const Cache::PCache data) {
 
     auto output = data->asArray();
 
-    //MeasCmpByTime time_cmp;
-    //std::sort(output, output + data->size(), time_cmp);
+    MeasCmpByTime time_cmp;
+    std::sort(output, output + data->size(), time_cmp);
 
     size_t meas_count = data->size();
     size_t to_write = data->size();
 
     while (to_write > 0) {
-        size_t writed = PageManager::get()->getCurPage()->append(output + (meas_count - to_write), to_write);
+        auto ares=PageManager::get()->getCurPage()->append(output + (meas_count - to_write), to_write);
+        size_t writed = ares.writed;
         if (writed != to_write) {
             PageManager::get()->createNewPage();
         }
@@ -113,6 +114,28 @@ Storage::Storage_ptr Storage::Open(const std::string &ds_path) {
 
 bool Storage::havePage2Write() const {
     return (PageManager::get()->getCurPage() != nullptr) && (!PageManager::get()->getCurPage()->isFull());
+}
+
+Time Storage::minTime() {
+    std::lock_guard<std::mutex> guard(m_write_mutex);
+    this->flush_and_stop();
+    this->m_cache_writer.pause_work();
+
+    auto pages = PageManager::get()->pagesByTime();
+
+    this->m_cache_writer.continue_work();
+    return pages.back().header.minTime;
+}
+
+Time Storage::maxTime() {
+    std::lock_guard<std::mutex> guard(m_write_mutex);
+    this->flush_and_stop();
+    this->m_cache_writer.pause_work();
+
+    auto pages = PageManager::get()->pagesByTime();
+
+    this->m_cache_writer.continue_work();
+    return pages.front().header.maxTime;
 }
 
 append_result Storage::append(const Meas& m) {
@@ -264,15 +287,15 @@ Reader_ptr  Storage::readInTimePointFltr(const IdArray &ids, nkvdb::Flag source,
 
     std::list<std::string> pages_to_read{};
 
-
     for (size_t i = 0; i<pages.size(); i++) {
         auto pinfo = pages[i];
         auto page_name = pinfo.name;
         auto hdr = pinfo.header;
 
-        // [min  max] tp, pages.size==1
+        // [min  max] tp
         if ((hdr.minTime <= time_point) && (hdr.maxTime <= time_point)) {
-            if (pages.size() == 1) {
+            // pages.size==1 || last_page
+            if ((pages.size() == 1) || (i==(pages.size()-1))) {
                 pages_to_read.push_back(page_name);
                 break;
             }
@@ -368,7 +391,7 @@ void Storage::setCacheSize(size_t sz){
     m_cache_pool.setCacheSize(sz);
 }
 
-void Storage::flush_and_stop() {
+void Storage::flush_and_stop(){
     this->writeCache();
     while (true) {
         if (!m_cache_writer.isBusy()) {

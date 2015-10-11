@@ -18,7 +18,6 @@ namespace nkvdb {
 class PageReader;
 typedef std::shared_ptr<PageReader> PageReader_ptr;
 
-
 /**
 * Page class.
 * Header + [meas_0...meas_i]
@@ -69,6 +68,11 @@ public:
   typedef std::shared_ptr<Page> Page_ptr;
 
 public:
+  template<int n>
+  static uint64_t calc_size(){
+      return sizeof(nkvdb::Page::Header)+sizeof(nkvdb::Meas)*n;
+  }
+
   static Page_ptr Open(std::string filename, bool readOnly=false);
   static Page_ptr Create(std::string filename, uint64_t fsize);
   /// read only header from page file.
@@ -80,22 +84,22 @@ public:
   std::string fileName() const;
   std::string index_fileName() const;
   std::string writewindow_fileName() const;
-  /// min time of writed meas
-  Time minTime() const;
-  /// max time of writed meas
-  Time maxTime() const;
   bool isFull() const;
   /// free space in page
   size_t capacity() const;
   void close();
   Header getHeader() const;
 
-  bool append(const Meas& value);
-  size_t append(const Meas::PMeas begin, const size_t size);
-  bool read(Meas::PMeas result, uint64_t position);
+  virtual append_result append(const Meas& value)override;
+  virtual append_result append(const Meas::PMeas begin, const size_t size)override;
 
   virtual Reader_ptr readIntervalFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) override;
   virtual Reader_ptr readInTimePointFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) override;
+
+  virtual Time minTime()override;
+  virtual Time maxTime()override;
+
+  bool read(Meas::PMeas result, uint64_t position);
 
   // read from end to start while not find all meases in ids;
   Meas::MeasList backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point);

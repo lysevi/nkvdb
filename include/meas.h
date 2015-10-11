@@ -5,6 +5,7 @@
 #include <list>
 #include <ctime>
 #include <set>
+#include "common.h"
 
 namespace nkvdb {
 typedef uint64_t Time;
@@ -43,6 +44,14 @@ public:
 typedef std::shared_ptr<Reader> Reader_ptr;
 class MetaStorage{
 public:
+    /// min time of writed meas
+    virtual Time minTime()=0;
+    /// max time of writed meas
+    virtual Time maxTime()=0;
+
+    virtual append_result append(const Meas& value)=0;
+    virtual append_result append(const Meas::PMeas begin, const size_t size)=0;
+
     virtual Reader_ptr readInterval(Time from, Time to);
     virtual Reader_ptr readIntervalFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to)=0;
 

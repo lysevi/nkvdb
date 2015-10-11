@@ -112,11 +112,11 @@ std::string Page::writewindow_fileName() const {
 	return std::string(*m_filename) + "w";
 }
 
-Time Page::minTime() const { 
+Time Page::minTime(){
 	return m_header->minTime; 
 }
 
-Time Page::maxTime() const { 
+Time Page::maxTime(){
 	return m_header->maxTime; 
 }
 
@@ -236,10 +236,12 @@ void Page::updateWriteWindow(const Meas&m) {
 	}
 }
 
-bool Page::append(const Meas& value) {
+append_result Page::append(const Meas& value) {
     assert(m_header->ReadersCount==0);
+    append_result res{};
+
     if (this->isFull()) {
-        return false;
+        return res;
     }
 
     updateMinMax(value);
@@ -261,15 +263,17 @@ bool Page::append(const Meas& value) {
     this->m_index.writeIndexRec(rec);
 
     m_header->write_pos++;
-    return true;
+    res.writed+=1;
+    return res;
 }
 
-size_t Page::append(const Meas::PMeas begin, const size_t size) {
+append_result Page::append(const Meas::PMeas begin, const size_t size) {
     assert(m_header->ReadersCount==0);
     size_t cap = this->capacity();
     size_t to_write = 0;
+    append_result res{};
     if (cap == 0) {
-        return 0;
+        return res;
     }
     if (cap > size) {
         to_write = size;
@@ -300,7 +304,8 @@ size_t Page::append(const Meas::PMeas begin, const size_t size) {
     this->m_index.writeIndexRec(rec);
 	
     m_header->write_pos += to_write;
-    return to_write;
+    res.writed+=to_write;
+    return res;
 }
 
 

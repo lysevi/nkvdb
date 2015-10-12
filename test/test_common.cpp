@@ -14,8 +14,10 @@ void storage_test_io(nkvdb::MetaStorage*ms,nkvdb::Time from, nkvdb::Time to, nkv
     int pos=0;
 
     std::list<nkvdb::Id> id_before_half{};
+	std::list<nkvdb::Id> id_after_half{};
+	std::list<nkvdb::Id> id_total{};
     nkvdb::Meas m{};
-    for(size_t i=0;i<=total_count;i+=step){
+    for(size_t i=1;i<=total_count+1;i+=step){
         if(i==half_count){
             continue;
         }
@@ -27,7 +29,7 @@ void storage_test_io(nkvdb::MetaStorage*ms,nkvdb::Time from, nkvdb::Time to, nkv
 
         if (i>half_count){
             m.id=nkvdb::Id(i%id_count);
-
+			id_after_half.push_back(m.id);
         }
 
         m.time=nkvdb::Time(i);
@@ -35,46 +37,52 @@ void storage_test_io(nkvdb::MetaStorage*ms,nkvdb::Time from, nkvdb::Time to, nkv
         m.source=nkvdb::Flag(0);
         m.value=nkvdb::Value(i);
 
-
+		id_total.push_back(m.id);
         marray[pos]=m;
         pos++;
     }
 
     ms->append(&marray[0],marray.size());
 
-    BOOST_CHECK_EQUAL(ms->minTime(),nkvdb::Time(0));
-    BOOST_CHECK_EQUAL(ms->maxTime(),nkvdb::Time(total_count));
+    BOOST_CHECK_EQUAL(ms->minTime(),nkvdb::Time(1));
+	BOOST_CHECK_EQUAL(ms->maxTime(), m.time);
 
     // TIME POINT CHECKS
     auto half_reader=ms->readInTimePoint(half_count);
     nkvdb::Meas::MeasList output{};
     half_reader->readAll(&output);
 
-    BOOST_CHECK_EQUAL(output.size(),half_count);
+    //BOOST_CHECK_EQUAL(output.size(),half_count);
     for(auto id:id_before_half){
         auto find_res=std::find_if(std::begin(output),std::end(output),
                                    [id](const nkvdb::Meas&m){return m.id==id;});
-        BOOST_CHECK(find_res!=std::end(output));
+		if (find_res == std::end(output)) {
+			logger("id:"<<id<<" not found");
+			BOOST_CHECK(false);
+		}
     }
 
 
-    auto full_time_point_reader=ms->readInTimePoint(to+1);
+    auto full_time_point_reader=ms->readInTimePoint(m.time+1);
     output.clear();
     full_time_point_reader->readAll(&output);
 
-    BOOST_CHECK_EQUAL(output.size(),half_count);
+    //BOOST_CHECK_EQUAL(output.size(),half_count);
 
     for(auto id:id_before_half){
         auto find_res=std::find_if(std::begin(output),std::end(output),
                                    [id](const nkvdb::Meas&m){return m.id==id;});
-        BOOST_CHECK(find_res!=std::end(output));
+		if (find_res == std::end(output)) {
+			logger("id:" << id << " not found");
+			BOOST_CHECK(false);
+		}
     }
 
     auto max_time_elem=*std::max_element(std::begin(output),std::end(output),
                                          [](const nkvdb::Meas&a,const nkvdb::Meas&b){return a.time<b.time;});
     nkvdb::Time max_time=max_time_elem.time;
     BOOST_CHECK(max_time>from);
-    BOOST_CHECK(max_time<=to);
+    BOOST_CHECK(max_time<=m.time);
     BOOST_CHECK_EQUAL(m.id,max_time_elem.id);
 
     // INTERVAL CHECKS
@@ -82,20 +90,28 @@ void storage_test_io(nkvdb::MetaStorage*ms,nkvdb::Time from, nkvdb::Time to, nkv
     output.clear();
     full_interval_reader->readAll(&output);
 
-    BOOST_CHECK_EQUAL(output.size(),total_count);
-
-    for(size_t id=0;id<half_count;id++){
-        auto find_res=std::find_if(std::begin(output),std::end(output),
-                                   [id](const nkvdb::Meas&m){return m.id==id;});
-        BOOST_CHECK(find_res!=std::end(output));
-    }
+	for (auto id : id_total) {
+		auto find_res = std::find_if(std::begin(output), std::end(output),
+									 [id](const nkvdb::Meas&m){return m.id == id; });
+		if (find_res == std::end(output)) {
+			logger("id:" << id << " not found");
+			BOOST_CHECK(false);
+		}
+	}
 
 
     auto half_interval_reader=ms->readInterval(half_count,to);
     output.clear();
     half_interval_reader->readAll(&output);
 
-    BOOST_CHECK_EQUAL(output.size(),total_count);
+    for (auto id : id_after_half) {
+		auto find_res = std::find_if(std::begin(output), std::end(output),
+									 [id](const nkvdb::Meas&m){return m.id == id; });
+		if (find_res == std::end(output)) {
+			logger("id:" << id << " not found");
+			BOOST_CHECK(false);
+		}
+	}
 }
 
 }

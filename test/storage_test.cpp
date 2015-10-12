@@ -73,22 +73,6 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
       meas.source = meas.flag = i % meas2write;
       meas.time = i;
       ds->append(meas);
-
-      Meas::MeasList meases{};
-      auto reader = ds->readInterval(0, end_it);
-      reader->readAll(&meases);
-
-
-      for (nkvdb::Time j = 0; j < i; ++j) {
-        bool isExists = false;
-        for (nkvdb::Meas m : meases) {
-          if (m.id == static_cast<nkvdb::Id>(j)) {
-            isExists = true;
-            break;
-          }
-        }
-        BOOST_CHECK(isExists);
-      }
     }
     ds = nullptr;
     auto pages = utils::ls(storage_path);
@@ -376,7 +360,6 @@ BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
     }
     utils::rm(storage_path);
 }
-
 
 BOOST_AUTO_TEST_CASE(StorageCommonTest) {
     {

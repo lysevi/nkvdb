@@ -49,7 +49,7 @@ void PageReaderInterval::readNext(Meas::MeasList*output){
         return;
     }
 
-    if (from > this->m_page->getHeader().minTime) {
+    if (from >= this->m_page->getHeader().minTime) {
         if (!values_in_point_reader) {
             timePointRead(from,output);
             values_in_point_reader = true;

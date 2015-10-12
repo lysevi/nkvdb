@@ -16,7 +16,7 @@ namespace nkvdb {
 	public:
 		struct PageInfo
 		{
-			Page::Header header;
+			PageCommonHeader header;
 			std::string  name;
 		};
 
@@ -26,7 +26,7 @@ namespace nkvdb {
 		static PageManager* get();
 
         /// get current openned page
-		Page::Page_ptr getCurPage();
+		CommonPage::Page_ptr getCurPage();
         void closeCurrentPage();
 		void createNewPage();
 
@@ -34,7 +34,7 @@ namespace nkvdb {
 		std::string getNewPageUniqueName()const;
 
 		std::list<std::string> pageList() const;
-        Page::Page_ptr open(std::string path, bool readOnly=false);
+		CommonPage::Page_ptr open(std::string path, bool readOnly = false);
 
 		std::vector<PageManager::PageInfo> pagesByTime()const;
     protected:
@@ -43,7 +43,7 @@ namespace nkvdb {
 		uint64_t default_page_size;
 	protected:
 		std::string m_path;
-		Page::Page_ptr m_curpage;
+		CommonPage::Page_ptr m_curpage;
 		mutable std::list<std::string> m_page_list;
 		
 	};

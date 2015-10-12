@@ -91,12 +91,11 @@ BOOST_AUTO_TEST_CASE(PageIO) {
     }
     BOOST_CHECK(!storage->isFull());
 
-    auto hdr = storage->getHeader();
-    BOOST_CHECK_EQUAL(hdr.maxTime, (nkvdb::Time)TestableMeasCount - 1);
-    BOOST_CHECK_EQUAL(hdr.minTime, nkvdb::Time(0));
-    BOOST_CHECK_EQUAL(hdr.size, storage->size());
-    index = storage->index_fileName();
-    wname=storage->writewindow_fileName();
+	BOOST_CHECK_EQUAL(storage->maxTime(), (nkvdb::Time)TestableMeasCount - 1);
+	BOOST_CHECK_EQUAL(storage->minTime(), nkvdb::Time(0));
+	BOOST_CHECK_EQUAL(storage->size(), storage->size());
+    index = dynamic_cast<nkvdb::Page*>(storage.get())->index_fileName();
+	wname = dynamic_cast<nkvdb::Page*>(storage.get())->writewindow_fileName();
     storage->close();
   }
 
@@ -118,8 +117,8 @@ BOOST_AUTO_TEST_CASE(Capacity) {
   page->append(newMeas);
 
   BOOST_CHECK_EQUAL(page->capacity(), (size_t)8);
-  auto index = page->index_fileName();
-  auto wname=page->writewindow_fileName();
+  auto index = dynamic_cast<nkvdb::Page*>(page.get())->index_fileName();
+  auto wname = dynamic_cast<nkvdb::Page*>(page.get())->writewindow_fileName();
   page->close();
 
   utils::rm(nkvdb_test::test_page_name);

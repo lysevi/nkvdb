@@ -20,7 +20,7 @@ using namespace nkvdb;
 
 const size_t oneMb = sizeof(char) * 1024 * 1024;
 
-bool nkvdb::HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
+bool nkvdb::HeaderIntervalCheck(Time from, Time to, PageCommonHeader hdr) {
 	if (utils::inInterval(from, to, hdr.minTime) || utils::inInterval(from, to, hdr.maxTime)) {
 		return true;
 	} else {
@@ -28,7 +28,7 @@ bool nkvdb::HeaderIntervalCheck(Time from, Time to, Page::Header hdr) {
 	}
 }
 
-bool nkvdb::HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr) {
+bool nkvdb::HeaderIdIntervalCheck(Id from, Id to, PageCommonHeader hdr) {
 	if (hdr.minId >= from || hdr.maxId <= to) {
 		return true;
 	} else {
@@ -129,33 +129,35 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
 			throw MAKE_EXCEPTION(ss.str());
         }
     }
-    Page_ptr result(new Page(filename));
+	auto result_page = new Page(filename);
+	Page_ptr result(result_page);
 
     try {
-           result->m_file=new bi::file_mapping(filename.c_str(),bi::read_write);
-           result->m_region=new bi::mapped_region(*result->m_file, bi::read_write);
+		result_page->m_file = new bi::file_mapping(filename.c_str(), bi::read_write);
+		result_page->m_region = new bi::mapped_region(*result_page->m_file, bi::read_write);
     } catch (std::runtime_error &ex) {
         std::string what = ex.what();
         throw MAKE_EXCEPTION(ex.what());
     }
 
-    char *data = static_cast<char*>(result->m_region->get_address());
-    result->m_header = (Page::Header *)data;
-    result->m_data_begin = (Meas *)(data + sizeof(Page::Header));
+	char *data = static_cast<char*>(result_page->m_region->get_address());
+	result_page->m_header = (Page::Header *)data;
+	result_page->m_data_begin = (Meas *)(data + sizeof(Page::Header));
 
-    result->m_header->isOpen = true;
+	result_page->m_header->isOpen = true;
     if(readOnly){
-        result->m_header->ReadersCount+=1;
+		result_page->m_header->ReadersCount += 1;
     }
-	result->m_region->flush(0, sizeof(result->m_header), false);
+	result_page->m_region->flush(0, sizeof(result_page->m_header), false);
 
-    result->loadWriteWindow();
+	result_page->loadWriteWindow();
 
     return result;
 }
 
 Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
-  Page_ptr result(new Page(filename));
+	auto result_page = new Page(filename);
+  Page_ptr result(result_page);
 
   try {
       {
@@ -167,19 +169,19 @@ Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
           fbuf.pubseekoff(fsize-1, std::ios_base::beg);
           fbuf.sputc(0);
       }
-      result->m_file=new bi::file_mapping(filename.c_str(),bi::read_write);
-      result->m_region=new bi::mapped_region(*result->m_file, bi::read_write);
+	  result_page->m_file = new bi::file_mapping(filename.c_str(), bi::read_write);
+	  result_page->m_region = new bi::mapped_region(*result_page->m_file, bi::read_write);
   } catch (std::runtime_error &ex) {
 	  std::string what = ex.what();
 	  throw MAKE_EXCEPTION(ex.what());
   }
 
-  char *data = static_cast<char*>(result->m_region->get_address());
+  char *data = static_cast<char*>(result_page->m_region->get_address());
 
-  result->initHeader(data);
-  result->m_data_begin = (Meas *)(data + sizeof(Page::Header));
-  result->m_header->isOpen = true;
-  result->m_region->flush(0, sizeof(result->m_header), false);
+  result_page->initHeader(data);
+  result_page->m_data_begin = (Meas *)(data + sizeof(Page::Header));
+  result_page->m_header->isOpen = true;
+  result_page->m_region->flush(0, sizeof(result_page->m_header), false);
   return result;
 }
 
@@ -540,7 +542,7 @@ bool PageReader::checkValueFlags(const Meas&m)const {
 }
 
 void PageReader::timePointRead(Time tp,Meas::MeasList*output) {
-    if (tp > this->m_page->getHeader().maxTime) {
+    if (tp > this->m_page->maxTime()) {
         for (auto wwIt : this->m_page->getWriteWindow()) {
             if (wwIt.time == 0) {
                 continue;

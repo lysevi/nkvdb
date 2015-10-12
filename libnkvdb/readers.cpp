@@ -38,7 +38,7 @@ void PageReaderInterval::readNext(Meas::MeasList*output){
         return;
     }
 
-    if (this->from > this->m_page->getHeader().maxTime) {
+    if (this->from > this->m_page->maxTime()) {
         for (auto wwIt : this->m_page->getWriteWindow()) {
             auto readedValue = wwIt;
             if (checkValueFlags(readedValue)) {
@@ -49,7 +49,7 @@ void PageReaderInterval::readNext(Meas::MeasList*output){
         return;
     }
 
-    if (from >= this->m_page->getHeader().minTime) {
+    if (from >= this->m_page->minTime()) {
         if (!values_in_point_reader) {
             timePointRead(from,output);
             values_in_point_reader = true;
@@ -76,7 +76,7 @@ void PageReaderInterval::readNext(Meas::MeasList*output){
             ss << "PageReader::readNext: "
                << " file name: " << m_page->fileName()
                << " readPos: " << i
-               << " size: " << m_page->getHeader().size;
+               << " size: " << m_page->size();
 
             throw MAKE_EXCEPTION(ss.str());
         }

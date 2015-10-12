@@ -18,56 +18,76 @@ namespace nkvdb {
 class PageReader;
 typedef std::shared_ptr<PageReader> PageReader_ptr;
 
+struct PageCommonHeader
+{
+	/// format version
+	uint8_t version;
+	/// is page already openned to read/write.
+	bool isOpen;
+	/// is page already openned to read.
+	size_t ReadersCount;
+
+	/// fields min* max* is init or empty.
+	bool minMaxInit;
+	/// min-max of time
+	Time minTime;
+	Time maxTime;
+	/// min-max of id
+	Id minId;
+	Id maxId;
+	/// current write position.
+	uint64_t write_pos;
+	/// size in bytes
+	uint64_t size;
+	uint64_t WriteWindowSize;
+	// bytes reserved to future options.
+	
+};
+
+struct CommonPage :public MetaStorage
+{
+	typedef std::shared_ptr<CommonPage> Page_ptr;
+	virtual size_t capacity() const=0;
+	virtual void close() = 0;
+	virtual size_t size() const = 0;
+	virtual std::string fileName() const = 0;
+	virtual bool isFull() const = 0;
+	virtual void flushWriteWindow() = 0;
+	virtual WriteWindow getWriteWindow() = 0;
+	virtual void setWriteWindow(const WriteWindow&other) = 0;
+};
+
 /**
 * Page class.
 * Header + [meas_0...meas_i]
 */
-class Page : public utils::NonCopy, public std::enable_shared_from_this<Page>, public MetaStorage {
+class Page : public utils::NonCopy, public std::enable_shared_from_this<Page>, public CommonPage {
 public:
     static const uint8_t page_version = 1;
-  struct Header {
-    /// format version
-    uint8_t version;
-    /// is page already openned to read/write.
-    bool isOpen;
-    /// is page already openned to read.
-    size_t ReadersCount;
+	struct Header : public PageCommonHeader
+	{
+		uint64_t _1;
+		uint64_t _2;
+		uint64_t _3;
+		uint64_t _4;
+		uint64_t _5;
+		uint64_t _6;
+		uint64_t _7;
+		uint64_t _8;
+		uint64_t _9;
+		uint64_t _10;
+		uint64_t _11;
+		uint64_t _12;
+		uint64_t _13;
+		uint64_t _14;
+		uint64_t _15;
+		uint64_t _16;
+	};
 
-    /// fields min* max* is init or empty.
-    bool minMaxInit;
-    /// min-max of time
-    Time minTime;
-    Time maxTime;
-    /// min-max of id
-    Id minId;
-    Id maxId;
-    /// current write position.
-    uint64_t write_pos;
-    /// size in bytes
-    uint64_t size;
-    uint64_t WriteWindowSize;
-	// bytes reserved to future options.
-    uint64_t _1;
-	uint64_t _2;
-	uint64_t _3;
-	uint64_t _4;
-	uint64_t _5;
-	uint64_t _6;
-	uint64_t _7;
-	uint64_t _8;
-	uint64_t _9;
-	uint64_t _10;
-	uint64_t _11;
-	uint64_t _12;
-	uint64_t _13;
-	uint64_t _14;
-	uint64_t _15;
-	uint64_t _16;
-  };
-
-  typedef std::shared_ptr<Page> Page_ptr;
+  
 
 public:
+	typedef std::shared_ptr<Page> Page_ptr;
   template<int n>
   static uint64_t calc_size(){
       return sizeof(nkvdb::Page::Header)+sizeof(nkvdb::Meas)*n;
@@ -80,14 +100,14 @@ public:
   ~Page();
 
   /// mapped file size.
-  size_t size() const;
-  std::string fileName() const;
+  size_t size() const override;
+  std::string fileName() const override;
   std::string index_fileName() const;
   std::string writewindow_fileName() const;
-  bool isFull() const;
+  bool isFull() const override;
   /// free space in page
-  size_t capacity() const;
-  void close();
+  size_t capacity() const override;
+  void close() override;
   Header getHeader() const;
 
   virtual append_result append(const Meas& value)override;
@@ -109,10 +129,10 @@ public:
   /// if page openned to read, after read must call this method.
   /// if count of reader is zero, page automaticaly closed;
   void readComplete();
-  WriteWindow getWriteWindow();
-  void        setWriteWindow(const WriteWindow&other);
+  WriteWindow getWriteWindow()override;
+  void        setWriteWindow(const WriteWindow&other)override;
 
-  void flushWriteWindow();
+  void flushWriteWindow()override;
 private:
   PageReader_ptr readAll();
   PageReader_ptr readFromToPos(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to, size_t begin, size_t end);
@@ -137,8 +157,8 @@ protected:
   WriteWindow m_writewindow;
 };
 
-bool HeaderIntervalCheck(Time from, Time to, Page::Header hdr);
-bool HeaderIdIntervalCheck(Id from, Id to, Page::Header hdr);
+bool HeaderIntervalCheck(Time from, Time to, PageCommonHeader hdr);
+bool HeaderIdIntervalCheck(Id from, Id to, PageCommonHeader hdr);
 
 class PageReader: public utils::NonCopy, public Reader{
 public:

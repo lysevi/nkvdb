@@ -27,7 +27,7 @@ PageManager* PageManager::get() {
 	return m_instance;
 }
 
-Page::Page_ptr PageManager::getCurPage() {
+CommonPage::Page_ptr PageManager::getCurPage() {
 	return m_curpage;
 }
 
@@ -111,7 +111,7 @@ std::list<std::string> PageManager::pageList() const {
 	return m_page_list;
 }
 
-Page::Page_ptr PageManager::open(std::string path,bool readOnly) {
+CommonPage::Page_ptr PageManager::open(std::string path,bool readOnly) {
 	m_curpage = Page::Open(path, readOnly);
     return m_curpage;
 }

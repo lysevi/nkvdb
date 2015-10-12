@@ -379,7 +379,7 @@ PageReader_ptr Page::readFromToPos(const IdArray &ids, nkvdb::Flag source, nkvdb
 }
 
 
-Reader_ptr Page::readIntervalFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) {
+Reader_ptr Page::readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) {
     // [from...minTime,maxTime...to]
     if(this->m_header->write_pos==0){
         return nullptr;
@@ -427,7 +427,7 @@ Reader_ptr Page::readIntervalFltr(const IdArray &ids, nkvdb::Flag source, nkvdb:
 }
 
 
-Reader_ptr Page::readInTimePointFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) {
+Reader_ptr Page::readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) {
 	if (this->m_header->write_pos == 0) {
 		return nullptr;
 	}

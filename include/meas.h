@@ -44,6 +44,7 @@ public:
 typedef std::shared_ptr<Reader> Reader_ptr;
 class MetaStorage{
 public:
+	virtual ~MetaStorage() = default;
     /// min time of writed meas
     virtual Time minTime()=0;
     /// max time of writed meas
@@ -53,10 +54,10 @@ public:
     virtual append_result append(const Meas::PMeas begin, const size_t size)=0;
 
     virtual Reader_ptr readInterval(Time from, Time to);
-    virtual Reader_ptr readIntervalFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to)=0;
+    virtual Reader_ptr readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to)=0;
 
     virtual Reader_ptr readInTimePoint(Time time_point);
-    virtual Reader_ptr readInTimePointFltr(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point)=0;
+    virtual Reader_ptr readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point)=0;
 
 };
 }

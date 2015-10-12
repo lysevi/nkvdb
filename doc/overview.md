@@ -80,7 +80,7 @@ and with **time** from 10 to 30
     nkvdb::Time from=10, to 30;
     nkvdb::Flag source=777;
     nkvdb::Flag flag=111;
-    auto reader = ds->readIntervalFltr(queryIds,source,flag,from, to);
+    auto reader = ds->readInterval(queryIds,source,flag,from, to);
     nkvdb::Meas::MeasList output{};
     reader->readAll(&output);
 ```

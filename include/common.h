@@ -4,6 +4,9 @@ namespace nkvdb
 {
 	struct append_result
 	{
+		static append_result empty() {
+			return append_result();
+		}
 		append_result() { writed = ignored = 0; }
 		append_result(const append_result& other) {
 			this->writed = other.writed;

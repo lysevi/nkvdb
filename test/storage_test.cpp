@@ -165,13 +165,13 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
         nkvdb::Storage::Create(storage_path, storage_size);
 
     size_t arr_size = meas2write * write_iteration;
-    nkvdb::Meas::PMeas array = new nkvdb::Meas[arr_size];
+	nkvdb::Meas::MeasArray array{arr_size};
     for (size_t i = 0; i < arr_size; ++i) {
       array[i].id = i;
       array[i].time = i;
     }
-    ds->append(array, arr_size);
-    delete[] array;
+    ds->append(array);
+    
 
     Meas::MeasList interval{};
     auto reader = ds->readInterval(0, arr_size);

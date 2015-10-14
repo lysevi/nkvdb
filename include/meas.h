@@ -51,6 +51,8 @@ public:
     virtual Time maxTime()=0;
 
     virtual append_result append(const Meas& value)=0;
+	virtual append_result append(const Meas::MeasArray& ma);
+	virtual append_result append(const Meas::MeasList& ml);
     virtual append_result append(const Meas::PMeas begin, const size_t size)=0;
 
     virtual Reader_ptr readInterval(Time from, Time to);

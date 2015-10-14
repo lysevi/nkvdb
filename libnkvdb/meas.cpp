@@ -45,3 +45,27 @@ Reader_ptr nkvdb::MetaStorage::readInTimePoint(Time time_point){
     static IdArray empty{};
     return this->readInTimePoint(empty,0,0,time_point);
 }
+
+append_result nkvdb::MetaStorage::append(const Meas::MeasArray& ma) 
+{
+	if (ma.size() > 0) {
+		auto pm = (nkvdb::Meas::PMeas)ma.data();
+		return this->append(pm, ma.size());
+	} else {
+		return append_result::empty();
+	}
+}
+
+append_result nkvdb::MetaStorage::append(const Meas::MeasList& ml) {
+	if (ml.size() > 0) {
+		append_result result{};
+		for (auto &m:ml) {
+			auto res = this->append(m);
+			result =result + res;
+		}
+		return result;
+	} else {
+		return append_result::empty();
+	}
+
+}

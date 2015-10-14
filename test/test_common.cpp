@@ -42,7 +42,7 @@ void storage_test_io(nkvdb::MetaStorage*ms,nkvdb::Time from, nkvdb::Time to, nkv
         pos++;
     }
 
-    ms->append(&marray[0],marray.size());
+    ms->append(marray);
 
     BOOST_CHECK_EQUAL(ms->minTime(),nkvdb::Time(1));
 	BOOST_CHECK_EQUAL(ms->maxTime(), m.time);

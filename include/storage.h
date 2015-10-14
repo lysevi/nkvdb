@@ -52,6 +52,7 @@ public:
 
 	using MetaStorage::readInterval;
 	using MetaStorage::readInTimePoint;
+	using MetaStorage::append;
 
     Reader_ptr readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to) override;
     Reader_ptr readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time time_point) override;

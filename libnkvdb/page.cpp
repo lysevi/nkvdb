@@ -100,9 +100,13 @@ void Page::loadWriteWindow(){
 
 }
 
-size_t Page::size() const { return m_region->get_size(); }
+size_t Page::size() const {
+    return m_region->get_size();
+}
 
-std::string Page::fileName() const { return std::string(*m_filename); }
+std::string Page::fileName() const {
+    return std::string(*m_filename);
+}
 
 std::string Page::index_fileName() const {
   return std::string(*m_filename) + "i";

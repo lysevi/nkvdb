@@ -21,7 +21,7 @@ using namespace nkvdb;
 BOOST_AUTO_TEST_CASE(MeasEmpty) {
   nkvdb::Meas pm = nkvdb::Meas::empty();
 
-  BOOST_CHECK_EQUAL(pm.value, nkvdb::Value(0));
+  BOOST_CHECK_EQUAL(pm.size, size_t(0));
   BOOST_CHECK_EQUAL(pm.flag, nkvdb::Flag(0));
   BOOST_CHECK_EQUAL(pm.id, nkvdb::Id(0));
   BOOST_CHECK_EQUAL(pm.source, nkvdb::Flag(0));
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
     nkvdb::Meas meas = nkvdb::Meas::empty();
     nkvdb::Time end_it = (meas2write * write_iteration);
     for (nkvdb::Time i = 0; i < end_it; ++i) {
-      meas.value = i;
+      meas.setValue(i);
       meas.id = i;
       meas.source = meas.flag = i % meas2write;
       meas.time = i;
@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
               continue;
           }
 
-          meas.value = i;
+          meas.setValue(i);
           meas.id = Id;
           meas.source = meas.flag = i % meas2write;
           meas.time = i;

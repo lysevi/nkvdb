@@ -22,7 +22,8 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 
     for (size_t i = 0; i < TestableMeasCount - 1; ++i) {
       auto newMeas = nkvdb::Meas::empty();
-      newMeas.value = i;
+      newMeas.setValue(i);
+      newMeas.size=sizeof(i);
       newMeas.id = i;
       newMeas.flag = flagValue;
       newMeas.source = srcValue;
@@ -38,9 +39,12 @@ BOOST_AUTO_TEST_CASE(CacheIO) {
 
     auto interval = c.readInterval(0, TestableMeasCount);
     BOOST_CHECK_EQUAL(interval.size(), TestableMeasCount - 1);
+    size_t i=0;
     for (auto m : interval) {
-      BOOST_CHECK(
-          utils::inInterval<nkvdb::Time>(0, TestableMeasCount - 1, m.time));
+      BOOST_CHECK(utils::inInterval<nkvdb::Time>(0, TestableMeasCount - 1, m.time));
+      BOOST_CHECK_EQUAL(m.readValue<size_t>(),i);
+      BOOST_CHECK_EQUAL(m.size,sizeof(size_t));
+      i++;
     }
 
     for (size_t i = 0; i < TestableMeasCount - 1; ++i) {

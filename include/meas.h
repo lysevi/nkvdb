@@ -5,13 +5,14 @@
 #include <list>
 #include <ctime>
 #include <set>
+#include <array>
 #include "common.h"
 
 namespace nkvdb {
 typedef uint64_t Time;
 typedef uint64_t Id;
 typedef uint64_t Flag;
-typedef uint64_t Value;
+typedef std::array<uint8_t,16> Value;
 typedef std::vector<Id> IdArray;
 typedef std::set<nkvdb::Id> IdSet;
 
@@ -21,6 +22,23 @@ struct Meas {
     typedef std::list<Meas> MeasList;
 
     Meas();
+    template<class T>
+    void setValue(const T&v){
+        size=sizeof(v);
+        uint8_t *dPtr=(uint8_t*)(&v);
+        for(size_t i=0;i<size;i++)
+            value[i]=dPtr[i];
+    }
+
+    template<class T>
+    T readValue(){
+        T result{};
+        uint8_t *dPtr=(uint8_t*)(&result);
+        for(size_t i=0;i<size;i++)
+            dPtr[i]=value[i];
+        return result;
+    }
+
     void readFrom(const Meas::PMeas m);
     static Meas empty();
 
@@ -29,6 +47,7 @@ struct Meas {
     Flag source;
     Flag flag;
     Value value;
+    size_t size;
 };
 
 bool checkPastTime(const Time t, const Time past_time); // |current time - t| < past_time

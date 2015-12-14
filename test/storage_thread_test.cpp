@@ -26,7 +26,7 @@ void writer(nkvdb::Storage::Storage_ptr ds) {
 	threads_count++;
     nkvdb::Meas meas = nkvdb::Meas::empty();
 	for (size_t i = 0; i < arr_size; ++i) {
-        meas.value = i;
+        meas.setValue(i);
         meas.id = i;
         meas.source = meas.flag = i % meas2write;
         meas.time = i;

@@ -63,7 +63,7 @@ struct CommonPage :public MetaStorage
 */
 class Page : public utils::NonCopy, public std::enable_shared_from_this<Page>, public CommonPage {
 public:
-    static const uint8_t page_version = 1;
+    static const uint8_t page_version = 2;
 	struct Header : public PageCommonHeader
 	{
 		uint64_t _1;

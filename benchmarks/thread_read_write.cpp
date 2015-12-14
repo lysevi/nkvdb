@@ -46,7 +46,7 @@ void writer(int writeCount) {
     nkvdb::Meas meas = nkvdb::Meas::empty();
 
 	for (int i = 0; i < writeCount; ++i) {
-        meas.value = i % meas2write;
+        meas.setValue(i);
         meas.id = i % meas2write;
         meas.source = meas.flag = i % meas2write;
         meas.time = i;

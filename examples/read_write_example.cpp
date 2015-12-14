@@ -26,12 +26,12 @@ int main(int argc, char *argv[]) {
 
   auto start_time=time(0);
   for (int i = 0; i < 3000000; ++i) {
-    meas.value = i;
-    meas.id = i % 10;
-    meas.source = meas.flag = 0;
-    meas.time = time(0);
+      meas.setValue(i);
+      meas.id = i % 10;
+      meas.source = meas.flag = 0;
+      meas.time = time(0);
 
-    ds->append(meas);
+      ds->append(meas);
   }
 
   clock_t write_t1 = clock();

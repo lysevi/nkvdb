@@ -36,7 +36,7 @@ void makeAndWrite(int mc, int ic) {
   nkvdb::Meas meas = nkvdb::Meas::empty();
 
   for (int i = 0; i < ic; ++i) {
-    meas.value = i % mc;
+    meas.setValue(i%mc);
     meas.id = i % mc;
     meas.source = meas.flag = i % mc;
     meas.time = time(0);
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
     for (int64_t i = 0; i < pagesize * 10; ++i) {
       clock_t verb_t0 = clock();
 	  
-      meas.value = i;
+      meas.setValue(i);
       meas.id = i % meas2write;
       meas.source = meas.flag = i % meas2write;
       meas.time = i;

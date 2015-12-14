@@ -63,7 +63,8 @@ BOOST_AUTO_TEST_CASE(PageIO) {
     for (size_t i = 0; i < TestableMeasCount; ++i) {
       Page::Page_ptr storage = Page::Open(nkvdb_test::test_page_name);
       auto newMeas = nkvdb::Meas::empty();
-      newMeas.value = i;
+      newMeas.setValue(i);
+      newMeas.size=sizeof(i);
       newMeas.id = i;
       newMeas.flag = flagValue;
       newMeas.source = srcValue;
@@ -82,7 +83,7 @@ BOOST_AUTO_TEST_CASE(PageIO) {
       bool readState = storage->read(&newMeas, i);
 
       BOOST_CHECK_EQUAL(readState, true);
-      BOOST_CHECK_EQUAL(newMeas.value, i);
+      BOOST_CHECK_EQUAL(newMeas.readValue<size_t>(), i);
       BOOST_CHECK_EQUAL(newMeas.id, i);
       BOOST_CHECK_EQUAL(newMeas.flag, flagValue);
       BOOST_CHECK_EQUAL(newMeas.source, srcValue);
@@ -172,7 +173,7 @@ BOOST_AUTO_TEST_CASE(PagereadInterval) {
     for (int i = 0; i < TestableMeasCount; ++i) {
 
       auto newMeas = nkvdb::Meas::empty();
-      newMeas.value = i;
+      newMeas.setValue(i);
       newMeas.id = i % 10;
       newMeas.flag = (nkvdb::Flag)(i % 5);
       newMeas.source = (nkvdb::Flag)(i % 5);

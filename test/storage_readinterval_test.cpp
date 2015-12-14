@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(descendingOrder) {
     nkvdb::Meas meas = nkvdb::Meas::empty();
 
     for (int i = 0; i < 3000000; ++i) {
-        meas.value = i;
+        meas.setValue(i);
         meas.id = i%10;
         meas.source = meas.flag = 0;
         meas.time = i;
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(descendingOrder_backReader) {
     nkvdb::Meas meas = nkvdb::Meas::empty();
 
     for (int i = 0; i < 30; ++i) {
-        meas.value = i;
+        meas.setValue(i);
         meas.id = 1;
         meas.source = meas.flag = 0;
         meas.time = i;
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(RealTimeWriterTest) {
     time_t start=time(0);
     size_t writes_count=1000;
     for (size_t i = 0; i < writes_count; ++i) {
-        meas.value = i;
+        meas.setValue(i);
         meas.id = 1;
         meas.source = meas.flag = 0;
         meas.time = time(0);

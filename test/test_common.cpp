@@ -35,7 +35,7 @@ void storage_test_io(nkvdb::MetaStorage*ms,nkvdb::Time from, nkvdb::Time to, nkv
         m.time=nkvdb::Time(i);
         m.flag=nkvdb::Flag(0);
         m.source=nkvdb::Flag(0);
-        m.value=nkvdb::Value(i);
+        m.setValue(i);
 
 		id_total.push_back(m.id);
         marray[pos]=m;

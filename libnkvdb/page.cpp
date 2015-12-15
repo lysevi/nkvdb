@@ -502,7 +502,8 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb:
 bool Page::isFull() const {
     auto meta_pos=this->m_raw_data+ sizeof(Page::Header) + (sizeof(nkvdb::Meas) * m_header->write_pos);
     auto val_pos=this->m_raw_data+m_header->write_value_pos;
-    return size_t(val_pos-meta_pos)<sizeof(Meas); // size to one meas
+    auto res=size_t(val_pos-meta_pos);
+    return res<sizeof(Meas); // size to one meas
           //(sizeof(Page::Header) + sizeof(nkvdb::Meas) * m_header->write_pos) >= m_header->size;
 }
 

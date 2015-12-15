@@ -226,7 +226,7 @@ void Page::initHeader(char *data) {
   memset(m_header, 0, sizeof(Page::Header));
   m_header->version = page_version;
   m_header->size = this->size();
-  m_header->write_value_pos=this->size()-1;
+  m_header->write_value_pos=this->size();
   m_header->minMaxInit = false;
 }
 
@@ -503,7 +503,8 @@ bool Page::isFull() const {
     auto meta_pos=this->m_raw_data+ sizeof(Page::Header) + (sizeof(nkvdb::Meas) * m_header->write_pos);
     auto val_pos=this->m_raw_data+m_header->write_value_pos;
     auto res=size_t(val_pos-meta_pos);
-    return res<sizeof(Meas); // size to one meas
+    auto ms=sizeof(Meas);
+    return res<ms; // size to one meas
           //(sizeof(Page::Header) + sizeof(nkvdb::Meas) * m_header->write_pos) >= m_header->size;
 }
 

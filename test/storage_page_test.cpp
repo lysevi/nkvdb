@@ -128,8 +128,7 @@ BOOST_AUTO_TEST_CASE(Capacity) {
 }
 
 BOOST_AUTO_TEST_CASE(AppendMany) {
-  const size_t pageSize =
-      sizeof(nkvdb::Page::Header) + sizeof(nkvdb::Meas) * 10;
+  const size_t pageSize =Page::calc_size<10>();
   Page::Page_ptr page = Page::Create(nkvdb_test::test_page_name, pageSize);
 
   size_t arr_size = 15;

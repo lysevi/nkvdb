@@ -87,7 +87,7 @@ public:
     typedef std::shared_ptr<Page> Page_ptr;
     template<int n>
     static uint64_t calc_size(){
-        return sizeof(nkvdb::Page::Header)+sizeof(nkvdb::Meas)*n;
+        return sizeof(nkvdb::Page::Header)+sizeof(nkvdb::Meas)*n + sizeof(nkvdb::InternalMeas::value_pos)*n;
     }
 
   static Page_ptr Open(std::string filename, bool readOnly=false);

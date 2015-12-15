@@ -232,6 +232,52 @@ BOOST_AUTO_TEST_CASE(PagereadInterval) {
   utils::rm(wname);
 }
 
+BOOST_AUTO_TEST_CASE(DynSize) {
+  const size_t pageSize =Page::calc_size<10>();
+  Page::Page_ptr page = Page::Create(nkvdb_test::test_page_name, pageSize);
+
+  size_t arr_size = 10;
+  nkvdb::Meas::PMeas array = new nkvdb::Meas[arr_size];
+  float small=10;
+  double big =11;
+
+  for (size_t i = 0; i < arr_size; ++i) {
+    array[i].id = i;
+    array[i].time = i;
+    if(i%2){
+        array[i].setValue(small);
+    }
+    else{
+        array[i].setValue(big);
+    }
+  }
+  size_t writed = page->append(array, arr_size).writed;
+  delete[] array;
+  BOOST_CHECK_EQUAL(writed, (size_t)10);
+
+  for (size_t i = 0; i < writed; ++i) {
+    nkvdb::Meas readed;
+    page->read(&readed, i);
+    BOOST_CHECK_EQUAL(readed.id, i);
+    if(i%2){
+        auto v=array[i].readValue<float>();
+        BOOST_CHECK_EQUAL(v, small);
+    }
+    else{
+        auto v=array[i].readValue<double>();
+        BOOST_CHECK_EQUAL(v, big);
+    }
+  }
+
+  BOOST_CHECK_EQUAL(page->minTime(), nkvdb::Time(0));
+  BOOST_CHECK_EQUAL(page->maxTime(), (nkvdb::Time)writed-1);
+  auto index = page->index_fileName();
+  auto wname=page->writewindow_fileName();
+  page->close();
+  utils::rm(nkvdb_test::test_page_name);
+  utils::rm(index);
+  utils::rm(wname);
+}
 
 BOOST_AUTO_TEST_CASE(PageCommonTest) {
     auto sz100=nkvdb::Page::calc_size<100>();

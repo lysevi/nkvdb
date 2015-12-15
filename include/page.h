@@ -37,6 +37,7 @@ struct PageCommonHeader
 	Id maxId;
 	/// current write position.
 	uint64_t write_pos;
+    uint64_t write_value_pos;
 	/// size in bytes
 	uint64_t size;
 	uint64_t WriteWindowSize;
@@ -57,6 +58,17 @@ struct CommonPage :public MetaStorage
 	virtual void setWriteWindow(const WriteWindow&other) = 0;
 };
 
+struct InternalMeas {
+    InternalMeas(const Meas&value);
+    void writeToMeas(Meas&other);
+    Id id;
+    Time time;
+    Flag source;
+    Flag flag;
+    size_t size;
+    uint64_t value_pos;
+};
+
 /**
 * Page class.
 * Header + [meas_0...meas_i]
@@ -66,32 +78,17 @@ public:
     static const uint8_t page_version = 2;
 	struct Header : public PageCommonHeader
 	{
-		uint64_t _1;
-		uint64_t _2;
-		uint64_t _3;
-		uint64_t _4;
-		uint64_t _5;
-		uint64_t _6;
-		uint64_t _7;
-		uint64_t _8;
-		uint64_t _9;
-		uint64_t _10;
-		uint64_t _11;
-		uint64_t _12;
-		uint64_t _13;
-		uint64_t _14;
-		uint64_t _15;
-		uint64_t _16;
+        uint64_t _1[16];
 	};
 
   
 
 public:
-	typedef std::shared_ptr<Page> Page_ptr;
-  template<int n>
-  static uint64_t calc_size(){
-      return sizeof(nkvdb::Page::Header)+sizeof(nkvdb::Meas)*n;
-  }
+    typedef std::shared_ptr<Page> Page_ptr;
+    template<int n>
+    static uint64_t calc_size(){
+        return sizeof(nkvdb::Page::Header)+sizeof(nkvdb::Meas)*n;
+    }
 
   static Page_ptr Open(std::string filename, bool readOnly=false);
   static Page_ptr Create(std::string filename, uint64_t fsize);
@@ -148,10 +145,10 @@ protected:
 
   boost::interprocess::file_mapping *m_file;
   boost::interprocess::mapped_region*m_region;
-  Meas *m_data_begin;
-
+  InternalMeas *m_data_begin;
+  char* m_raw_data;
   Header *m_header;
-  Index  m_index;
+  //Index  m_index;
 
   std::mutex m_lock;
   WriteWindow m_writewindow;

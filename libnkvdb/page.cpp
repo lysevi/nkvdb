@@ -20,6 +20,21 @@ using namespace nkvdb;
 
 const size_t oneMb = sizeof(char) * 1024 * 1024;
 
+InternalMeas::InternalMeas(const Meas&value){
+    this->id=value.id;
+    this->flag=value.flag;
+    this->size=value.size;
+    this->source=value.source;
+    this->time=value.time;
+}
+
+void InternalMeas::writeToMeas(Meas&other){
+    other.id=id;
+    other.flag=flag;
+    other.size=size;
+    other.source=source;
+    other.time=time;
+}
 bool nkvdb::HeaderIntervalCheck(Time from, Time to, PageCommonHeader hdr) {
 	if (utils::inInterval(from, to, hdr.minTime) || utils::inInterval(from, to, hdr.maxTime)) {
 		return true;
@@ -42,7 +57,7 @@ Page::Page(std::string fname)
       m_region(nullptr)
 {
 	
-	this->m_index.setFileName(this->index_fileName());
+//	this->m_index.setFileName(this->index_fileName());
 }
 
 Page::~Page() {
@@ -146,7 +161,8 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
 
 	char *data = static_cast<char*>(result_page->m_region->get_address());
 	result_page->m_header = (Page::Header *)data;
-	result_page->m_data_begin = (Meas *)(data + sizeof(Page::Header));
+    result_page->m_data_begin = (InternalMeas *)(data + sizeof(Page::Header));
+    result_page->m_raw_data=data;
 
 	result_page->m_header->isOpen = true;
     if(readOnly){
@@ -183,7 +199,8 @@ Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
   char *data = static_cast<char*>(result_page->m_region->get_address());
 
   result_page->initHeader(data);
-  result_page->m_data_begin = (Meas *)(data + sizeof(Page::Header));
+  result_page->m_data_begin = (InternalMeas *)(data + sizeof(Page::Header));
+  result_page->m_raw_data=data;
   result_page->m_header->isOpen = true;
   result_page->m_region->flush(0, sizeof(result_page->m_header), false);
   return result;
@@ -209,6 +226,7 @@ void Page::initHeader(char *data) {
   memset(m_header, 0, sizeof(Page::Header));
   m_header->version = page_version;
   m_header->size = this->size();
+  m_header->write_value_pos=this->size()-1;
   m_header->minMaxInit = false;
 }
 
@@ -255,18 +273,24 @@ append_result Page::append(const Meas& value) {
 	updateWriteWindow(value);
     m_header->WriteWindowSize=m_writewindow.size();
 
+    InternalMeas im{value};
 
-    memcpy(&m_data_begin[m_header->write_pos], &value, sizeof(Meas));
+    auto new_write_value_pos=m_header->write_value_pos-im.size;
+    memcpy(&m_raw_data[new_write_value_pos],value.value.begin(),im.size);
+    m_header->write_value_pos=new_write_value_pos;
 
-    Index::IndexRecord rec;
-    rec.minTime = value.time;
-    rec.maxTime = value.time;
-    rec.minId = value.id;
-    rec.maxId = value.id;
-    rec.count = 1;
-    rec.pos = m_header->write_pos;
+    im.value_pos=new_write_value_pos;
+    memcpy(&m_data_begin[m_header->write_pos], &im, sizeof(InternalMeas));
 
-    this->m_index.writeIndexRec(rec);
+//    Index::IndexRecord rec;
+//    rec.minTime = value.time;
+//    rec.maxTime = value.time;
+//    rec.minId = value.id;
+//    rec.maxId = value.id;
+//    rec.count = 1;
+//    rec.pos = m_header->write_pos;
+
+//    this->m_index.writeIndexRec(rec);
 
     m_header->write_pos++;
     res.writed+=1;
@@ -274,43 +298,15 @@ append_result Page::append(const Meas& value) {
 }
 
 append_result Page::append(const Meas::PMeas begin, const size_t size) {
-    assert(m_header->ReadersCount==0);
-    size_t cap = this->capacity();
-    size_t to_write = 0;
     append_result res{};
-    if (cap == 0) {
-        return res;
+    for(size_t i=0;i<size;i++){
+        if(this->isFull()){
+            break;
+        }
+        auto sub_res=append(begin[i]);
+        res.ignored+=sub_res.ignored;
+        res.writed+=sub_res.writed;
     }
-    if (cap > size) {
-        to_write = size;
-    } else if (cap == size) {
-        to_write = size;
-    } else if (cap < size) {
-        to_write = cap;
-    }
-    memcpy(m_data_begin + m_header->write_pos, begin, to_write * sizeof(Meas));
-
-    for(auto it=begin;it!=begin+to_write;it++){
-		updateWriteWindow(*it);
-    }
-    m_header->WriteWindowSize=m_writewindow.size();
-
-    updateMinMax(begin[0]);
-    updateMinMax(begin[to_write-1]);
-	//m_region->flush(0, this->size(), false);
-
-    Index::IndexRecord rec;
-    rec.minTime = begin[0].time;
-    rec.maxTime = begin[to_write - 1].time;
-    rec.minId = begin[0].id;
-    rec.maxId = begin[to_write - 1].id;
-    rec.count = to_write;
-    rec.pos = m_header->write_pos;
-
-    this->m_index.writeIndexRec(rec);
-	
-    m_header->write_pos += to_write;
-    res.writed+=to_write;
     return res;
 }
 
@@ -328,8 +324,11 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
         }
     }
 
-    Meas *m = &m_data_begin[position];
-    result->readFrom(m);
+    InternalMeas *m = &m_data_begin[position];
+    m->writeToMeas(*result);
+    int64_t value=(int64_t)m_raw_data[m->value_pos];
+    result->setValue(value);
+    result->size=m->size;
     return true;
 }
 
@@ -424,11 +423,12 @@ Reader_ptr Page::readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Fla
     preader->from = from;
     preader->to = to;
 
-    auto irecords = m_index.findInIndex(ids, from, to);
-    for (Index::IndexRecord &rec : irecords) {
-        auto max_pos = rec.pos + rec.count;
-        preader->addReadPos(rec.pos,max_pos);
-    }
+//    auto irecords = m_index.findInIndex(ids, from, to);
+//    for (Index::IndexRecord &rec : irecords) {
+//        auto max_pos = rec.pos + rec.count;
+//        preader->addReadPos(rec.pos,max_pos);
+//    }
+    preader->addReadPos(0,this->m_header->write_pos);
   return result;
 }
 
@@ -500,7 +500,10 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb:
 }
 
 bool Page::isFull() const {
-  return (sizeof(Page::Header) + sizeof(nkvdb::Meas) * m_header->write_pos) >= m_header->size;
+    auto meta_pos=this->m_raw_data+ sizeof(Page::Header) + (sizeof(nkvdb::Meas) * m_header->write_pos);
+    auto val_pos=this->m_raw_data+m_header->write_value_pos;
+    return size_t(val_pos-meta_pos)<sizeof(Meas); // size to one meas
+          //(sizeof(Page::Header) + sizeof(nkvdb::Meas) * m_header->write_pos) >= m_header->size;
 }
 
 size_t Page::capacity() const {

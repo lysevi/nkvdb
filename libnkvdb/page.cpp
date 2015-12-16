@@ -285,7 +285,6 @@ append_result Page::append(const Meas& value) {
     auto new_write_value_pos=m_header->write_value_pos-im.size;
 	auto non_const_meas = const_cast<Meas&>(value);
 	auto value_raw_data = (char*)non_const_meas.value.data();
-	auto ptr = &m_raw_data[new_write_value_pos];
 	
 	memcpy(&m_raw_data[new_write_value_pos], value_raw_data, im.size);
 	

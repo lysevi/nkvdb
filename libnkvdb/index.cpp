@@ -89,8 +89,8 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 		}
 
        		
-		Index::IndexRecord prev_value;
-		/*bool first = true;*/
+		/*Index::IndexRecord prev_value;
+		bool first = true;*/
         for (size_t pos = 0; pos<fsize / sizeof(IndexRecord); pos++) {
 			Index::IndexRecord rec;
 

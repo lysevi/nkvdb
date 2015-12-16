@@ -306,14 +306,40 @@ append_result Page::append(const Meas& value) {
 
 append_result Page::append(const Meas::PMeas begin, const size_t size) {
     append_result res{};
-    for(size_t i=0;i<size;i++){
-        if(this->isFull()){
-            break;
-        }
-        auto sub_res=append(begin[i]);
-        res.ignored+=sub_res.ignored;
-        res.writed+=sub_res.writed;
+	size_t i = 0;
+    for(;i<size;i++){
+		if (this->isFull()) {
+			break;
+		}
+		auto value = *(begin + i);
+
+		updateWriteWindow(value);
+		m_header->WriteWindowSize = m_writewindow.size();
+
+		InternalMeas im{ value };
+
+		auto new_write_value_pos = m_header->write_value_pos - im.size;
+		auto non_const_meas = const_cast<Meas&>(value);
+		auto value_raw_data = (char*)non_const_meas.value.data();
+
+		memcpy(&m_raw_data[new_write_value_pos], value_raw_data, im.size);
+
+		m_header->write_value_pos = new_write_value_pos;
+
+		im.value_pos = new_write_value_pos;
+		memcpy(&m_data_begin[m_header->write_pos], &im, sizeof(InternalMeas));
+
+		Index::IndexRecord rec;
+		rec.time = value.time;
+		rec.pos = m_header->write_pos;
+		rec.id = im.id;
+		this->m_index.writeIndexRec(rec);
+
+		m_header->write_pos++;
+		res.writed += 1;
     }
+	updateMinMax(begin[0]);
+	updateMinMax(begin[ i - 1]);
     return res;
 }
 

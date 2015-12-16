@@ -44,10 +44,13 @@ void Index::flush()const {
 	FILE *pFile = std::fopen(this->fileName().c_str(), "ab");
 
 	try {
-		for (size_t i = 0; i < m_cache_pos; i++){
+		/*for (size_t i = 0; i < m_cache_pos; i++) {
 			auto rec = m_cache[i];
 			fwrite(&rec, sizeof(IndexRecord), 1, pFile);
-		}
+		
+		}*/
+		auto rec = m_cache.data();
+		fwrite(rec, sizeof(IndexRecord), m_cache_pos, pFile);
 	} catch (std::exception &ex) {
 		auto message = ex.what();
 		fclose(pFile);

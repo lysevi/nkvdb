@@ -296,7 +296,7 @@ append_result Page::append(const Meas& value) {
     Index::IndexRecord rec;
     rec.time = value.time;
     rec.pos = m_header->write_pos;
-
+	rec.id = im.id;
     this->m_index.writeIndexRec(rec);
 
     m_header->write_pos++;

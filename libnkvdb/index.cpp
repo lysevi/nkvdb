@@ -90,7 +90,7 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 
        		
 		Index::IndexRecord prev_value;
-		bool first = true;
+		/*bool first = true;*/
         for (size_t pos = 0; pos<fsize / sizeof(IndexRecord); pos++) {
 			Index::IndexRecord rec;
 
@@ -98,12 +98,14 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 
 			if (checkInterval(rec,from,to))
 			{
-				result.push_back(rec);
+				if ((!index_filter) || (utils::inInterval(minId, maxId, rec.id))) {
+					result.push_back(rec);
+				}
 			}
 		}
-		if (!first) {
+		/*if (!first) {
 			result.push_back(prev_value);
-		}
+		}*/
 	} catch (std::exception &ex) {
 		auto message = ex.what();
 		throw MAKE_EXCEPTION(message);

@@ -16,6 +16,7 @@ namespace nkvdb
 		struct IndexRecord
 		{
 			uint64_t pos;
+			Id id;
             Time time;
 		};
 		struct IndexHeader

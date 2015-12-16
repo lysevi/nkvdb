@@ -276,11 +276,16 @@ append_result Page::append(const Meas& value) {
     InternalMeas im{value};
 
     auto new_write_value_pos=m_header->write_value_pos-im.size;
-    memcpy(&m_raw_data[new_write_value_pos],value.value.begin(),im.size);
-    m_header->write_value_pos=new_write_value_pos;
+	auto non_const_meas = const_cast<Meas&>(value);
+	auto value_raw_data = (char*)non_const_meas.value.data();
+	auto ptr = &m_raw_data[new_write_value_pos];
+	
+	memcpy(&m_raw_data[new_write_value_pos], value_raw_data, im.size);
+	
+	m_header->write_value_pos=new_write_value_pos;
 
-    im.value_pos=new_write_value_pos;
-    memcpy(&m_data_begin[m_header->write_pos], &im, sizeof(InternalMeas));
+	im.value_pos=new_write_value_pos;
+	memcpy(&m_data_begin[m_header->write_pos], &im, sizeof(InternalMeas));
 
 //    Index::IndexRecord rec;
 //    rec.minTime = value.time;
@@ -326,7 +331,8 @@ bool Page::read(Meas::PMeas result, uint64_t position) {
 
     InternalMeas *m = &m_data_begin[position];
     m->writeToMeas(*result);
-    int64_t value=(int64_t)m_raw_data[m->value_pos];
+	int64_t value = 0;
+	memcpy(&value, &m_raw_data[m->value_pos], m->size);
     result->setValue(value);
     result->size=m->size;
     return true;

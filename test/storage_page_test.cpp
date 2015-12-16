@@ -260,11 +260,11 @@ BOOST_AUTO_TEST_CASE(DynSize) {
     page->read(&readed, i);
     BOOST_CHECK_EQUAL(readed.id, i);
     if(i%2){
-        auto v=array[i].readValue<float>();
+		auto v = readed.readValue<float>();
         BOOST_CHECK_EQUAL(v, small);
     }
     else{
-        auto v=array[i].readValue<double>();
+		auto v = readed.readValue<double>();
         BOOST_CHECK_EQUAL(v, big);
     }
   }

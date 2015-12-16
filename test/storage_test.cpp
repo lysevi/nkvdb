@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(StorageCreateOpen) {
 BOOST_AUTO_TEST_CASE(StorageIO) {
   const int meas2write = 10;
   const int write_iteration = 10;
-  const uint64_t storage_size = sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+  const uint64_t storage_size = nkvdb::Page::calc_size<meas2write>();
   const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
 
@@ -156,8 +156,7 @@ BOOST_AUTO_TEST_CASE(StorageIO) {
 BOOST_AUTO_TEST_CASE(StorageIOArrays) {
   const int meas2write = 10;
   const size_t write_iteration = 10;
-  const uint64_t storage_size =
-      sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+  const uint64_t storage_size = nkvdb::Page::calc_size<meas2write>();
   const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
   {
@@ -203,8 +202,7 @@ BOOST_AUTO_TEST_CASE(StorageIOArrays) {
 BOOST_AUTO_TEST_CASE(StorageIORealTime) {
   const int meas2write = 10;
   const int write_iteration = 10;
-  const uint64_t storage_size =
-      sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+  const uint64_t storage_size =  nkvdb::Page::calc_size<meas2write>();
   const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
   {
@@ -272,8 +270,7 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 
     const int meas2write = 10;
     const size_t write_iteration = 10;
-    const uint64_t storage_size =
-        sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+    const uint64_t storage_size = nkvdb::Page::calc_size<meas2write>();
     const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 	
     std::map<nkvdb::Id, nkvdb::Meas> id2meas;
@@ -325,7 +322,7 @@ BOOST_AUTO_TEST_CASE(StorageCurvalues) {
 BOOST_AUTO_TEST_CASE(StorageReadTwoTimesParallel) {
     const int meas2write = 10;
     const size_t write_iteration = 10;
-    const uint64_t storage_size =  sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * meas2write);
+    const uint64_t storage_size =  nkvdb::Page::calc_size<meas2write>();
     const std::string storage_path = nkvdb_test::storage_path + "storageIO";
 
     {

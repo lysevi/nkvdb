@@ -149,7 +149,7 @@ protected:
   InternalMeas *m_data_begin;
   char* m_raw_data;
   Header *m_header;
-  //Index  m_index;
+  Index  m_index;
 
   std::mutex m_lock;
   WriteWindow m_writewindow;

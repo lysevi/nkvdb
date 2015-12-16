@@ -14,6 +14,7 @@
 #include <boost/interprocess/mapped_region.hpp>
 
 uint64_t nkvdb::PageReader::ReadSize=nkvdb::PageReader::defaultReadSize;
+const size_t indexCacheSize = 1000000;
 namespace bi=boost::interprocess;
 
 using namespace nkvdb;
@@ -54,10 +55,11 @@ bool nkvdb::HeaderIdIntervalCheck(Id from, Id to, PageCommonHeader hdr) {
 Page::Page(std::string fname)
     : m_filename(new std::string(fname)),
       m_file(nullptr),
-      m_region(nullptr)
+      m_region(nullptr),
+	  m_index(indexCacheSize)
 {
 	
-//	this->m_index.setFileName(this->index_fileName());
+	this->m_index.setFileName(this->index_fileName());
 }
 
 Page::~Page() {
@@ -161,6 +163,11 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
 
 	char *data = static_cast<char*>(result_page->m_region->get_address());
 	result_page->m_header = (Page::Header *)data;
+	
+	if (result_page->m_header->version != page_version) {
+		throw MAKE_EXCEPTION("page format error.");
+	}
+
     result_page->m_data_begin = (InternalMeas *)(data + sizeof(Page::Header));
     result_page->m_raw_data=data;
 
@@ -287,15 +294,11 @@ append_result Page::append(const Meas& value) {
 	im.value_pos=new_write_value_pos;
 	memcpy(&m_data_begin[m_header->write_pos], &im, sizeof(InternalMeas));
 
-//    Index::IndexRecord rec;
-//    rec.minTime = value.time;
-//    rec.maxTime = value.time;
-//    rec.minId = value.id;
-//    rec.maxId = value.id;
-//    rec.count = 1;
-//    rec.pos = m_header->write_pos;
+    Index::IndexRecord rec;
+    rec.time = value.time;
+    rec.pos = m_header->write_pos;
 
-//    this->m_index.writeIndexRec(rec);
+    this->m_index.writeIndexRec(rec);
 
     m_header->write_pos++;
     res.writed+=1;
@@ -429,12 +432,12 @@ Reader_ptr Page::readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Fla
     preader->from = from;
     preader->to = to;
 
-//    auto irecords = m_index.findInIndex(ids, from, to);
-//    for (Index::IndexRecord &rec : irecords) {
-//        auto max_pos = rec.pos + rec.count;
-//        preader->addReadPos(rec.pos,max_pos);
-//    }
-    preader->addReadPos(0,this->m_header->write_pos);
+    auto irecords = m_index.findInIndex(ids, from, to);
+    for (Index::IndexRecord &rec : irecords) {
+        auto max_pos = rec.pos+1;
+        preader->addReadPos(rec.pos,max_pos);
+    }
+    
   return result;
 }
 

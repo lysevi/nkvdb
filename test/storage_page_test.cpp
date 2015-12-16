@@ -280,6 +280,8 @@ BOOST_AUTO_TEST_CASE(DynSize) {
 }
 
 BOOST_AUTO_TEST_CASE(PageCommonTest) {
+	utils::rm("test_page.dbi");
+	utils::rm("test_page.dbw");
     auto sz100=nkvdb::Page::calc_size<100>();
     Page::Page_ptr created = Page::Create(nkvdb_test::test_page_name, sz100);
     auto iname=created->index_fileName();

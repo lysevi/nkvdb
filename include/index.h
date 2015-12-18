@@ -13,12 +13,15 @@ namespace nkvdb
 	class Index
 	{
 	public:
-		struct IndexRecord
-		{
-			uint64_t pos;
-			Id id;
-            Time time;
-		};
+        struct IndexRecord
+        {
+            uint64_t pos;
+            uint64_t count;
+            Time minTime;
+            Time maxTime;
+            Id minId;
+            Id maxId;
+        };
 		struct IndexHeader
 		{
 			uint16_t format;

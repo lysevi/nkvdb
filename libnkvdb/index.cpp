@@ -92,23 +92,33 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 		}
 
        		
-		/*Index::IndexRecord prev_value;
-		bool first = true;*/
+        Index::IndexRecord prev_value;
+        bool first = true;
         for (size_t pos = 0; pos<fsize / sizeof(IndexRecord); pos++) {
-			Index::IndexRecord rec;
+            Index::IndexRecord rec;
 
-			rec = i_data[pos];
+            rec = i_data[pos];
 
-			if (checkInterval(rec,from,to))
-			{
-				if ((!index_filter) || (utils::inInterval(minId, maxId, rec.id))) {
-					result.push_back(rec);
-				}
-			}
-		}
-		/*if (!first) {
-			result.push_back(prev_value);
-		}*/
+            if (checkInterval(rec,from,to))
+            {
+                if ((!index_filter) || (utils::inInterval(minId, maxId, rec.minId) || utils::inInterval(minId, maxId, rec.maxId))) {
+                    if (!first) {
+                        if ((prev_value.pos + prev_value.count) == rec.pos) {
+                            prev_value.count += rec.count;
+                        } else {
+                            result.push_back(prev_value);
+                            prev_value = rec;
+                        }
+                    } else {
+                        first = false;
+                        prev_value = rec;
+                    }
+                }
+            }
+        }
+        if (!first) {
+                    result.push_back(prev_value);
+        }
 	} catch (std::exception &ex) {
 		auto message = ex.what();
 		throw MAKE_EXCEPTION(message);
@@ -118,5 +128,8 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 }
 
 bool  Index::checkInterval(const IndexRecord&rec, Time from, Time to)const {
-	return utils::inInterval(from, to, rec.time);
+    return utils::inInterval(from, to, rec.minTime)
+            || utils::inInterval(from, to, rec.maxTime)
+            || utils::inInterval(rec.minTime, rec.maxTime, from)
+            || utils::inInterval(rec.minTime, rec.maxTime, from);
 }

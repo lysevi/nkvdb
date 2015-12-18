@@ -294,9 +294,12 @@ append_result Page::append(const Meas& value) {
 	memcpy(&m_data_begin[m_header->write_pos], &im, sizeof(InternalMeas));
 
     Index::IndexRecord rec;
-    rec.time = value.time;
+    rec.minTime = value.time;
+    rec.maxTime = value.time;
+    rec.minId = value.id;
+    rec.maxId = value.id;
+    rec.count = 1;
     rec.pos = m_header->write_pos;
-	rec.id = im.id;
     this->m_index.writeIndexRec(rec);
 
     m_header->write_pos++;
@@ -307,10 +310,15 @@ append_result Page::append(const Meas& value) {
 append_result Page::append(const Meas::PMeas begin, const size_t size) {
     append_result res{};
 	size_t i = 0;
+
+    uint64_t write_pos_begin= m_header->write_pos;
     for(;i<size;i++){
 		if (this->isFull()) {
 			break;
 		}
+
+
+
 		auto value = *(begin + i);
 
 		updateWriteWindow(value);
@@ -329,17 +337,24 @@ append_result Page::append(const Meas::PMeas begin, const size_t size) {
 		im.value_pos = new_write_value_pos;
 		memcpy(&m_data_begin[m_header->write_pos], &im, sizeof(InternalMeas));
 
-		Index::IndexRecord rec;
-		rec.time = value.time;
-		rec.pos = m_header->write_pos;
-		rec.id = im.id;
-		this->m_index.writeIndexRec(rec);
-
 		m_header->write_pos++;
 		res.writed += 1;
     }
-	updateMinMax(begin[0]);
-	updateMinMax(begin[ i - 1]);
+
+
+    if(i!=0){
+        Index::IndexRecord rec;
+        rec.minTime = begin[0].time;
+        rec.maxTime = begin[i - 1].time;
+        rec.minId = begin[0].id;
+        rec.maxId = begin[i - 1].id;
+        rec.count = i-1;
+        rec.pos = write_pos_begin;
+        this->m_index.writeIndexRec(rec);
+
+        updateMinMax(begin[0]);
+        updateMinMax(begin[ i - 1]);
+    }
     return res;
 }
 
@@ -459,7 +474,7 @@ Reader_ptr Page::readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Fla
 
     auto irecords = m_index.findInIndex(ids, from, to);
     for (Index::IndexRecord &rec : irecords) {
-        auto max_pos = rec.pos+1;
+        auto max_pos = rec.pos+ + rec.count;
         preader->addReadPos(rec.pos,max_pos);
     }
     

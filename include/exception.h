@@ -6,8 +6,9 @@
 
 #define POSITION (utils::CodePosition(__FILE__, __LINE__, __FUNCTION__))
 
-#define MAKE_EXCEPTION(msg) utils::Exception::CreateAndLog(POSITION, msg)
+#define MAKE_EXCEPTION(msg) nkvdb::utils::Exception::CreateAndLog(POSITION, msg)
 
+namespace nkvdb{
 namespace utils {
 
 struct CodePosition {
@@ -49,4 +50,5 @@ protected:
 private:
   std::string _message;
 };
+}
 }

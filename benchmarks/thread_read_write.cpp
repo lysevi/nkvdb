@@ -177,6 +177,6 @@ int main(int argc, char *argv[]) {
 
     ds=nullptr;
 	if (!dont_remove) {
-		utils::rm(storage_path);
+        nkvdb::utils::rm(storage_path);
 	}
 }

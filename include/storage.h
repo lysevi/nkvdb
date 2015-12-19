@@ -19,7 +19,7 @@ typedef std::shared_ptr<StorageReader> StorageReader_ptr;
 
 class Storage;
 
-class AsyncWriter : public utils::AsyncWorker<Cache::PCache> {
+class AsyncWriter : public nkvdb::utils::AsyncWorker<Cache::PCache> {
 public:
   AsyncWriter();
   void setStorage(Storage *nkvdb);

@@ -9,24 +9,26 @@
 
 #ifdef _DEBUG
 #define ENSURE(A, E)                                                           \
-  if (!(A)) {                                                                  \
+    if (!(A)) {                                                                  \
     throw std::invalid_argument(E);                                            \
-  }
+    }
 #define ENSURE_NOT_NULL(A) ENSURE(A, "null pointer")
 #else
 #define ENSURE(A, E)
 #define ENSURE_NOT_NULL(A)
 #endif
 
-namespace utils {
+namespace nkvdb{
+namespace utils
+{
 
 class NonCopy {
 private:
-  NonCopy(const NonCopy &) = delete;
-  NonCopy &operator=(const NonCopy &) = delete;
+    NonCopy(const NonCopy &) = delete;
+    NonCopy &operator=(const NonCopy &) = delete;
 
 protected:
-  NonCopy() = default;
+    NonCopy() = default;
 };
 
 std::list<boost::filesystem::path> ls(const std::string &path);

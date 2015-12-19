@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+namespace nkvdb{
 namespace utils
 {
 	Logger* Logger::get() {
@@ -12,4 +13,5 @@ namespace utils
 	std::ostream& Logger::GetStream() {
 		return std::cerr;
 	}
+}
 }

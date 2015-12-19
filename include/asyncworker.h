@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <atomic>
 
+namespace nkvdb{
 namespace utils {
 
 // look usage example in utils_test.cpp
@@ -93,4 +94,5 @@ private:
   std::thread m_thread;
   std::atomic<bool> m_stop_flag, m_thread_work;
 };
+}
 }

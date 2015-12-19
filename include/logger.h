@@ -3,10 +3,12 @@
 #include <cstdint>
 #include <iostream>
 
-#define logger(msg)       utils::Logger::get()->GetStream()<<"   "<<msg<<std::endl
-#define logger_info(msg)       utils::Logger::get()->GetStream()<<"   "<<msg<<std::endl
-#define logger_fatal(msg) utils::Logger::get()->GetStream()<<"   "<<msg<<std::endl
+#define logger(msg)       nkvdb::utils::Logger::get()->GetStream()<<"   "<<msg<<std::endl
+#define logger_info(msg)  nkvdb::utils::Logger::get()->GetStream()<<"   "<<msg<<std::endl
+#define logger_fatal(msg) nkvdb::utils::Logger::get()->GetStream()<<"   "<<msg<<std::endl
 
+namespace nkvdb
+{
 namespace utils
 {
 	class Logger
@@ -22,4 +24,5 @@ namespace utils
 		Logger() {
 		};
 	};
+}
 }

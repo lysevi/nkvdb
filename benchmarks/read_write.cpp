@@ -47,7 +47,7 @@ void makeAndWrite(int mc, int ic) {
   clock_t write_t1 = clock();
   logger("write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC);
   ds = nullptr;
-  utils::rm(storage_path);
+  nkvdb::utils::rm(storage_path);
 }
 
 void readIntervalBench(nkvdb::Storage::Storage_ptr ds,   nkvdb::Time from, nkvdb::Time to,   std::string message) {
@@ -189,6 +189,6 @@ int main(int argc, char *argv[]) {
     ds=nullptr;
 
     if (!dont_remove)
-      utils::rm(storage_path);
+      nkvdb::utils::rm(storage_path);
   }
 }

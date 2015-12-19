@@ -348,7 +348,7 @@ append_result Page::append(const Meas::PMeas begin, const size_t size) {
         rec.maxTime = begin[i - 1].time;
         rec.minId = begin[0].id;
         rec.maxId = begin[i - 1].id;
-        rec.count = i-1;
+        rec.count = i;
         rec.pos = write_pos_begin;
         this->m_index.writeIndexRec(rec);
 

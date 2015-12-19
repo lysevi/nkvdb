@@ -18,7 +18,6 @@ Index::Index(const size_t cache_size) :m_fname("not_set") {
 
 
 Index::~Index() {
-	this->flush();
 }
 
 void Index::setFileName(const std::string& fname) {
@@ -37,40 +36,23 @@ std::string Index::fileName()const {
 	return m_fname;
 }
 
-void Index::flush()const {
-	if (m_cache_pos == 0) {
-		return;
-	}
-	FILE *pFile = std::fopen(this->fileName().c_str(), "ab");
-
-	try {
-		/*for (size_t i = 0; i < m_cache_pos; i++) {
-			auto rec = m_cache[i];
-			fwrite(&rec, sizeof(IndexRecord), 1, pFile);
-		
-		}*/
-		auto rec = m_cache.data();
-		fwrite(rec, sizeof(IndexRecord), m_cache_pos, pFile);
-	} catch (std::exception &ex) {
-		auto message = ex.what();
-		fclose(pFile);
-		throw MAKE_EXCEPTION(message);
-	}
-	fclose(pFile);
-	m_cache_pos = 0;
-}
-
 void Index::writeIndexRec(const Index::IndexRecord &rec) {
-	if (m_cache_pos==m_cache.size()) {
-		this->flush();
-	}
-	m_cache[m_cache_pos] = rec;
-	m_cache_pos++;
+    FILE *pFile=nullptr;
+    try {
+        FILE *pFile = std::fopen(this->fileName().c_str(), "ab");
+        fwrite(&rec, sizeof(IndexRecord), 1, pFile);
+        fclose(pFile);
+    } catch (std::exception &ex) {
+        if(pFile!=nullptr){
+            fclose(pFile);
+        }
+
+        auto message = ex.what();
+        throw MAKE_EXCEPTION(message);
+    }
 }
 
 std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, Time to) const {
-	this->flush();
-
 	std::list<Index::IndexRecord> result;
 
 	try {

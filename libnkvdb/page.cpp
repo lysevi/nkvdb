@@ -97,6 +97,11 @@ void Page::flushWriteWindow(){
     }
 }
 
+void Page::flushIndex(){
+    m_index.flush();
+}
+
+
 void Page::loadWriteWindow(){
 
 	std::ifstream ifs(this->writewindow_fileName(), std::ifstream::binary | std::ifstream::in);

@@ -54,6 +54,7 @@ struct CommonPage :public MetaStorage
 	virtual std::string fileName() const = 0;
 	virtual bool isFull() const = 0;
 	virtual void flushWriteWindow() = 0;
+    virtual void flushIndex() = 0;
 	virtual WriteWindow getWriteWindow() = 0;
 	virtual void setWriteWindow(const WriteWindow&other) = 0;
 };
@@ -131,6 +132,7 @@ public:
   void        setWriteWindow(const WriteWindow&other)override;
 
   void flushWriteWindow()override;
+  void flushIndex()override;
 private:
   PageReader_ptr readAll();
   PageReader_ptr readFromToPos(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to, size_t begin, size_t end);

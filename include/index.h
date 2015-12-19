@@ -33,6 +33,7 @@ namespace nkvdb
 		void setFileName(const std::string& fname);
 		void writeIndexRec(const IndexRecord &rec);
 		std::list<Index::IndexRecord> findInIndex(const IdArray &ids, Time from, Time to) const;
+        void flush()const;
 	protected:
 		bool checkInterval(const IndexRecord&rec, Time from, Time to)const;
 		

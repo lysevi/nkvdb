@@ -42,3 +42,4 @@ template <typename T> bool inInterval(T from, T to, T value) {
   return value >= from && value <= to;
 }
 }
+}

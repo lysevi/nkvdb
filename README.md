@@ -20,32 +20,32 @@
 #include <nkvdb.h>
 
 int main(int argc, char *argv[]) {
-	auto writes_count = 3000000;
-	{
-		auto ds = nkvdb::Storage::Create("path/to/storage");
+    auto writes_count = 3000000;
+    {
+        auto ds = nkvdb::Storage::Create("path/to/storage");
 
-		nkvdb::Meas meas = nkvdb::Meas::empty();
+        nkvdb::Meas meas = nkvdb::Meas::empty();
 
-		for (int i = 0; i < 3000000; ++i) {
-			meas.value = i;
-			meas.id = i % 10;
-			meas.source = meas.flag = 0;
-			meas.time = i;
+        for (int i = 0; i < 3000000; ++i) {
+            meas.setValue(i);
+            meas.id = i % 10;
+            meas.source = meas.flag = 0;
+            meas.time = i;
 
-			ds->append(meas);
-		}
-	}
-	{
-		auto ds = nkvdb::Storage::Open("path/to/storage");
-		//reading
-		nkvdb::Meas::MeasList output;
-		auto reader = ds->readInterval(0, writes_count);
+            ds->append(meas);
+        }
+    }
+    {
+        auto ds = nkvdb::Storage::Open("path/to/storage");
+        //reading
+        nkvdb::Meas::MeasList output;
+        auto reader = ds->readInterval(0, writes_count);
 
-		// or just call reader->readAll(&output);
-		while (!reader->isEnd()) {
-			reader->readNext(&output);
-		}
-	}
+        // or just call reader->readAll(&output);
+        while (!reader->isEnd()) {
+            reader->readNext(&output);
+        }
+    }
 }
 ```
 

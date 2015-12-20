@@ -15,5 +15,5 @@ and for new data nkvdb will take new cache from cache pool.
 nkvdb operate page file as mapped file. nkvdb just take full cache and just write it to the mapped file.
 And here nkvdb write to .pagei index info for future read queries.
 
-## When page os full.
+## When page is full.
 When the page has filled up, the .pagew file contains the very latest value of the measurement. Thats do for reads data in time point and may save time for scanning pages to past.

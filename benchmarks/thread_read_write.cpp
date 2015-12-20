@@ -32,8 +32,7 @@ bool stop_info = false;
 void makeStorage() {
 	logger("makeStorage mc:" << meas2write << " dyn_cache: " << (enable_dyn_cache ? "true" : "false"));
 
-	const uint64_t storage_size =
-        sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * pagesize);
+    const uint64_t storage_size = nkvdb::Page::calc_size(pagesize);
 
     ds = nkvdb::Storage::Create(storage_path, storage_size);
 

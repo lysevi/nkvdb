@@ -86,12 +86,16 @@ public:
 
 public:
     typedef std::shared_ptr<Page> Page_ptr;
-    template<int n>
+    template<size_t n>
     static uint64_t calc_size(){
 		return sizeof(nkvdb::Page::Header) + sizeof(nkvdb::Meas)*n + sizeof(uint64_t)*n;
 		       // header + meas + meas_pos
     }
 
+    static uint64_t calc_size(size_t n){
+        return sizeof(nkvdb::Page::Header) + sizeof(nkvdb::Meas)*n + sizeof(uint64_t)*n;
+               // header + meas + meas_pos
+    }
   static Page_ptr Open(std::string filename, bool readOnly=false);
   static Page_ptr Create(std::string filename, uint64_t fsize);
   /// read only header from page file.

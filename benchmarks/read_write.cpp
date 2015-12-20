@@ -23,7 +23,7 @@ size_t cache_pool_size=nkvdb::defaultcachePoolSize;
 void makeAndWrite(int mc, int ic) {
   logger("makeAndWrite mc:" << mc << " ic:" << ic << " dyn_cache: " << (enable_dyn_cache ? "true" : "false"));
 
-  const uint64_t storage_size = sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * pagesize);
+  const uint64_t storage_size = nkvdb::Page::calc_size(pagesize);
 
   nkvdb::Storage::Storage_ptr ds =
       nkvdb::Storage::Create(storage_path, storage_size);
@@ -122,8 +122,7 @@ int main(int argc, char *argv[]) {
 
   if (!write_only) {
 	  int pagesize = 1000000;
-	  const uint64_t storage_size =
-          sizeof(nkvdb::Page::Header) + (sizeof(nkvdb::Meas) * pagesize);
+      const uint64_t storage_size = nkvdb::Page::calc_size(pagesize);
 
     nkvdb::Storage::Storage_ptr ds = nkvdb::Storage::Create(storage_path, storage_size);
     nkvdb::Meas meas = nkvdb::Meas::empty();

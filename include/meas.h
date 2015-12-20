@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <ctime>
+#include <cstring>
 #include <set>
 #include <array>
 #include "common.h"
@@ -12,7 +13,7 @@ namespace nkvdb {
 typedef uint64_t Time;
 typedef uint64_t Id;
 typedef uint64_t Flag;
-typedef std::array<uint8_t,16> Value;
+typedef uint8_t  Value[16];
 typedef std::vector<Id> IdArray;
 typedef std::set<nkvdb::Id> IdSet;
 
@@ -26,16 +27,14 @@ struct Meas {
     void setValue(const T&v){
         size=sizeof(v);
         uint8_t *dPtr=(uint8_t*)(&v);
-        for(size_t i=0;i<size;i++)
-            value[i]=dPtr[i];
+        memcpy(value,dPtr,size);
     }
 
     template<class T>
     T readValue(){
         T result{};
         uint8_t *dPtr=(uint8_t*)(&result);
-        for(size_t i=0;i<size;i++)
-            dPtr[i]=value[i];
+        memcpy(dPtr,value,size);
         return result;
     }
 

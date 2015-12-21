@@ -1,8 +1,8 @@
 include_directories(..)
 include_directories(../include)
 
-FILE(GLOB SRC "*.cpp" "../include/*.h")
-FILE(GLOB HDRS  "../include/*.h")
+FILE(GLOB SRC "*.cpp" "../include/*.h" "../include/*.hpp")
+FILE(GLOB HDRS  "../include/*.h" "../include/*.hpp")
 
 if(MSVC)
         add_library(nkvdb STATIC ${SRC})

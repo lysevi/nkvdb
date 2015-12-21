@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(PageOpenTwice) {
   }
  utils::rm(nkvdb_test::test_page_name);
 }
-/**/
+
 BOOST_AUTO_TEST_CASE(PageIO) {
   const size_t TestableMeasCount = 100;
   std::string index = "";
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(Capacity) {
   auto index = dynamic_cast<nkvdb::Page*>(page.get())->index_fileName();
   auto wname = dynamic_cast<nkvdb::Page*>(page.get())->writewindow_fileName();
   page->close();
-
+  
   utils::rm(nkvdb_test::test_page_name);
   utils::rm(index);
    utils::rm(wname);

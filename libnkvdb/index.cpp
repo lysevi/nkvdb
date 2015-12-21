@@ -7,9 +7,12 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
+#include <btree.h>
+
 using namespace nkvdb;
 
 namespace bi = boost::interprocess;
+typedef trees::BTree<Time, Index::IndexRecord, 3> IndexTree;
 
 Index::Index(const size_t cache_size) :m_fname("not_set") {
 	m_cache.resize(cache_size);
@@ -22,21 +25,25 @@ Index::~Index() {
 }
 
 void Index::flush()const {
+	// m_tree;
     if (m_cache_pos == 0) {
         return;
     }
-    FILE *pFile = std::fopen(this->fileName().c_str(), "ab");
+	bi::file_mapping mfile(this->m_fname.c_str(), bi::read_write);
+	bi::mapped_region mregion(mfile, bi::read_write);
+	char* raw_data = static_cast<char*>(mregion.get_address());
 
-    try {
-        auto rec = m_cache.data();
-        fwrite(rec, sizeof(IndexRecord), m_cache_pos, pFile);
-    } catch (std::exception &ex) {
-        auto message = ex.what();
-        fclose(pFile);
-        throw MAKE_EXCEPTION(message);
-    }
-    fclose(pFile);
-    m_cache_pos = 0;
+	Index::IndexHeader* header = (Index::IndexHeader*)(raw_data);
+
+	IndexTree::Node*data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
+	
+	IndexTree tree(data, header->cache_size, header->root_pos, header->cache_pos);
+	
+	for (int i = 0; i < m_cache_pos; i++) {
+		tree.insert(m_cache[i].minTime, m_cache[i]);
+	}
+    
+	m_cache_pos = 0;
 }
 
 void Index::setFileName(const std::string& fname) {
@@ -48,6 +55,34 @@ void Index::setFileName(const std::string& fname) {
 		FILE *pFile = std::fopen(this->fileName().c_str(), "ab");
 		fwrite(&ih, sizeof(IndexHeader), 1, pFile);
 		fclose(pFile);
+		
+		bi::file_mapping::remove(fname.c_str());
+		std::filebuf fbuf;
+		fbuf.open(fname,
+				  std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+		//Set the size
+		const size_t cache_size = 1000000;
+		fbuf.pubseekoff(sizeof(Index::IndexHeader) + sizeof(IndexTree::Node)*cache_size, std::ios_base::beg);
+		fbuf.sputc(0);
+		fbuf.close();
+
+
+		bi::file_mapping *mfile = new bi::file_mapping(this->m_fname.c_str(), bi::read_write);
+		bi::mapped_region* mregion = new bi::mapped_region(*mfile, bi::read_write);
+		
+		int8_t* raw_data = static_cast<int8_t*>(mregion->get_address());
+
+		Index::IndexHeader* header = (Index::IndexHeader*)(raw_data);
+		header->format = index_file_format;
+		header->cache_size = cache_size;
+		header->root_pos = 0;
+		header->cache_pos = 1;
+
+		IndexTree::Node*data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
+		data[0].is_leaf = true;
+		mregion->flush();
+		delete mregion;
+		delete mfile;
 	}
 }
 
@@ -69,12 +104,17 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 
 	try {
 
-		bi::file_mapping i_file(this->fileName().c_str(), bi::read_write);
-		bi::mapped_region region(i_file, bi::read_write);
+		bi::file_mapping mfile(this->m_fname.c_str(), bi::read_write);
+		bi::mapped_region mregion(mfile, bi::read_write);
 
-		
-		IndexRecord *i_data = (IndexRecord *)((char*)region.get_address()+sizeof(Index::IndexHeader));
-		auto fsize = region.get_size();
+		char* raw_data = static_cast<char*>(mregion.get_address());
+
+		Index::IndexHeader* header = (Index::IndexHeader*)(raw_data);
+
+		IndexTree::Node*data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
+
+		IndexTree tree(data, header->cache_size, header->root_pos, header->cache_pos);
+
 
 		bool index_filter = false;
 		Id minId = 0;
@@ -84,32 +124,40 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 			minId = *std::min_element(ids.cbegin(), ids.cend());
 			maxId = *std::max_element(ids.cbegin(), ids.cend());
 		}
+		Index::IndexRecord prev_value;
+		bool first = true;
 
+		auto start_node = tree.find_node(from);
+		//auto stop_node = tree.find_node(to);
        		
-        Index::IndexRecord prev_value;
-        bool first = true;
-        for (size_t pos = 0; pos<fsize / sizeof(IndexRecord); pos++) {
-            Index::IndexRecord rec;
+      
+		while (true) {
+			for (size_t i = 0; i < start_node->vals_size; i++) {
+				Index::IndexRecord rec;
+				auto kv = start_node->vals[i];
+				rec = start_node->vals[i].second;
 
-            rec = i_data[pos];
-
-            if (checkInterval(rec,from,to))
-            {
-                if ((!index_filter) || (utils::inInterval(minId, maxId, rec.minId) || utils::inInterval(minId, maxId, rec.maxId))) {
-                    if (!first) {
-                        if ((prev_value.pos + prev_value.count) == rec.pos) {
-                            prev_value.count += rec.count;
-                        } else {
-                            result.push_back(prev_value);
-                            prev_value = rec;
-                        }
-                    } else {
-                        first = false;
-                        prev_value = rec;
-                    }
-                }
-            }
-        }
+				if (checkInterval(rec, from, to)) {
+					if ((!index_filter) || (utils::inInterval(minId, maxId, rec.minId) || utils::inInterval(minId, maxId, rec.maxId))) {
+						if (!first) {
+							if ((prev_value.pos + prev_value.count) == rec.pos) {
+								prev_value.count += rec.count;
+							} else {
+								result.push_back(prev_value);
+								prev_value = rec;
+							}
+						} else {
+							first = false;
+							prev_value = rec;
+						}
+					}
+				}
+			}
+			if (start_node->next == 0) {
+				break;
+			}
+			start_node = tree.getNode(start_node->next);
+		}
         if (!first) {
                     result.push_back(prev_value);
         }

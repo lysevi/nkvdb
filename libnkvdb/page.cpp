@@ -71,6 +71,7 @@ void Page::close() {
     if ((this->m_file!=nullptr) && (m_region!=nullptr)) {
         //logger("write_window.size="<<m_writewindow.size());
         this->flushWriteWindow();
+		this->flushIndex();
         this->m_header->isOpen = false;
         this->m_header->ReadersCount = 0;
 		m_region->flush(0, 0, false);
@@ -152,7 +153,7 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
         if (hdr.isOpen) {
 			std::stringstream ss;
 			ss << "page is already openned. filename=" << filename << " readOnly=" << readOnly;
-			throw MAKE_EXCEPTION(ss.str());
+			//throw MAKE_EXCEPTION(ss.str());
         }
     }
 	auto result_page = new Page(filename);

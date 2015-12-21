@@ -6,7 +6,7 @@
 
 namespace nkvdb
 {
-	const uint16_t index_file_format=1;
+	const uint16_t index_file_format=2;
     /**
     * Implement index for page.
     */
@@ -25,6 +25,9 @@ namespace nkvdb
 		struct IndexHeader
 		{
 			uint16_t format;
+			size_t   cache_pos;
+			size_t   root_pos;
+			size_t   cache_size;
 		};
 	public:
 		Index(const size_t cache_size);

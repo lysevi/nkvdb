@@ -66,6 +66,7 @@ namespace trees
 
 		typename Node::Ptr m_root;
 		size_t cache_pos;
+		size_t cache_size;
 	protected:
         typename Node::Ptr make_node();
 		bool iner_find(Key key, typename Node::Ptr cur_node, typename Node::Ptr&out_ptr, Value &out_res)const; // return last_node, false if fail, or cur_node,true;

@@ -68,6 +68,7 @@ namespace trees{
 	
 	template<class Key, class Value, size_t N>
 	BTree<Key, Value, N>::BTree(Node*_cache, size_t size, size_t root_pos, size_t _cache_pos) :n(N) {
+		cache_size = size;
 		cache = _cache;
 		cache_pos = _cache_pos;
         m_root  = &cache[root_pos];
@@ -92,6 +93,9 @@ namespace trees{
 
 	template<class Key, class Value, size_t N>
     typename BTree<Key, Value, N>::Node::Ptr BTree<Key, Value, N>::make_node() {
+		if (cache_pos > this->cache_size) {
+			throw new std::exception("cache is full");
+		}
         auto ptr=&cache[cache_pos];
         ptr->id=cache_pos;
         cache_pos++;

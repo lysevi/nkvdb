@@ -1,8 +1,15 @@
 #pragma once
 
 #include "meas.h"
+#include <btree.h>
+
 #include <list>
 #include <string>
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+
+
+namespace bi = boost::interprocess;
 
 namespace nkvdb
 {
@@ -13,6 +20,8 @@ namespace nkvdb
 	class Index
 	{
 	public:
+		
+
         struct IndexRecord
         {
             uint64_t pos;
@@ -29,6 +38,8 @@ namespace nkvdb
 			size_t   root_pos;
 			size_t   cache_size;
 		};
+
+		typedef trees::BTree<Time, Index::IndexRecord, 3> IndexTree;
 	public:
 		Index(const size_t cache_size);
 		~Index();
@@ -37,13 +48,19 @@ namespace nkvdb
 		void writeIndexRec(const IndexRecord &rec);
 		std::list<Index::IndexRecord> findInIndex(const IdArray &ids, Time from, Time to) const;
         void flush()const;
+		void close();
 	protected:
 		bool checkInterval(const IndexRecord&rec, Time from, Time to)const;
-		
 	private:
 		std::string m_fname;
 		std::vector<IndexRecord> m_cache;
 		mutable size_t m_cache_pos;
+		
+		
+		bi::file_mapping *mfile;
+		bi::mapped_region *mregion;
+		Index::IndexHeader* header;
+		IndexTree::Node*data;
 	};
 
 }

@@ -4,15 +4,8 @@
 #include "utils.h"
 #include "search.h"
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-
-#include <btree.h>
 
 using namespace nkvdb;
-
-namespace bi = boost::interprocess;
-typedef trees::BTree<Time, Index::IndexRecord, 3> IndexTree;
 
 Index::Index(const size_t cache_size) :m_fname("not_set") {
 	m_cache.resize(cache_size);
@@ -21,7 +14,17 @@ Index::Index(const size_t cache_size) :m_fname("not_set") {
 
 
 Index::~Index() {
-    this->flush();
+	this->close();
+}
+
+void Index::close() {
+	if (mfile != nullptr) {
+		this->flush();
+		delete mregion;
+		delete mfile;
+		mfile = nullptr;
+		mregion = nullptr;
+	}
 }
 
 void Index::flush()const {
@@ -29,14 +32,6 @@ void Index::flush()const {
     if (m_cache_pos == 0) {
         return;
     }
-	bi::file_mapping mfile(this->m_fname.c_str(), bi::read_write);
-	bi::mapped_region mregion(mfile, bi::read_write);
-	char* raw_data = static_cast<char*>(mregion.get_address());
-
-	Index::IndexHeader* header = (Index::IndexHeader*)(raw_data);
-
-	IndexTree::Node*data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
-	
 	IndexTree tree(data, header->cache_size, header->root_pos, header->cache_pos);
 	
 	for (int i = 0; i < m_cache_pos; i++) {
@@ -67,22 +62,28 @@ void Index::setFileName(const std::string& fname) {
 		fbuf.close();
 
 
-		bi::file_mapping *mfile = new bi::file_mapping(this->m_fname.c_str(), bi::read_write);
-		bi::mapped_region* mregion = new bi::mapped_region(*mfile, bi::read_write);
+		mfile = new bi::file_mapping(this->m_fname.c_str(), bi::read_write);
+		mregion = new bi::mapped_region(*mfile, bi::read_write);
 		
-		int8_t* raw_data = static_cast<int8_t*>(mregion->get_address());
+		char* raw_data = static_cast<char*>(mregion->get_address());
 
-		Index::IndexHeader* header = (Index::IndexHeader*)(raw_data);
+		header = (Index::IndexHeader*)(raw_data);
 		header->format = index_file_format;
 		header->cache_size = cache_size;
 		header->root_pos = 0;
 		header->cache_pos = 1;
 
-		IndexTree::Node*data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
+		data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
 		data[0].is_leaf = true;
 		mregion->flush();
-		delete mregion;
-		delete mfile;
+		
+	} else {
+		mfile = new bi::file_mapping(this->m_fname.c_str(), bi::read_write);
+		mregion = new bi::mapped_region(*mfile, bi::read_write);
+		char* raw_data = static_cast<char*>(mregion->get_address());
+		header = (Index::IndexHeader*)(raw_data);
+		data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
+
 	}
 }
 
@@ -103,16 +104,6 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 	std::list<Index::IndexRecord> result;
 
 	try {
-
-		bi::file_mapping mfile(this->m_fname.c_str(), bi::read_write);
-		bi::mapped_region mregion(mfile, bi::read_write);
-
-		char* raw_data = static_cast<char*>(mregion.get_address());
-
-		Index::IndexHeader* header = (Index::IndexHeader*)(raw_data);
-
-		IndexTree::Node*data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
-
 		IndexTree tree(data, header->cache_size, header->root_pos, header->cache_pos);
 
 

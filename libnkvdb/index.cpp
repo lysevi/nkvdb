@@ -34,7 +34,7 @@ void Index::flush()const {
     }
 	IndexTree tree(data, header->cache_size, header->root_pos, header->cache_pos);
 	
-	for (int i = 0; i < m_cache_pos; i++) {
+    for (size_t i = 0; i < m_cache_pos; i++) {
 		tree.insert(m_cache[i].minTime, m_cache[i]);
 	}
     
@@ -119,14 +119,13 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 		bool first = true;
 
 		auto start_node = tree.find_node(from);
-		//auto stop_node = tree.find_node(to);
-       		
+        auto stop_node = tree.find_node(to);
       
-		while (true) {
+        while ((start_node->id!=stop_node->id) && (!first)){
 			for (size_t i = 0; i < start_node->vals_size; i++) {
 				Index::IndexRecord rec;
 				auto kv = start_node->vals[i];
-				rec = start_node->vals[i].second;
+                rec = kv.second;
 
 				if (checkInterval(rec, from, to)) {
 					if ((!index_filter) || (utils::inInterval(minId, maxId, rec.minId) || utils::inInterval(minId, maxId, rec.maxId))) {

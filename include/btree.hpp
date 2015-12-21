@@ -72,8 +72,6 @@ namespace trees{
 		cache = _cache;
 		cache_pos = _cache_pos;
         m_root  = &cache[root_pos];
-		m_root->is_leaf = true;
-
 	}
 	
 	template<class Key, class Value, size_t N>
@@ -94,7 +92,7 @@ namespace trees{
 	template<class Key, class Value, size_t N>
     typename BTree<Key, Value, N>::Node::Ptr BTree<Key, Value, N>::make_node() {
 		if (cache_pos > this->cache_size) {
-			throw new std::exception("cache is full");
+            throw new std::logic_error(std::string("cache is full"));
 		}
         auto ptr=&cache[cache_pos];
         ptr->id=cache_pos;

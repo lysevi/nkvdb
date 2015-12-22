@@ -39,6 +39,8 @@ void Index::flush()const {
 	}
     
 	m_cache_pos = 0;
+	header->root_pos = tree.m_root->id;
+	mregion->flush();
 }
 
 void Index::setFileName(const std::string& fname) {

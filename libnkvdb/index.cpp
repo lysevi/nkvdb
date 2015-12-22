@@ -121,7 +121,7 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 		auto start_node = tree.find_node(from);
         auto stop_node = tree.find_node(to);
       
-        while ((start_node->id!=stop_node->id) && (!first)){
+        while ((start_node->id!=stop_node->id) || (first)){
 			for (size_t i = 0; i < start_node->vals_size; i++) {
 				Index::IndexRecord rec;
 				auto kv = start_node->vals[i];

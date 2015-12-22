@@ -73,8 +73,8 @@ void Index::setFileName(const std::string& fname) {
 		header = (Index::IndexHeader*)(raw_data);
 		header->format = index_file_format;
 		header->cache_size = cache_size;
-		header->root_pos = 0;
-		header->cache_pos = 1;
+        header->root_pos = 1;
+        header->cache_pos = 2;
 
 		data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
 		data[0].is_leaf = true;

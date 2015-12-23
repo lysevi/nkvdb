@@ -59,7 +59,7 @@ void Index::setFileName(const std::string& fname) {
 		fbuf.open(fname,
 				  std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
 		//Set the size
-		const size_t cache_size = 1000000;
+		const size_t cache_size = 10000000;
 		fbuf.pubseekoff(sizeof(Index::IndexHeader) + sizeof(IndexTree::Node)*cache_size, std::ios_base::beg);
 		fbuf.sputc(0);
 		fbuf.close();

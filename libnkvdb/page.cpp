@@ -328,12 +328,11 @@ append_result Page::append(const Meas::PMeas begin, const size_t size) {
 	size_t i = 0;
 
     uint64_t write_pos_begin= m_header->write_pos;
+	uint64_t start = 0;
     for(;i<size;i++){
 		if (this->isFull()) {
 			break;
 		}
-
-
 
 		auto value = *(begin + i);
 
@@ -355,22 +354,37 @@ append_result Page::append(const Meas::PMeas begin, const size_t size) {
 
 		m_header->write_pos++;
 		res.writed += 1;
+
+
+		if ((i!=0) && ((i % 100) == 0)) {
+			Index::IndexRecord rec;
+			rec.minTime = begin[start].time;
+			rec.maxTime = begin[i - 1].time;
+			rec.minId = begin[start].id;
+			rec.maxId = begin[i - 1].id;
+			rec.count = 100;
+			rec.pos = write_pos_begin;
+			write_pos_begin += 100;
+			start = i;
+			this->m_index.writeIndexRec(rec);
+		}
     }
 
 
-    if(i!=0){
+    if(start!=i){
         Index::IndexRecord rec;
-        rec.minTime = begin[0].time;
+        rec.minTime = begin[start].time;
         rec.maxTime = begin[i - 1].time;
-        rec.minId = begin[0].id;
+        rec.minId = begin[start].id;
         rec.maxId = begin[i - 1].id;
-        rec.count = i;
+        rec.count = i-start;
         rec.pos = write_pos_begin;
         this->m_index.writeIndexRec(rec);
-
-        updateMinMax(begin[0]);
-        updateMinMax(begin[ i - 1]);
     }
+	if (res.writed != 0) {
+		updateMinMax(begin[0]);
+		updateMinMax(begin[res.writed - 1]);
+	}
     return res;
 }
 

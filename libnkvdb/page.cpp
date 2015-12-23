@@ -530,48 +530,53 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb:
 	Meas::MeasList result;
 
 	std::map<Id, Meas> readed_values{};
-	for (uint64_t pos = this->getHeader().write_pos-1;; pos--) {
-		Meas m;
-		if (!this->read(&m, pos)) {
-            std::stringstream ss;
-            ss<<"Page::backwardRead read error pos="<<pos<<" start="<<this->getHeader().write_pos-1;
-            throw MAKE_EXCEPTION(ss.str());
-		}
-		
-		if (m.time < time_point) {
-			auto find_res = readed_values.find(m.id);
-			if (find_res == readed_values.end()) {
-				bool flag_check = true;
-				if (flag != 0) {
-					if (m.flag != flag) {
-						flag_check = false;
+	auto irecords = m_index.findInIndex(ids, time_point, this->getHeader().maxTime);
+	std::reverse(irecords.begin(), irecords.end());
+	for (auto irec : irecords) {
+		for (uint64_t pos = irec.pos+irec.count-1;pos>=irec.pos; pos--) {
+			Meas m;
+			if (!this->read(&m, pos)) {
+				std::stringstream ss;
+				ss << "Page::backwardRead read error pos=" << pos << " start=" << this->getHeader().write_pos - 1;
+				throw MAKE_EXCEPTION(ss.str());
+			}
+
+			if (m.time < time_point) {
+				auto find_res = readed_values.find(m.id);
+				if (find_res == readed_values.end()) {
+					bool flag_check = true;
+					if (flag != 0) {
+						if (m.flag != flag) {
+							flag_check = false;
+						}
 					}
-				}
-				bool source_check = true;
-				if (source != 0) {
-					if (m.source != source) {
-						source_check = false;
+					bool source_check = true;
+					if (source != 0) {
+						if (m.source != source) {
+							source_check = false;
+						}
 					}
-				}
-				bool ids_check = true;
-				if (ids.size() != 0) {
-					if (std::find(ids.cbegin(), ids.cend(), m.id) != ids.end()) {
-						ids_check = false;
+					bool ids_check = true;
+					if (ids.size() != 0) {
+						if (std::find(ids.cbegin(), ids.cend(), m.id) != ids.end()) {
+							ids_check = false;
+						}
 					}
-				}
-				if (flag_check && source_check && ids_check) {
-					readed_values.insert(std::make_pair(m.id, m));
-				}
-			} else {
-				if (find_res->second.time < m.time) {
-					readed_values[m.id] = m;
+					if (flag_check && source_check && ids_check) {
+						readed_values.insert(std::make_pair(m.id, m));
+					}
+				} else {
+					if (find_res->second.time < m.time) {
+						readed_values[m.id] = m;
+					}
 				}
 			}
-		}
-		if (pos == 0) {
-			break;
+			if (pos == irec.pos) {
+				break;
+			}
 		}
 	}
+
 	for (auto kv : readed_values) {
 		result.push_back(kv.second);
 	}

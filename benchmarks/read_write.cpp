@@ -92,7 +92,7 @@ void timePointBench(nkvdb::IdArray ids, nkvdb::Flag src,
 		reader->readAll(&output);
 	}
 	clock_t read_t1 = clock();
-	logger("=> :" << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
+    logger("=> :" << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC/count);
 }
 
 

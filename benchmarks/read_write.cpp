@@ -13,6 +13,7 @@ const std::string storage_path = "benchmarkStorage";
 
 size_t meas2write = 10;
 size_t pagesize = 1000000;
+bool tp_bench = false;
 bool write_only = false;
 bool verbose = false;
 bool dont_remove = false;
@@ -78,11 +79,29 @@ void readIntervalBenchFltr(nkvdb::IdArray ids, nkvdb::Flag src,
   logger("=> :" << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
 }
 
+void timePointBench(nkvdb::IdArray ids, nkvdb::Flag src,
+						   nkvdb::Flag flag,
+						   nkvdb::Storage::Storage_ptr ds,
+						   nkvdb::Time from,
+						   std::string message, size_t count) {
+	clock_t read_t0 = clock();
+
+	for (size_t i = 0; i < count; i++) {
+		nkvdb::Meas::MeasList output;
+		auto reader = ds->readInTimePoint(ids, src, flag, from);
+		reader->readAll(&output);
+	}
+	clock_t read_t1 = clock();
+	logger("=> :" << message << " time: " << ((float)read_t1 - read_t0) / CLOCKS_PER_SEC);
+}
+
+
 int main(int argc, char *argv[]) {
   po::options_description desc("IO benchmark.\n Allowed options");
   desc.add_options()("help", "produce help message")(
       "mc", po::value<size_t>(&meas2write)->default_value(meas2write), "measurment count")
       ("dyncache",po::value<bool>(&enable_dyn_cache)->default_value(enable_dyn_cache),"enable dynamic cache")
+	  ("tpbench", po::value<bool>(&tp_bench)->default_value(tp_bench), "enable time point benchmark")
       ("cache-size",po::value<size_t>(&cache_size)->default_value(cache_size),"cache size")
       ("cache-pool-size",po::value<size_t>(&cache_pool_size)->default_value(cache_pool_size),"cache pool size")
       ("page-size",po::value<size_t>(&pagesize)->default_value(pagesize),"page size")
@@ -188,7 +207,32 @@ int main(int argc, char *argv[]) {
     readIntervalBenchFltr(nkvdb::IdArray{0}, 1, 1, ds, 6 * pagesize * 0.3,
                           7 * pagesize * 0.7,
                           "Id: {0},     src:1,  flag:1; [6.3-7.7]");
-    ds->Close();
+    
+	if (tp_bench) {
+		logger("timePoint fltr big readers");
+		timePointBench(nkvdb::IdArray{ 0, 1, 2, 3, 4, 5 }, 1, 1, ds, 0,
+					   "Id: {0- 5}, src:1, flag:1; [0]", 5);
+
+		timePointBench(nkvdb::IdArray{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 1, 0,
+					   ds, 3 * pagesize + pagesize / 2,
+					   "Id: {0- 9}, src:1, flag:0; [3.5]", 5);
+
+		timePointBench(
+			nkvdb::IdArray{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, 1, 1, ds,
+			8 * pagesize + pagesize * 1.5,
+			"Id: {0-12}, src:1, flag:1; [9.5]", 5);
+
+		logger("timePoint fltr small readers");
+		timePointBench(nkvdb::IdArray{ 0, 1 }, 1, 1, ds,
+					   5 * pagesize + pagesize / 3,
+					   "Id: {0,1},   src:1,  flag:1; [5.3]", 5);
+		timePointBench(nkvdb::IdArray{ 0, 1, 3 }, 1, 1, ds,
+					   2 * pagesize + pagesize * 1.5,
+					   "Id: {0,1,3}, src:1,  flag:1; [3.5]", 5);
+		timePointBench(nkvdb::IdArray{ 0 }, 1, 1, ds, 6 * pagesize * 0.3,
+					   "Id: {0},     src:1,  flag:1; [6.3]", 5);
+	}
+	ds->Close();
 
     if (!dont_remove)
       utils::rm(storage_path);

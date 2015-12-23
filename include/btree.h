@@ -34,14 +34,14 @@ namespace trees
 		struct Node
 		{
             typedef Node*  Ptr;
-            typedef size_t Weak;
+            typedef uint64_t Weak;
 			typedef node_data value_vector[N * 2];
 			typedef Weak      child_vector[N * 2];
             value_vector vals;       // n >= size < 2*n
-			size_t vals_size;
+			uint64_t vals_size;
 			child_vector childs;   // size(vals)+1
-			size_t childs_size;
-            size_t id;
+			uint64_t childs_size;
+			uint64_t id;
 			bool is_leaf;
 
 			typename Node::Weak parent;

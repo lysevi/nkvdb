@@ -39,12 +39,12 @@ namespace nkvdb
 			size_t   cache_size;
 		};
 
-		typedef trees::BTree<Time, Index::IndexRecord, 3> IndexTree;
+		typedef trees::BTree<Time, Index::IndexRecord, 5> IndexTree;
 	public:
 		Index(const size_t cache_size);
 		~Index();
 		std::string fileName()const;
-		void setFileName(const std::string& fname);
+		void setFileName(const std::string& fname, uint64_t fsize);
 		void writeIndexRec(const IndexRecord &rec);
 		std::list<Index::IndexRecord> findInIndex(const IdArray &ids, Time from, Time to) const;
         void flush()const;

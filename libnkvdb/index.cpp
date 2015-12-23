@@ -44,13 +44,13 @@ void Index::flush()const {
 	mregion->flush();
 }
 
-void Index::setFileName(const std::string& fname) {
+void Index::setFileName(const std::string& fname, uint64_t fsize) {
 	m_fname = fname;
 	if (!boost::filesystem::exists(fname)) {
 		IndexHeader ih;
 		ih.format = index_file_format;
 
-		FILE *pFile = std::fopen(this->fileName().c_str(), "ab");
+		FILE *pFile = std::fopen(this->m_fname.c_str(), "ab");
 		fwrite(&ih, sizeof(IndexHeader), 1, pFile);
 		fclose(pFile);
 		
@@ -59,8 +59,7 @@ void Index::setFileName(const std::string& fname) {
 		fbuf.open(fname,
 				  std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
 		//Set the size
-		const size_t cache_size = 10000000;
-		fbuf.pubseekoff(sizeof(Index::IndexHeader) + sizeof(IndexTree::Node)*cache_size, std::ios_base::beg);
+		fbuf.pubseekoff(sizeof(Index::IndexHeader) + sizeof(IndexTree::Node)*fsize, std::ios_base::beg);
 		fbuf.sputc(0);
 		fbuf.close();
 
@@ -72,7 +71,7 @@ void Index::setFileName(const std::string& fname) {
 
 		header = (Index::IndexHeader*)(raw_data);
 		header->format = index_file_format;
-		header->cache_size = cache_size;
+		header->cache_size = fsize;
         header->root_pos = 1;
         header->cache_pos = 2;
 

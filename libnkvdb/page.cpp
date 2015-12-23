@@ -52,14 +52,14 @@ bool nkvdb::HeaderIdIntervalCheck(Id from, Id to, PageCommonHeader hdr) {
 	}
 }
 
-Page::Page(std::string fname)
+Page::Page(std::string fname, uint64_t fsize)
     : m_filename(new std::string(fname)),
       m_file(nullptr),
       m_region(nullptr),
 	  m_index(indexCacheSize)
 {
 	
-	this->m_index.setFileName(this->index_fileName());
+	this->m_index.setFileName(this->index_fileName(), fsize);
 }
 
 Page::~Page() {
@@ -157,24 +157,33 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
 			throw MAKE_EXCEPTION(ss.str());
         }
     }
-	auto result_page = new Page(filename);
-	Page_ptr result(result_page);
 
+	boost::interprocess::file_mapping * mapped_file = nullptr;
+	boost::interprocess::mapped_region* mapped_region=nullptr;
     try {
-		result_page->m_file = new bi::file_mapping(filename.c_str(), bi::read_write);
-		result_page->m_region = new bi::mapped_region(*result_page->m_file, bi::read_write);
+		mapped_file = new bi::file_mapping(filename.c_str(), bi::read_write);
+		mapped_region = new bi::mapped_region(*mapped_file, bi::read_write);
     } catch (std::runtime_error &ex) {
         std::string what = ex.what();
         throw MAKE_EXCEPTION(ex.what());
     }
 
-	char *data = static_cast<char*>(result_page->m_region->get_address());
-	result_page->m_header = (Page::Header *)data;
+	char *data = static_cast<char*>(mapped_region->get_address());
+	auto header = (Page::Header *)data;
+
 	
-	if (result_page->m_header->version != page_version) {
+	if (header->version != page_version) {
 		throw MAKE_EXCEPTION("page format error.");
 	}
 
+	
+	auto result_page = new Page(filename, page_size_to_count(header->size) / 20);
+	Page_ptr result(result_page);
+
+	result_page->m_file = mapped_file;
+	result_page->m_region = mapped_region;
+	
+	result_page->m_header = header;
     result_page->m_data_begin = (InternalMeas *)(data + sizeof(Page::Header));
     result_page->m_raw_data=data;
 
@@ -190,7 +199,7 @@ Page::Page_ptr Page::Open(std::string filename, bool readOnly) {
 }
 
 Page::Page_ptr Page::Create(std::string filename, uint64_t fsize) {
-	auto result_page = new Page(filename);
+	auto result_page = new Page(filename, page_size_to_count(fsize)/10);
   Page_ptr result(result_page);
 
   try {

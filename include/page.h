@@ -96,6 +96,10 @@ public:
         return sizeof(nkvdb::Page::Header) + sizeof(nkvdb::Meas)*n + sizeof(uint64_t)*n;
                // header + meas + meas_pos
     }
+
+	static uint64_t page_size_to_count(size_t fsize) {
+		return (fsize-sizeof(nkvdb::Page::Header))/sizeof(nkvdb::InternalMeas);
+	}
   static Page_ptr Open(std::string filename, bool readOnly=false);
   static Page_ptr Create(std::string filename, uint64_t fsize);
   /// read only header from page file.
@@ -140,7 +144,7 @@ public:
 private:
   PageReader_ptr readAll();
   PageReader_ptr readFromToPos(const IdArray &ids, nkvdb::Flag source, nkvdb::Flag flag, Time from, Time to, size_t begin, size_t end);
-  Page(std::string fname);
+  Page(std::string fname, uint64_t fsize);
   /// write empty header.
   void initHeader(char *data);
   void updateMinMax(const Meas& value);

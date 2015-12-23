@@ -534,7 +534,7 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb:
     std::list<Index::IndexRecord> irecords;
     if(time_point==m_header->minTime){
         Index::IndexRecord ir;
-        ir.count=m_header->write_pos-1;
+        ir.count=m_header->write_pos;
         ir.pos=0;
         irecords.push_back(ir);
     }else{

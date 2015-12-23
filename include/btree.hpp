@@ -75,6 +75,12 @@ namespace trees{
 	}
 	
 	template<class Key, class Value, size_t N>
+	void BTree<Key, Value, N>::init_cache(Node*_cache,size_t _cache_pos) {
+		_cache[1].is_leaf = true;
+		_cache[1].id = 1;
+	}
+
+	template<class Key, class Value, size_t N>
     BTree<Key,Value,N>::~BTree() {
 		m_root = nullptr;
 	}

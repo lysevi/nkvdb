@@ -76,8 +76,7 @@ void Index::setFileName(const std::string& fname, uint64_t fsize) {
         header->cache_pos = 2;
 
 		data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
-        data[1].is_leaf = true;
-        data[1].id=1;
+		IndexTree::init_cache(data, header->cache_size);
 		mregion->flush();
 		
 	} else {

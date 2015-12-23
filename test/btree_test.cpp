@@ -12,8 +12,7 @@ BOOST_AUTO_TEST_CASE(BtreeTest) {
     std::set<int> inserted;
 	const size_t n = 3;
 	trees::BTree<int, int,n>::Node* cache = new trees::BTree<int, int,n>::Node[100000];
-	cache[1].is_leaf = true;
-	cache[1].id = 1;
+	trees::BTree<int, int, n>::init_cache(cache, 10000);
 
 	trees::BTree<int,int,n> t(cache, 100000,1,2);
     BOOST_CHECK_EQUAL(t.find(10), 0);
@@ -89,8 +88,7 @@ BOOST_AUTO_TEST_CASE(BtreeTest) {
 BOOST_AUTO_TEST_CASE(QueryRange) {
 	size_t insertion_count = 100;
 	trees::BTree<size_t, size_t ,3 >::Node* cache = new trees::BTree<size_t, size_t,3>::Node[100000];
-	cache[1].is_leaf = true;
-	cache[1].id = 1;
+	trees::BTree<size_t, size_t, 3>::init_cache(cache, 10000);
 
 	trees::BTree<size_t, size_t, 3> t(cache, 100000, 1,2);
 

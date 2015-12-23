@@ -55,6 +55,7 @@ namespace trees
 	public:
 		BTree() = delete;
 		BTree(Node*_cache, size_t size, size_t root_pos, size_t _cache_pos);
+		static void init_cache(Node*_cache,size_t _cache_pos);
 		~BTree();
 
 		Value find(Key key)const;

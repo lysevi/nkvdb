@@ -67,7 +67,7 @@ namespace trees{
 	}
 	
 	template<class Key, class Value, size_t N>
-	BTree<Key, Value, N>::BTree(Node*_cache, size_t size, size_t root_pos, size_t _cache_pos) :n(N) {
+	BTree<Key, Value, N>::BTree(Node*_cache, uint64_t size, uint64_t root_pos, uint64_t _cache_pos) :n(N) {
 		cache_size = size;
 		cache = _cache;
 		cache_pos = _cache_pos;
@@ -75,7 +75,7 @@ namespace trees{
 	}
 	
 	template<class Key, class Value, size_t N>
-	void BTree<Key, Value, N>::init_cache(Node*_cache,size_t _cache_pos) {
+	void BTree<Key, Value, N>::init_cache(Node*_cache, uint64_t _cache_pos) {
 		_cache[1].is_leaf = true;
 		_cache[1].id = 1;
 	}

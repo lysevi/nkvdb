@@ -54,8 +54,8 @@ namespace trees
 
 	public:
 		BTree() = delete;
-		BTree(Node*_cache, size_t size, size_t root_pos, size_t _cache_pos);
-		static void init_cache(Node*_cache,size_t _cache_pos);
+		BTree(Node*_cache, uint64_t size, uint64_t root_pos, uint64_t _cache_pos);
+		static void init_cache(Node*_cache, uint64_t _cache_pos);
 		~BTree();
 
 		Value find(Key key)const;
@@ -66,8 +66,8 @@ namespace trees
         typename Node::Ptr getNode(const typename Node::Weak &w)const;
 
 		typename Node::Ptr m_root;
-		size_t cache_pos;
-		size_t cache_size;
+		uint64_t cache_pos;
+		uint64_t cache_size;
 	protected:
         typename Node::Ptr make_node();
 		bool iner_find(Key key, typename Node::Ptr cur_node, typename Node::Ptr&out_ptr, Value &out_res)const; // return last_node, false if fail, or cur_node,true;

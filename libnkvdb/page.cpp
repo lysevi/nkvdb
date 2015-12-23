@@ -530,8 +530,18 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb:
 	Meas::MeasList result;
 
 	std::map<Id, Meas> readed_values{};
-	auto irecords = m_index.findInIndex(ids, time_point, this->getHeader().maxTime);
-	std::reverse(irecords.begin(), irecords.end());
+
+    std::list<Index::IndexRecord> irecords;
+    if(time_point==m_header->minTime){
+        Index::IndexRecord ir;
+        ir.count=m_header->write_pos-1;
+        ir.pos=0;
+        irecords.push_back(ir);
+    }else{
+        irecords = m_index.findInIndex(ids, time_point, this->getHeader().maxTime);
+        std::reverse(irecords.begin(), irecords.end());
+    }
+
 	for (auto irec : irecords) {
 		for (uint64_t pos = irec.pos+irec.count-1;pos>=irec.pos; pos--) {
 			Meas m;

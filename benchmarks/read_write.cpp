@@ -230,7 +230,6 @@ int main(int argc, char *argv[]) {
 					   "Id: {0},     src:1,  flag:1; [6.3]", 5);
 	}
 
-	ds->Close();
     ds=nullptr;
 
     if (!dont_remove)

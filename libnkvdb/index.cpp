@@ -3,7 +3,7 @@
 #include "exception.h"
 #include "utils.h"
 #include "search.h"
-
+#include <fstream>
 
 using namespace nkvdb;
 

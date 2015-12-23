@@ -46,6 +46,7 @@ BOOST_AUTO_TEST_CASE(PageOpenTwice) {
     openned->close();
   }
  utils::rm(nkvdb_test::test_page_name);
+ utils::rm(nkvdb_test::test_page_name+"i");
 }
 
 BOOST_AUTO_TEST_CASE(PageIO) {

@@ -59,7 +59,7 @@ void Index::setFileName(const std::string& fname, uint64_t fsize) {
 		fbuf.open(fname,
 				  std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
 		//Set the size
-		fbuf.pubseekoff(sizeof(Index::IndexHeader) + sizeof(IndexTree::Node)*fsize, std::ios_base::beg);
+		fbuf.pubseekoff(sizeof(Index::IndexHeader) + sizeof(IndexTree::Node)*fsize / (tree_N*tree_N), std::ios_base::beg);
 		fbuf.sputc(0);
 		fbuf.close();
 
@@ -71,7 +71,7 @@ void Index::setFileName(const std::string& fname, uint64_t fsize) {
 
 		header = (Index::IndexHeader*)(raw_data);
 		header->format = index_file_format;
-		header->cache_size = fsize;
+		header->cache_size = fsize / (tree_N * tree_N);
         header->root_pos = 1;
         header->cache_pos = 2;
 

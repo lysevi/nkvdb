@@ -38,7 +38,7 @@ namespace nkvdb
 			size_t   root_pos;
 			size_t   cache_size;
 		};
-
+		const size_t tree_N = 10;
 		typedef trees::BTree<Time, Index::IndexRecord, 10> IndexTree;
 	public:
 		Index(const size_t cache_size);

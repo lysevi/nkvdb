@@ -18,10 +18,11 @@ struct Bloom{
     }
 
     void  add(const T&val){
-
+        fltr|=val;
     }
+
     bool check(const T&val){
-        return false;
+        return (fltr&val)==val;
     }
 };
 

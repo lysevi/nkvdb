@@ -2,8 +2,8 @@ cmake_minimum_required (VERSION 2.8)
 project (nkvdb)
 
 set(nkvdb_MAJOR_VERSION 0)
-set(nkvdb_MINOR_VERSION 1)
-set(nkvdb_PATCH_VERSION 1)
+set(nkvdb_MINOR_VERSION 2)
+set(nkvdb_PATCH_VERSION 0)
 set(nkvdb_VERSION${nkvdb_MAJOR_VERSION}.${nkvdb_MINOR_VERSION}.${nkvdb_PATCH_VERSION})
 
 # Offer the user the choice of overriding the installation directories

@@ -34,8 +34,8 @@ void makeAndWrite(int mc, int psize) {
 
 	pm[i] = meas;
   }
-  auto ares=ds->append(pm, psize);
   clock_t write_t1 = clock();
+
   logger("write time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC);
   delete[] pm;
   ds->close();

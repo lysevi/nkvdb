@@ -10,6 +10,9 @@ Before write to page, nkvdb store data to cache. Cache is just an array and writ
 When array is full (max size of array **nkvdb::defaultcacheSize**), the new portion of data will send to async writer, 
 and for new data nkvdb will take new cache from cache pool.
 
+## Index file
+Based on [B+ tree.](https://en.wikipedia.org/wiki/B%2B_tree)
+
 ## Async writer
 
 nkvdb operate page file as mapped file. nkvdb just take full cache and just write it to the mapped file.

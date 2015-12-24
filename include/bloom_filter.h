@@ -4,24 +4,15 @@ namespace nkvdb {
 
 template<typename T>
 struct Bloom{
-    T fltr;
-    static Bloom create(const T&fltr){
-        Bloom res{};
-        res.fltr=fltr;
-        return res;
+    static T empty(){
+        return T{};
     }
 
-    static Bloom empty(){
-        Bloom res{};
-        res.fltr=T{};
-        return res;
+    static T  add(const T&fltr, const T&val){
+        return fltr|val;
     }
 
-    void  add(const T&val){
-        fltr|=val;
-    }
-
-    bool check(const T&val){
+    static bool check(const T&fltr, const T&val){
         return (fltr&val)==val;
     }
 };

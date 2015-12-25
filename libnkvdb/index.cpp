@@ -88,7 +88,7 @@ void Index::setFileName(const std::string& fname, uint64_t fsize) {
 		if (header->format != index_file_format) {
 			std::stringstream ss;
 			ss << "wrong index file format exist: " << header->format << " expected:" << index_file_format;
-			MAKE_EXCEPTION(ss.str());
+			throw MAKE_EXCEPTION(ss.str());
 		}
 		data = (IndexTree::Node*)(raw_data + sizeof(IndexHeader));
 

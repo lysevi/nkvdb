@@ -13,9 +13,11 @@ endmacro(TEST_CASE)
 
 TEST_CASE(utils_test utils_test.cpp)
 TEST_CASE(storage_common_test storage_common_test.cpp)
+TEST_CASE(btree_test btree_test.cpp)
+TEST_CASE(storage_page_test storage_page_test.cpp)
+TEST_CASE(storage_cache_test storage_cache_test.cpp)
 TEST_CASE(storage_test storage_test.cpp)
 TEST_CASE(storage_readinterval_test storage_readinterval_test.cpp)
 TEST_CASE(storage_thread_test storage_thread_test.cpp)
-TEST_CASE(storage_page_test storage_page_test.cpp)
-TEST_CASE(storage_cache_test storage_cache_test.cpp)
-TEST_CASE(btree_test btree_test.cpp)
+
+

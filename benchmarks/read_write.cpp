@@ -52,45 +52,6 @@ void makeAndWrite(int mc, int ic) {
 }
 
 
-void flagFltrTest() {
-	logger("flagFltrTest");
-
-	const uint64_t storage_size = nkvdb::Page::calc_size(pagesize);
-
-	nkvdb::Storage::Storage_ptr ds =
-		nkvdb::Storage::Create(storage_path, storage_size);
-
-
-	
-	nkvdb::Meas meas = nkvdb::Meas::empty();
-
-	for (int i = 0; i < pagesize*2; ++i) {
-		meas.setValue(i);
-		meas.id = i % meas2write;
-		if (i < pagesize) {
-			meas.flag = 1;
-		} else {
-			meas.flag = 2;
-		}
-		meas.source = i % meas2write;
-		meas.time = time(0);
-
-		ds->append(meas);
-	}
-
-	clock_t write_t0 = clock();
-	
-	nkvdb::Meas::MeasList output;
-	auto reader = ds->readInterval(nkvdb::IdArray{}, 0,1 , 0, pagesize*2);
-	reader->readAll(&output);
-	clock_t read_t1 = clock();
-
-	clock_t write_t1 = clock();
-	logger("read time: " << ((float)write_t1 - write_t0) / CLOCKS_PER_SEC);
-	ds = nullptr;
-	nkvdb::utils::rm(storage_path);
-}
-
 void readIntervalBench(nkvdb::Storage::Storage_ptr ds,   nkvdb::Time from, nkvdb::Time to,   std::string message) {
 
   clock_t read_t0 = clock();
@@ -173,9 +134,6 @@ int main(int argc, char *argv[]) {
     dont_remove = true;
   }
 
-  
-  flagFltrTest();
-  return 0;
   makeAndWrite(meas2write, 1000000);
   makeAndWrite(meas2write, 2000000);
   makeAndWrite(meas2write, 3000000);

@@ -13,7 +13,7 @@ namespace bi = boost::interprocess;
 
 namespace nkvdb
 {
-	const uint16_t index_file_format=2;
+	const uint16_t index_file_format=3;
     /**
     * Implement index for page.
     */

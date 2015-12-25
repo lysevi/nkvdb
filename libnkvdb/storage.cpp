@@ -377,15 +377,16 @@ Reader_ptr  Storage::readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkv
 }
 
 IdArray Storage::loadCurValues(const IdArray&ids) {
-    auto from = *std::min_element(ids.begin(),ids.end());
-    auto to = *std::max_element(ids.begin(), ids.end());
     std::vector<PageManager::PageInfo> pages_vector = PageManager::get()->pagesByTime();
     std::vector<PageManager::PageInfo> page_time_vector{};
 
     for (auto p : pages_vector) {
-        if (HeaderIdIntervalCheck(from, to, p.header)) {
-            page_time_vector.push_back(p);
-        }
+		for (auto id : ids) {
+			if (bloom_check(p.header.id_fltr, id)) {
+				page_time_vector.push_back(p);
+				break;
+			}
+		}
     }
 
     IdSet id_set(ids.begin(), ids.end());

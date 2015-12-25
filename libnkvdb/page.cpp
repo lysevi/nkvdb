@@ -45,14 +45,6 @@ bool nkvdb::HeaderIntervalCheck(Time from, Time to, PageCommonHeader hdr) {
 	}
 }
 
-bool nkvdb::HeaderIdIntervalCheck(Id from, Id to, PageCommonHeader hdr) {
-	if (hdr.minId >= from || hdr.maxId <= to) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 Page::Page(std::string fname, uint64_t fsize)
     : m_filename(new std::string(fname)),
       m_file(nullptr),
@@ -259,16 +251,10 @@ void Page::updateMinMax(const Meas& value) {
     m_header->minTime = std::min(value.time, m_header->minTime);
     m_header->maxTime = std::max(value.time, m_header->maxTime);
 
-    m_header->minId = std::min(value.id, m_header->minId);
-    m_header->maxId = std::max(value.id, m_header->maxId);
-	
   } else {
     m_header->minMaxInit = true;
     m_header->minTime = value.time;
     m_header->maxTime = value.time;
-
-    m_header->minId = value.id;
-    m_header->maxId = value.id;
   }
 }
 

@@ -2,6 +2,7 @@
 #include "exception.h"
 #include "search.h"
 #include "readers.h"
+#include "bloom_filter.h"
 
 #include <algorithm>
 #include <sstream>
@@ -295,6 +296,10 @@ append_result Page::append(const Meas& value) {
 
 	updateWriteWindow(value);
     m_header->WriteWindowSize=m_writewindow.size();
+	
+	m_header->id_fltr = bloom_add(m_header->id_fltr, value.id);
+	m_header->flag_fltr = bloom_add(m_header->flag_fltr, value.flag);
+	m_header->src_fltr = bloom_add(m_header->src_fltr, value.source);
 
     InternalMeas im{value};
 
@@ -312,8 +317,8 @@ append_result Page::append(const Meas& value) {
     Index::IndexRecord rec;
     rec.minTime = value.time;
     rec.maxTime = value.time;
-    rec.minId = value.id;
-    rec.maxId = value.id;
+	rec.minId = value.id;
+	rec.maxId = value.id;
     rec.count = 1;
     rec.pos = m_header->write_pos;
     this->m_index.writeIndexRec(rec);
@@ -329,12 +334,16 @@ append_result Page::append(const Meas::PMeas begin, const size_t size) {
 
     uint64_t write_pos_begin= m_header->write_pos;
 	uint64_t start = 0;
+	Flag cur_flg_fltr=0;
+	Flag cur_src_fltr = 0;
     for(;i<size;i++){
 		if (this->isFull()) {
 			break;
 		}
 
 		auto value = *(begin + i);
+		cur_flg_fltr = bloom_add(cur_src_fltr, value.id);
+		cur_src_fltr = bloom_add(cur_flg_fltr, value.id);
 
 		updateWriteWindow(value);
 		m_header->WriteWindowSize = m_writewindow.size();
@@ -352,6 +361,11 @@ append_result Page::append(const Meas::PMeas begin, const size_t size) {
 		im.value_pos = new_write_value_pos;
 		memcpy(&m_data_begin[m_header->write_pos], &im, sizeof(InternalMeas));
 
+
+		m_header->id_fltr = bloom_add(m_header->id_fltr, value.id);
+		m_header->flag_fltr = bloom_add(m_header->flag_fltr, value.flag);
+		m_header->src_fltr = bloom_add(m_header->src_fltr, value.source);
+
 		m_header->write_pos++;
 		res.writed += 1;
 
@@ -360,12 +374,18 @@ append_result Page::append(const Meas::PMeas begin, const size_t size) {
 			Index::IndexRecord rec;
 			rec.minTime = begin[start].time;
 			rec.maxTime = begin[i - 1].time;
-			rec.minId = begin[start].id;
-			rec.maxId = begin[i - 1].id;
+			rec.minId = begin[start].time;;
+			rec.maxId = begin[i-1].time;;
+			
+			rec.flg_fltr = cur_flg_fltr;
+			rec.src_fltr = cur_src_fltr;
+
 			rec.count = 100;
 			rec.pos = write_pos_begin;
 			write_pos_begin += 100;
 			start = i;
+			cur_flg_fltr = 0;
+			cur_src_fltr = 0;
 			this->m_index.writeIndexRec(rec);
 		}
     }
@@ -375,8 +395,10 @@ append_result Page::append(const Meas::PMeas begin, const size_t size) {
         Index::IndexRecord rec;
         rec.minTime = begin[start].time;
         rec.maxTime = begin[i - 1].time;
-        rec.minId = begin[start].id;
-        rec.maxId = begin[i - 1].id;
+		rec.minId = begin[start].id;
+		rec.maxId = begin[i - 1].id;
+		rec.flg_fltr = cur_flg_fltr;
+		rec.src_fltr = cur_src_fltr;
         rec.count = i-start;
         rec.pos = write_pos_begin;
         this->m_index.writeIndexRec(rec);
@@ -502,7 +524,7 @@ Reader_ptr Page::readInterval(const IdArray &ids, nkvdb::Flag source, nkvdb::Fla
     preader->from = from;
     preader->to = to;
 
-    auto irecords = m_index.findInIndex(ids, from, to);
+    auto irecords = m_index.findInIndex(ids, from, to, flag, source);
     for (Index::IndexRecord &rec : irecords) {
         auto max_pos = rec.pos+ + rec.count;
         preader->addReadPos(rec.pos,max_pos);
@@ -538,7 +560,7 @@ Meas::MeasList Page::backwardRead(const IdArray &ids, nkvdb::Flag source, nkvdb:
         ir.pos=0;
         irecords.push_back(ir);
     }else{
-        irecords = m_index.findInIndex(ids, time_point, this->getHeader().maxTime);
+		irecords = m_index.findInIndex(ids, time_point, this->getHeader().maxTime, flag ,source);
         std::reverse(irecords.begin(), irecords.end());
     }
 

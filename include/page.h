@@ -41,7 +41,10 @@ struct PageCommonHeader
 	/// size in bytes
 	uint64_t size;
 	uint64_t WriteWindowSize;
-	// bytes reserved to future options.
+	Id       id_fltr;
+	Flag     flag_fltr;
+	Flag     src_fltr;
+	
 	
 };
 
@@ -79,6 +82,7 @@ public:
     static const uint8_t page_version = 2;
 	struct Header : public PageCommonHeader
 	{
+		// bytes reserved to future options.
         uint64_t _1[16];
 	};
 

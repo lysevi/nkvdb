@@ -3,6 +3,7 @@
 #include "exception.h"
 #include "utils.h"
 #include "search.h"
+#include "bloom_filter.h"
 #include <fstream>
 
 using namespace nkvdb;
@@ -101,7 +102,7 @@ void Index::writeIndexRec(const Index::IndexRecord &rec) {
     m_cache_pos++;
 }
 
-std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, Time to) const {
+std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, Time to, Flag flag, Flag source) const {
     this->flush();
 	std::list<Index::IndexRecord> result;
 
@@ -128,6 +129,14 @@ std::list<Index::IndexRecord> Index::findInIndex(const IdArray &ids, Time from, 
 				Index::IndexRecord rec;
 				auto kv = start_node->vals[i];
                 rec = kv.second;
+
+				if ((flag != 0) && (rec.flg_fltr != 0) && (!bloom_check(rec.flg_fltr, flag))) {
+					continue;
+				}
+
+				if ((source != 0) && (rec.src_fltr != 0) && (!bloom_check(rec.src_fltr, source))) {
+					continue;
+				}
 
 				if (checkInterval(rec, from, to)) {
 					if ((!index_filter) || (utils::inInterval(minId, maxId, rec.minId) || utils::inInterval(minId, maxId, rec.maxId))) {

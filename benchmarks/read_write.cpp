@@ -207,10 +207,10 @@ int main(int argc, char *argv[]) {
     
 	if (tp_bench) {
 		logger("timePoint fltr big readers");
-		timePointBench(nkvdb::IdArray{ 900, 901, 902, 903, 904, 905 }, 1, 1, ds, 0,
-					   "Id: {900- 905}, src:1, flag:1; [0]", 5);
+		timePointBench(nkvdb::IdArray{ 0, 1, 2, 3, 4, 5 }, 1, 1, ds, 0,
+					   "Id: {0- 5}, src:1, flag:1; [0]", 5);
 
-		timePointBench(nkvdb::IdArray{ 900, 901, 902, 903, 904, 905, 906, 907, 908, 909 }, 1, 0,
+		timePointBench(nkvdb::IdArray{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 1, 0,
 					   ds, 3 * pagesize + pagesize / 2,
 					   "Id: {0- 9}, src:1, flag:0; [3.5]", 5);
 
@@ -228,6 +228,14 @@ int main(int argc, char *argv[]) {
 					   "Id: {0,1,3}, src:1,  flag:1; [3.5]", 5);
 		timePointBench(nkvdb::IdArray{ 0 }, 1, 1, ds, 6 * pagesize * 0.3,
 					   "Id: {0},     src:1,  flag:1; [6.3]", 5);
+
+		logger("timePoint  not exist id fltr big readers");
+		timePointBench(nkvdb::IdArray{ 900, 901, 902, 903, 904, 905 }, 1, 1, ds, 0,
+					   "Id: {900- 905}, src:1, flag:1; [0]", 5);
+
+		timePointBench(nkvdb::IdArray{ 900, 901, 902, 903, 904, 905, 906, 907, 908, 909 }, 1, 0,
+					   ds, 3 * pagesize + pagesize / 2,
+					   "Id: {900- 909}, src:1, flag:0; [3.5]", 5);
 	}
 
     ds=nullptr;

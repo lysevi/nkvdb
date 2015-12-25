@@ -2,19 +2,20 @@
 
 namespace nkvdb {
 
-template<typename T>
-struct Bloom{
-    static T empty(){
+	template<typename T>
+	static T bloom_empty() {
         return T{};
     }
 
-    static T  add(const T&fltr, const T&val){
+	template<typename T>
+	static T  bloom_add(const T&fltr, const T&val) {
         return fltr|val;
     }
 
-    static bool check(const T&fltr, const T&val){
+	template<typename T>
+	static bool bloom_check(const T&fltr, const T&val) {
         return (fltr&val)==val;
     }
-};
+
 
 }

@@ -60,7 +60,7 @@ append_result Cache::append(const Meas &value, const Time past_time) {
 append_result Cache::append(const Meas::PMeas begin, const size_t size,
 							const Time past_time) {
   // std::lock_guard<std::mutex> lock(this->m_rw_lock);
-  size_t cap = this->m_max_size;
+	size_t cap = this->m_max_size-this->m_size;
   size_t to_write = 0;
   if (cap > size) {
     to_write = size;
@@ -217,7 +217,7 @@ CurValuesCache::CurValuesCache() :m_values() {
 }
 
 void CurValuesCache::writeValue(const nkvdb::Meas&v) {
-	this->m_values.insert(std::make_pair(v.id, v));
+	m_values[v.id] = v;
 }
 
 nkvdb::Meas::MeasList CurValuesCache::readValue(const nkvdb::IdArray&ids)const {

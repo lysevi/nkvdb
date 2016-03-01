@@ -32,16 +32,16 @@ struct PageCommonHeader
 	/// min-max of time
 	Time minTime;
 	Time maxTime;
-	/// min-max of id
-	Id minId;
-	Id maxId;
 	/// current write position.
 	uint64_t write_pos;
     uint64_t write_value_pos;
 	/// size in bytes
 	uint64_t size;
 	uint64_t WriteWindowSize;
-	// bytes reserved to future options.
+	Id       id_fltr;
+	Flag     flag_fltr;
+	Flag     src_fltr;
+	
 	
 };
 
@@ -76,9 +76,10 @@ struct InternalMeas {
 */
 class Page : public utils::NonCopy, public std::enable_shared_from_this<Page>, public CommonPage {
 public:
-    static const uint8_t page_version = 2;
+    static const uint8_t page_version = 3;
 	struct Header : public PageCommonHeader
 	{
+		// bytes reserved to future options.
         uint64_t _1[16];
 	};
 
@@ -166,7 +167,6 @@ protected:
 };
 
 bool HeaderIntervalCheck(Time from, Time to, PageCommonHeader hdr);
-bool HeaderIdIntervalCheck(Id from, Id to, PageCommonHeader hdr);
 
 class PageReader: public utils::NonCopy, public Reader{
 public:

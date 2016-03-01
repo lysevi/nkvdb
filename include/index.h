@@ -13,7 +13,7 @@ namespace bi = boost::interprocess;
 
 namespace nkvdb
 {
-	const uint16_t index_file_format=2;
+	const uint16_t index_file_format=3;
     /**
     * Implement index for page.
     */
@@ -30,6 +30,8 @@ namespace nkvdb
             Time maxTime;
             Id minId;
             Id maxId;
+			Flag flg_fltr;
+			Flag src_fltr;
         };
 		struct IndexHeader
 		{
@@ -46,7 +48,7 @@ namespace nkvdb
 		std::string fileName()const;
 		void setFileName(const std::string& fname, uint64_t fsize);
 		void writeIndexRec(const IndexRecord &rec);
-		std::list<Index::IndexRecord> findInIndex(const IdArray &ids, Time from, Time to) const;
+		std::list<Index::IndexRecord> findInIndex(const IdArray &ids, Time from, Time to, Flag flag, Flag source) const;
         void flush()const;
 		void close();
 	protected:

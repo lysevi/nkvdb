@@ -1,6 +1,7 @@
 #include "storage.h"
 #include "page_manager.h"
 #include "exception.h"
+#include "bloom_filter.h"
 
 #include <ctime>
 #include <cmath>
@@ -218,6 +219,26 @@ Reader_ptr  Storage::readInterval(const IdArray &ids,nkvdb::Flag source, nkvdb::
         auto pinfo = pages[i];
         auto page_name = pinfo.name;
         auto hdr = pinfo.header;
+		if ((flag != 0) && (hdr.flag_fltr != 0) && (!bloom_check(hdr.flag_fltr, flag))) {
+			continue;
+		}
+
+		if ((source != 0) && (hdr.src_fltr != 0) && (!bloom_check(hdr.src_fltr, source))) {
+			continue;
+		}
+
+		if ((ids.size() != 0) && (hdr.id_fltr != 0)) {
+			bool exist = false;
+			for (auto id : ids) {
+				if (bloom_check(hdr.id_fltr, id)) {
+					exist = true;
+					break;
+				}
+			}
+			if (!exist) {
+				continue;
+			}
+		}
 
         // [min from to max]
         if ((hdr.minTime <= from) && (hdr.maxTime >= to)) {
@@ -294,6 +315,27 @@ Reader_ptr  Storage::readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkv
         auto page_name = pinfo.name;
         auto hdr = pinfo.header;
 
+		if ((flag != 0) && (hdr.flag_fltr != 0) && (!bloom_check(hdr.flag_fltr, flag))) {
+			continue;
+		}
+
+		if ((source != 0) && (hdr.src_fltr != 0) && (!bloom_check(hdr.src_fltr, source))) {
+			continue;
+		}
+
+		if ((ids.size() != 0) && (hdr.id_fltr != 0)) {
+			bool exist = false;
+			for (auto id : ids) {
+				if (bloom_check(hdr.id_fltr, id)) {
+					exist = true;
+					break;
+				}
+			}
+			if (!exist) {
+				continue;
+			}
+		}
+
         // [min  max] tp
         if ((hdr.minTime <= time_point) && (hdr.maxTime <= time_point)) {
             // pages.size==1 || last_page
@@ -335,15 +377,16 @@ Reader_ptr  Storage::readInTimePoint(const IdArray &ids, nkvdb::Flag source, nkv
 }
 
 IdArray Storage::loadCurValues(const IdArray&ids) {
-    auto from = *std::min_element(ids.begin(),ids.end());
-    auto to = *std::max_element(ids.begin(), ids.end());
     std::vector<PageManager::PageInfo> pages_vector = PageManager::get()->pagesByTime();
     std::vector<PageManager::PageInfo> page_time_vector{};
 
     for (auto p : pages_vector) {
-        if (HeaderIdIntervalCheck(from, to, p.header)) {
-            page_time_vector.push_back(p);
-        }
+		for (auto id : ids) {
+			if (bloom_check(p.header.id_fltr, id)) {
+				page_time_vector.push_back(p);
+				break;
+			}
+		}
     }
 
     IdSet id_set(ids.begin(), ids.end());

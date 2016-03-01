@@ -102,8 +102,9 @@ void show_reads_info() {
 
 int main(int argc, char *argv[]) {
     po::options_description desc("Multithread IO benchmark.\n Allowed options");
-	desc.add_options()("help", "produce help message")(
-        "mc", po::value<size_t>(&meas2write)->default_value(meas2write), "measurment count")
+	desc.add_options()("help", "produce help message")
+		("mc", po::value<size_t>(&meas2write)->default_value(meas2write), "measurment count")
+		("ic", po::value<size_t>(&iteration_count)->default_value(iteration_count), "iteration count")
 		("dyncache", po::value<bool>(&enable_dyn_cache)->default_value(enable_dyn_cache), "enable dynamic cache")
 		("cache-size", po::value<size_t>(&cache_size)->default_value(cache_size), "cache size")
 		("cache-pool-size", po::value<size_t>(&cache_pool_size)->default_value(cache_pool_size), "cache pool size")

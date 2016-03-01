@@ -51,6 +51,7 @@ void makeAndWrite(int mc, int ic) {
   nkvdb::utils::rm(storage_path);
 }
 
+
 void readIntervalBench(nkvdb::Storage::Storage_ptr ds,   nkvdb::Time from, nkvdb::Time to,   std::string message) {
 
   clock_t read_t0 = clock();
@@ -132,8 +133,6 @@ int main(int argc, char *argv[]) {
   if (vm.count("dont-remove")) {
     dont_remove = true;
   }
-
-  
 
   makeAndWrite(meas2write, 1000000);
   makeAndWrite(meas2write, 2000000);
@@ -228,6 +227,14 @@ int main(int argc, char *argv[]) {
 					   "Id: {0,1,3}, src:1,  flag:1; [3.5]", 5);
 		timePointBench(nkvdb::IdArray{ 0 }, 1, 1, ds, 6 * pagesize * 0.3,
 					   "Id: {0},     src:1,  flag:1; [6.3]", 5);
+
+		logger("timePoint  not exist id fltr big readers");
+		timePointBench(nkvdb::IdArray{ 900, 901, 902, 903, 904, 905 }, 1, 1, ds, 0,
+					   "Id: {900- 905}, src:1, flag:1; [0]", 5);
+
+		timePointBench(nkvdb::IdArray{ 900, 901, 902, 903, 904, 905, 906, 907, 908, 909 }, 1, 0,
+					   ds, 3 * pagesize + pagesize / 2,
+					   "Id: {900- 909}, src:1, flag:0; [3.5]", 5);
 	}
 
     ds=nullptr;

@@ -66,6 +66,6 @@ $ cmake --build .
 ## build with non system installed boost
 ---
 ```shell
-$ cmake . -DBOOST_ROOT="path/to/boost/" .
+$ cmake  -DBOOST_ROOT="path/to/boost/" .
 $ make
 ```

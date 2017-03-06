@@ -1,3 +1,5 @@
+#This project is abandoned. Use [dariadb](https://github.com/lysevi/dariadb)
+
 [![Build Status](https://travis-ci.org/lysevi/nkvdb.svg?branch=master)](https://travis-ci.org/lysevi/nkvdb)
 [![Join the chat at https://gitter.im/lysevi/nkvdb](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lysevi/nkvdb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
